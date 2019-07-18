@@ -107,3 +107,12 @@ Maybe we will don't use it very often, but supporting multiple ports in one proc
 is still a needed feature in mentioned cases. And this cases are indeed existed. So
 I decide to reserve this ability.
 
+# Efficient Developer Tools
+| tools | function | remark |
+|:-----:|:--------:|:------:|
+|gorpc|quickly generate code ||
+|bot|bot of qq, wework, slack||
+|log|logging analysis tool||
+
+Actually, gorpc is pluggable like `go <subcmd>` mechanism.
+

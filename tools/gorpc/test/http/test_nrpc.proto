@@ -1,0 +1,28 @@
+package test_nrpc;
+
+// BuyApple
+message BuyAppleReq {
+    optional uint32 num = 1;
+};
+
+message BuyAppleRsp {
+    optional uint32 errcode = 1;   
+    optional string errmsg = 2;
+};
+
+// SellApple
+message SellAppleReq {
+    optional uint32 num = 1;
+};
+
+
+message SellAppleRsp {
+    optional uint32 errcode = 1;   
+    optional string errmsg = 2;
+};
+
+// service example
+service example {
+    rpc BuyApple(BuyAppleReq) returns(BuyAppleRsp);     // CMD_BuyApple
+    rpc SellApple(SellAppleReq) returns(SellAppleRsp);  // CMD_SellApple
+}

@@ -116,3 +116,6 @@ I decide to reserve this ability.
 
 Actually, gorpc is pluggable like `go <subcmd>` mechanism.
 
+# Go-RPC Arch Design
+
+![arch](doc/arch.png)

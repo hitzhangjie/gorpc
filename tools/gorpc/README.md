@@ -57,5 +57,47 @@ template, needless to modify the code of `protoc-gen-gorpc`.
 So, we'll use some thirdparty protoparsing library to parse *.proto, then use go template
 as our weapons to generate service template, client stub, even service configurations.
 
+## How to use gorpc ?
 
+It's user friendly, all subcmds and its options are described in detail.
+
+```bash
+$ gorpc help
+
+how to display help:
+        gorpc help
+
+how to create project:
+        gorpc create -protodir=. -protofile=*.proto -protocol=nrpc -httpon=false
+        gorpc create -protofile=*.proto -protocol=nrpc
+
+how to update project:
+        gorpc update -protodir=. -protofile=*.proto -protocol=nrpc
+        gorpc update -protofile=*.proto -protocol=nrpc
+```
+
+or 
+
+```bash
+gorpc help -v
+
+
+gorpc <cmd> <options>: 
+
+global options:
+	-h display this help
+	-v display verbose info
+
+gorpc create:
+	-protodir, search path for protofile
+	-protofile, protofile to handle
+	-protocol, protocol to use, nrpc, simplesso or ilive
+	-httpon, enable http mode
+	-g, generate code structure conforming to global gopath
+
+gorpc update:
+	-protodir, search path for protofile
+	-protofile, protofile to handle
+	-protocol, protocol to use, nrpc, simplesso or ilive
+```
 

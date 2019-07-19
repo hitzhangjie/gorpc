@@ -1,11 +1,15 @@
-server: {{.ServerName}}
+**Service**: {{.ServerName}}
 
-intro:
+**Introduction**:
+
 	this project aims to solve ...
 
-changelog:
+**ChangeLog**:
+
 	{{.CreateTime}}, initial version
 
-maintainers:
-	rtx: whoami
+**Maintainers**:
+
+    - user1, user1@domain.com
+    - user2, user2@domain.com
 

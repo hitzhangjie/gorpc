@@ -1,8 +1,5 @@
 [service]
 name = {{.ServerName}}               #服务名称
-log.level = 1                        #框架日志级别,0:DEBUG,1:INFO,2:WARN,3:ERROR, deprecated
-log.size = 64MB                      #日志文件大小,默认64MB,可以指定单位B/KB/MB/GB, deprecated
-log.num = 10                         #日志文件数量,默认10个, deprecated
 limit.reqs = 100000                  #服务允许最大qps
 limit.conns = 100000                 #允许最大入连接数
 tcp.conn.idletime = 300000           #tcp连接空闲关闭时间,5min
@@ -12,12 +9,6 @@ udp.buffer.size = 4096               #udp接收缓冲大小(B),默认1KB,请注�
 {{.Cmd}}.cmd.timeout = 5000          #服务接口{{.Cmd}}超时时间(ms)
 {{- end}}
 env = test
-
-[habo]
-enabled = true                       #是否开启模调上报
-caller = {{.ServerName}}             #主调服务名称
-dcid = dc04125                       #罗盘id
-env = 1                              #0:现网(入库tdw), 1:测试(不入库tdw)
 
 [{{.Protocol}}-service]
 tcp.port = 8000                      #tcp监听端口

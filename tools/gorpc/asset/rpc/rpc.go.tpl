@@ -3,10 +3,10 @@ package {{$pkgname}}
 
 import (
 	"context"
-    "git.code.oa.com/go-neat/core/nclient"
-    "git.code.oa.com/go-neat/core/nlog"
-    "git.code.oa.com/go-neat/core/nserver/default_nserver"
-    "git.code.oa.com/go-neat/core/nserver/nsession"
+    "gorpc/nclient"
+    "gorpc/nlog"
+    "gorpc/nserver/default_nserver"
+    "gorpc/nserver/nsession"
     clt "{{.ProtoSpec.ClientPkg}}"
     "sync"
 )

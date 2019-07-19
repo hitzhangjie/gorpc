@@ -1,10 +1,10 @@
 package main
 
 import (
-	"git.code.oa.com/go-neat/core/nserver/default_nserver"
+	"gorpc/nserver/default_nserver"
 	_ "{{.ProtoSpec.Handler}}"
 	{{- if .HttpOn}}
-	_ "git.code.oa.com/go-neat/core/proto/http/dft_httpsvr"
+	_ "gorpc/proto/http/dft_httpsvr"
 	{{- end}}
 	"net/http"
 

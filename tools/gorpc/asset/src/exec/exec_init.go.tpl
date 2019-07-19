@@ -1,7 +1,7 @@
 package exec
 
 import (
-	"git.code.oa.com/go-neat/core/nserver/default_nserver"
+	"gorpc/nserver/default_nserver"
 )
 
 func init() {

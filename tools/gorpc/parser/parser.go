@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"git.code.oa.com/go-neat/tools/codegen/log"
-	"git.code.oa.com/go-neat/tools/codegen/spec"
+	"gorpc/tools/gorpc/log"
+	"gorpc/tools/gorpc/spec"
 	"github.com/jhump/protoreflect/desc/protoparse"
 )
 

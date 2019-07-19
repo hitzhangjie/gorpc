@@ -2,7 +2,7 @@ package tpl
 
 import (
 	"fmt"
-	"git.code.oa.com/go-neat/tools/codegen/params"
+	"gorpc/tools/gorpc/params"
 	"github.com/pkg/errors"
 	"os"
 	"os/exec"
@@ -11,10 +11,10 @@ import (
 	"strings"
 	"text/template"
 
-	"git.code.oa.com/go-neat/tools/codegen/fs"
-	"git.code.oa.com/go-neat/tools/codegen/log"
-	"git.code.oa.com/go-neat/tools/codegen/parser"
-	"git.code.oa.com/go-neat/tools/codegen/spec"
+	"gorpc/tools/gorpc/fs"
+	"gorpc/tools/gorpc/log"
+	"gorpc/tools/gorpc/parser"
+	"gorpc/tools/gorpc/spec"
 )
 
 func GenerateFiles(asset *parser.ServerDescriptor, fAbsPath string, create bool, options map[string]interface{}) error {
@@ -44,7 +44,7 @@ func GenerateFiles(asset *parser.ServerDescriptor, fAbsPath string, create bool,
 	// 处理模板文件
 	tpllist := map[string]string{}
 
-	// 新建模式goneat create需要生成服务代码，goneat update只更新rpc就可以了
+	// 新建模式gorpc create需要生成服务代码，gorpc update只更新rpc就可以了
 	if create {
 		tpllist = filelist(asset, options)
 		for fin, fout := range tpllist {
@@ -63,7 +63,7 @@ func GenerateFiles(asset *parser.ServerDescriptor, fAbsPath string, create bool,
 	funcMap := template.FuncMap{"splitIliveCmd": splitIliveCmd}
 	generateFile(asset, "rpc/rpc.go.tpl", "rpc/"+asset.ServerName+"_rpc.go", funcMap, outputdir, options)
 
-	// move rpcStub/pb/pb.go to /data/home/goneat/src/git.code.oa.com/${server}
+	// move rpcStub/pb/pb.go to /data/home/gorpc/src/git.code.oa.com/${server}
 	protofile := options["protofile"].(string)
 	protodirs := options["protodir"].(params.StringArray)
 
@@ -242,16 +242,12 @@ func filelist(asset *parser.ServerDescriptor, options map[string]interface{}) ma
 		"src/exec/exec_init.go.tpl":    path.Join("src/exec", "exec_"+asset.ServerName+"_init.go"),
 		"client/client.go.tpl":         path.Join("client", asset.ServerName+"_client.go"),
 		"conf/service.ini.tpl":         path.Join("conf", "service.ini"),
-		"conf/service.ini.online.tpl":  path.Join("conf", "service.ini.online"),
-		"conf/monitor.ini.tpl":         path.Join("conf", "monitor.ini"),
+		"conf/metric.ini.tpl":         path.Join("conf", "metric.ini"),
 		"conf/trace.ini.tpl":           path.Join("conf", "trace.ini"),
 		"conf/log.ini.tpl":             path.Join("conf", "log.ini"),
 		"bin/run.sh.tpl":               path.Join("bin", "run.sh"),
-		"DEVOPS/devops.ini.test.tpl":   path.Join("DEVOPS", "devops.ini.test"),
-		"DEVOPS/devops.ini.online.tpl": path.Join("DEVOPS", "devops.ini.online"),
 		"README.md.tpl":                "README.md",
 		"Makefile.tpl":                 "Makefile",
-		"deploy.ini.tpl":               "deploy.ini",
 	}
 
 	filelistG := map[string]string{
@@ -262,16 +258,12 @@ func filelist(asset *parser.ServerDescriptor, options map[string]interface{}) ma
 		"src.global/exec/exec_init.go.tpl": path.Join("src/exec", "exec_"+asset.ServerName+"_init.go"),
 		"client/client.go.tpl":             path.Join("client", asset.ServerName+"_client.go"),
 		"conf/service.ini.tpl":             path.Join("conf", "service.ini"),
-		"conf/service.ini.online.tpl":      path.Join("conf", "service.ini.online"),
-		"conf/monitor.ini.tpl":             path.Join("conf", "monitor.ini"),
+		"conf/metric.ini.tpl":             path.Join("conf", "metric.ini"),
 		"conf/trace.ini.tpl":               path.Join("conf", "trace.ini"),
 		"conf/log.ini.tpl":                 path.Join("conf", "log.ini"),
 		"bin/run.sh.tpl":                   path.Join("bin", "run.sh"),
-		"DEVOPS/devops.ini.test.tpl":       path.Join("DEVOPS", "devops.ini.test"),
-		"DEVOPS/devops.ini.online.tpl":     path.Join("DEVOPS", "devops.ini.online"),
 		"README.md.tpl":                    "README.md",
 		"Makefile.tpl.global":              "Makefile",
-		"deploy.ini.tpl":                   "deploy.ini",
 	}
 
 	global := options["g"].(bool)

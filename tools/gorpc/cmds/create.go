@@ -2,11 +2,11 @@ package cmds
 
 import (
 	"flag"
-	"git.code.oa.com/go-neat/tools/codegen/log"
-	"git.code.oa.com/go-neat/tools/codegen/params"
-	"git.code.oa.com/go-neat/tools/codegen/parser"
-	"git.code.oa.com/go-neat/tools/codegen/spec"
-	"git.code.oa.com/go-neat/tools/codegen/tpl"
+	"gorpc/tools/gorpc/log"
+	"gorpc/tools/gorpc/params"
+	"gorpc/tools/gorpc/parser"
+	"gorpc/tools/gorpc/spec"
+	"gorpc/tools/gorpc/tpl"
 	"os"
 	"os/exec"
 	"path"

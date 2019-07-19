@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"git.code.oa.com/go-neat/tools/codegen/parser"
+	"gorpc/tools/gorpc/parser"
 )
 
 func TestGenSvrEntry(t *testing.T) {

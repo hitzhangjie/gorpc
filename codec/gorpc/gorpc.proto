@@ -1,15 +1,14 @@
+syntax = "proto2";
 package gorpc;
 
 // PkgHeader request/response统一包头
 //
 // 二进制编码协议：
-// |STX|LENGTH|BODY|ETX|
-// 0   1      5    ~   ~+1
+// | STX | PKG LENGTH | Request/Response BODY | ETX |
+// 0     1            5                       ~    ~+1
 //
-// In PkgHeader, tracing `traceContext` is stored in map `meta`.
-// In PkgHeader, frame only return `err_msg` , why? `err_code` is easy to conflide
-// with user developing, so here `err_code` can only be set by business logic.
-message PkgHeader {
+// In Request, tracing `traceContext` is stored in map `meta`.
+message Request {
     optional uint64 seqno = 1; // 包序号
     optional string appid = 2; // 业务分配ID
     optional string userid = 3; // 用户ID
@@ -17,6 +16,12 @@ message PkgHeader {
     optional uint32 version = 5; // 协议版本
     optional bytes body = 6; // 业务包体
     map<string, string> meta = 7; // 元信息
-    optional uint32 err_code = 8; // 错误码
-    optional string err_msg = 9; // 错误描述信息
+}
+// In Response, frame only return `err_msg` , why? `err_code` is easy to conflide
+// with user developing, so here `err_code` can only be set by business logic.
+message Response {
+    optional uint64 seqno = 1; // 包序号
+    optional uint32 err_code = 2; // 错误码
+    optional string err_msg = 3; // 错误描述信息
+    optional bytes body = 4; // 业务包体
 }

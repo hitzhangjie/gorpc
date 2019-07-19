@@ -2,7 +2,6 @@ package cmds
 
 import (
 	"flag"
-	"fmt"
 	"git.code.oa.com/go-neat/tools/codegen/params"
 	"os"
 	"path"
@@ -11,19 +10,39 @@ import (
 
 type Commander interface {
 	Run(args ...string) error
+	UsageLine() string
+	DescShort() string
+	DescLong() string
+	FlagSet() *flag.FlagSet
 }
 
 type Cmd struct {
-	UsageLine string
-	DescShort string
-	DescLong  string
-	Flag      *flag.FlagSet
+	usageLine string
+	descShort string
+	descLong  string
+	flagSet   *flag.FlagSet
 }
 
-func (c *Cmd) Run(args ...string) error {
-	c.Flag.Parse(args)
-	fmt.Println("command:", c)
-	return nil
+//func (c *Cmd) Run(args ...string) error {
+//	c.flagSet.Parse(args)
+//	fmt.Println("command:", c)
+//	return nil
+//}
+
+func (c *Cmd) UsageLine() string {
+	return c.usageLine
+}
+
+func (c *Cmd) DescShort() string {
+	return c.descShort
+}
+
+func (c *Cmd) DescLong() string {
+	return c.descLong
+}
+
+func (c *Cmd) FlagSet() *flag.FlagSet {
+	return c.flagSet
 }
 
 func ImportDirs(fileDirs *params.StringArray, fileName string) []string {

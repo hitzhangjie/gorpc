@@ -1,19 +1,19 @@
 #框架内部日志
-[log-go_neat_frame]
+[log-gorpc_frame]
 level = 1                       #日志级别,0:DEBUG,1:INFO,2:WARN,3:ERROR
 logwrite = rolling
 logFileAndLine = 1
-rolling.filename = go_neat_frame.log
+rolling.filename = gorpc_frame.log
 rolling.type = size
 rolling.filesize = 100m
 rolling.lognum = 5
 
 #框架流水日志
-[log-go_neat_access]
+[log-gorpc_access]
 level = 1                      #日志级别,0:DEBUG,1:INFO,2:WARN,3:ERROR)
 logwrite = rolling
 logFileAndLine = 0
-rolling.filename = go_neat_access.log
+rolling.filename = gorpc_frame.log
 rolling.type = daily
 rolling.lognum = 5
 

@@ -12,6 +12,12 @@ import (
 	"time"
 )
 
+func init() {
+	alllock.Lock()
+	defer alllock.Unlock()
+	all["update"] = NewUpdateCmd()
+}
+
 func NewUpdateCmd() *UpdateCmd {
 	fs := flag.NewFlagSet("updatecmd", flag.ContinueOnError)
 
@@ -23,8 +29,18 @@ func NewUpdateCmd() *UpdateCmd {
 	fs.String("assetdir", "", "search path for project template")
 
 	u := Cmd{
-		UsageLine: "goneat update",
-		Flag:      fs,
+		usageLine: `gorpc update`,
+		descShort: `
+how to update project:
+	gorpc update -protodir=. -protofile=*.proto -protocol=nrpc
+	gorpc update -protofile=*.proto -protocol=nrpc`,
+
+		descLong: `
+gorpc update:
+	-protodir, search path for protofile
+	-protofile, protofile to handle
+	-protocol, protocol to use, nrpc, simplesso or ilive`,
+		flagSet: fs,
 	}
 
 	return &UpdateCmd{u}
@@ -36,14 +52,14 @@ type UpdateCmd struct {
 
 func (c *UpdateCmd) Run(args ...string) error {
 
-	c.Flag.Parse(args)
+	c.flagSet.Parse(args)
 
-	protofile = c.Flag.Lookup("protofile").Value.(flag.Getter).Get().(string)
-	protocol = c.Flag.Lookup("protocol").Value.(flag.Getter).Get().(string)
-	verbose = c.Flag.Lookup("v").Value.(flag.Getter).Get().(bool)
-	global = c.Flag.Lookup("g").Value.(flag.Getter).Get().(bool)
+	protofile = c.flagSet.Lookup("protofile").Value.(flag.Getter).Get().(string)
+	protocol = c.flagSet.Lookup("protocol").Value.(flag.Getter).Get().(string)
+	verbose = c.flagSet.Lookup("v").Value.(flag.Getter).Get().(bool)
+	global = c.flagSet.Lookup("g").Value.(flag.Getter).Get().(bool)
 
-	assetdir = c.Flag.Lookup("assetdir").Value.(flag.Getter).Get().(string)
+	assetdir = c.flagSet.Lookup("assetdir").Value.(flag.Getter).Get().(string)
 	if len(assetdir) == 0 {
 		if dir, err := spec.LocateCfgPath(); err != nil {
 			panic(err)

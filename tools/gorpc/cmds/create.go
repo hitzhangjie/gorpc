@@ -24,6 +24,12 @@ var (
 	assetdir  string
 )
 
+func init() {
+	alllock.Lock()
+	defer alllock.Unlock()
+	all["create"] = NewCreateCmd()
+}
+
 func NewCreateCmd() *CreateCmd {
 	fs := flag.NewFlagSet("createcmd", flag.ContinueOnError)
 
@@ -36,8 +42,19 @@ func NewCreateCmd() *CreateCmd {
 	fs.String("assetdir", "", "search path for project template")
 
 	u := Cmd{
-		UsageLine: "goneat create",
-		Flag:      fs,
+		usageLine: `gorpc create`,
+		descShort: `
+how to create project:
+	gorpc create -protodir=. -protofile=*.proto -protocol=nrpc -httpon=false
+	gorpc create -protofile=*.proto -protocol=nrpc`,
+		descLong: `
+gorpc create:
+	-protodir, search path for protofile
+	-protofile, protofile to handle
+	-protocol, protocol to use, nrpc, simplesso or ilive
+	-httpon, enable http mode
+	-g, generate code structure conforming to global gopath`,
+		flagSet: fs,
 	}
 
 	return &CreateCmd{u}
@@ -49,15 +66,15 @@ type CreateCmd struct {
 
 func (c *CreateCmd) Run(args ...string) error {
 
-	c.Flag.Parse(args)
+	c.flagSet.Parse(args)
 
-	protofile = c.Flag.Lookup("protofile").Value.(flag.Getter).Get().(string)
-	protocol = c.Flag.Lookup("protocol").Value.(flag.Getter).Get().(string)
-	httpon = c.Flag.Lookup("httpon").Value.(flag.Getter).Get().(bool)
-	verbose = c.Flag.Lookup("v").Value.(flag.Getter).Get().(bool)
-	global = c.Flag.Lookup("g").Value.(flag.Getter).Get().(bool)
+	protofile = c.flagSet.Lookup("protofile").Value.(flag.Getter).Get().(string)
+	protocol = c.flagSet.Lookup("protocol").Value.(flag.Getter).Get().(string)
+	httpon = c.flagSet.Lookup("httpon").Value.(flag.Getter).Get().(bool)
+	verbose = c.flagSet.Lookup("v").Value.(flag.Getter).Get().(bool)
+	global = c.flagSet.Lookup("g").Value.(flag.Getter).Get().(bool)
 
-	assetdir = c.Flag.Lookup("assetdir").Value.(flag.Getter).Get().(string)
+	assetdir = c.flagSet.Lookup("assetdir").Value.(flag.Getter).Get().(string)
 	if len(assetdir) == 0 {
 		if dir, err := spec.LocateCfgPath(); err != nil {
 			panic(err)

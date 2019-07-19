@@ -5,9 +5,9 @@ package exec
 import (
 	"context"
 	"{{.ProtoSpec.RepoPrefix}}/{{$svrName}}"
-	"git.code.oa.com/go-neat/core/nserver"
-	"git.code.oa.com/go-neat/core/nserver/nsession"
-	"git.code.oa.com/go-neat/tencent/attr"
+	"gorpc/nserver"
+	"gorpc/nserver/nsession"
+	"gorpc/attr"
 	{{range .Imports}}
     _ "{{.}}"
     {{end}}

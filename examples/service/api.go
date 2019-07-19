@@ -3,19 +3,19 @@ package service
 import (
 	"context"
 	"fmt"
-	pb "gorpc/examples/helloworld"
+	helloworld2 "github.com/hitzhangjie/gorpc/examples/helloworld"
 )
 
 type Greeter interface {
-	SayHello(ctx context.Context, req pb.Request) (rsp pb.Response, err error)
+	SayHello(ctx context.Context, req helloworld2.Request) (rsp helloworld2.Response, err error)
 }
 
 var mapping = map[string]interface{}{}
 
 func init() {
-	mapping["SayHello"] = GreeterService.SayHello
+	mapping["SayHello"] = SayHello
 
 	for n, m := range mapping {
-		fmt.Println("call rpc:", n, ", result:", n, m.(*GreeterService).SayHello)
+		fmt.Println("call rpc:", n, ", result:", n, SayHello)
 	}
 }

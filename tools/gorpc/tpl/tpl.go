@@ -2,7 +2,11 @@ package tpl
 
 import (
 	"fmt"
-	"gorpc/tools/gorpc/params"
+	"github.com/hitzhangjie/gorpc/tools/gorpc/fs"
+	"github.com/hitzhangjie/gorpc/tools/gorpc/log"
+	"github.com/hitzhangjie/gorpc/tools/gorpc/params"
+	"github.com/hitzhangjie/gorpc/tools/gorpc/parser"
+	"github.com/hitzhangjie/gorpc/tools/gorpc/spec"
 	"github.com/pkg/errors"
 	"os"
 	"os/exec"
@@ -10,11 +14,6 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
-
-	"gorpc/tools/gorpc/fs"
-	"gorpc/tools/gorpc/log"
-	"gorpc/tools/gorpc/parser"
-	"gorpc/tools/gorpc/spec"
 )
 
 func GenerateFiles(asset *parser.ServerDescriptor, fAbsPath string, create bool, options map[string]interface{}) error {

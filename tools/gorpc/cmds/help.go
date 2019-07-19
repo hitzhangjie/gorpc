@@ -55,26 +55,26 @@ global options:
 
 func (c *HelpCmd) usageShort() string {
 	b := strings.Builder{}
-	b.WriteString(c.descShort + "\n")
+	b.WriteString(descShort + "\n")
 
 	for k, v := range all {
 		if k == "help" {
 			continue
 		}
-		b.WriteString(v.DescShort() + "\n")
+		b.WriteString(DescShort() + "\n")
 	}
 	return b.String()
 }
 
 func (c *HelpCmd) usageLong() string {
 	b := strings.Builder{}
-	b.WriteString(c.descLong + "\n")
+	b.WriteString(descLong + "\n")
 
 	for k, v := range all {
 		if k == "help" {
 			continue
 		}
-		b.WriteString(v.DescLong() + "\n")
+		b.WriteString(DescLong() + "\n")
 	}
 	return b.String()
 }

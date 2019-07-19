@@ -1,7 +1,7 @@
-package gorpc
+package go_rpc
 
 import (
-	"gorpc/server"
+	"github.com/hitzhangjie/go-rpc/server"
 )
 
 // Service represents a service running somewhere, maybe multiple hosts or Cloud.

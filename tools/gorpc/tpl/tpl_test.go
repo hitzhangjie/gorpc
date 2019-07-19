@@ -2,11 +2,10 @@ package tpl
 
 import (
 	"fmt"
-	"text/template"
+	"github.com/hitzhangjie/gorpc/tools/gorpc/parser"
 	"os"
 	"testing"
-
-	"gorpc/tools/gorpc/parser"
+	"text/template"
 )
 
 func TestGenSvrEntry(t *testing.T) {

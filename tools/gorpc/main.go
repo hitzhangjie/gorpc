@@ -1,9 +1,9 @@
 package main
 
 import (
-	"gorpc/tools/gorpc/i18n"
-	"gorpc/tools/gorpc/params"
-	"gorpc/tools/gorpc/cmds"
+	"github.com/hitzhangjie/gorpc/tools/gorpc/cmds"
+	"github.com/hitzhangjie/gorpc/tools/gorpc/i18n"
+	"github.com/hitzhangjie/gorpc/tools/gorpc/params"
 	"os"
 )
 

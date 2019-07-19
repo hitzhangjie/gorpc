@@ -19,7 +19,9 @@ note right of helloworld
 end note
 
 package "server" {
-    interface Server {
+
+    class Server {
+        +modules []*ServerModule
         +Start()
         +Stop()
         +Handle(h Handler)
@@ -30,15 +32,8 @@ package "server" {
         +Stop()
     }
 
-    class ServerX {
-        +modules []*ServerModule
-        +Start()
-        +Stop()
-        +Handle(h Handler)
-    }
-    ServerX -up-|> Server
-    ServerX "1" *-down- "N" ServerModule
-    note right of ServerX
+    Server "1" *-down- "N" ServerModule
+    note right of Server
         包含多个ServerModule
         各ServerModule各司其职
     end note
@@ -67,39 +62,38 @@ package "server" {
     Server -up-> Handler
     'note left of Handler : type GreeterService struct{} \nfunc (s *GreeterService) Hello(ctx, req) (rsp, error)
 
+    interface Router {
+        Route(Session) (Method, error)
+    }
+    Server -left-> Router
+}
+
+package "codec" {
+
     interface Session {
         TraceContext() (interface{}, error)
+        ParseRequestBody(req interface{}) error
         Request() interface{}
         Response() interface{}
         Logger() logger
     }
-}
 
-package "codec" {
     interface Codec {
         Encode(v interface{}) ([]byte, error)
-        Decode([]byte) (Session, error)
+        Decode([]byte) (interface{}, error)
     }
-    'note bottom of Codec: Decode data as Session or ...
-    Codec --> Session
-    note right of Codec
-       利用协议decode函数解出session
-    end note
 
-    StreamServer -down-> Codec
-    PacketServer -down-> Codec
-    HttpServer -down-> Codec
-
-    GoRpcCodec --|> Codec
-    SSOCodec --|> Codec
-
-    interface GoRpcSession {
+    interface MessageReader {
+        Codec
+        Read(net.Conn) (Session, error)
     }
-    GoRpcSession --|> Session
 
-    interface SSOSession {
-    }
-    SSOSession -up-|> Session
+    MessageReader -right-> Codec
+    MessageReader -left-> Session
+
+    StreamServer -down-> MessageReader
+    PacketServer -down-> MessageReader
+    HttpServer -down-> MessageReader
 }
 
 package "registry" {
@@ -110,13 +104,13 @@ package "registry" {
         +ListServices() ([]*Service, error)
         +Watcher() (Watcher, error)
     }
-    Registry "1" *-- "1" Watcher
+    Registry "1" *-down- "1" Watcher
 
     interface Watcher {
         +Next() (*Result, error)
         +Stop()
     }
-    Watcher --> Result
+    Watcher -right-> Result
 
     class Result {
         +Action ActionType
@@ -127,8 +121,11 @@ package "registry" {
         UPDATE
         DELETE
     }
-    Result --> ActionType
+    Result -up-> ActionType
 }
+note top of registry
+naming service
+end note
 
 
 
@@ -143,18 +140,22 @@ package "client" {
     }
     class TcpTransport {
         pool *TcpConnectionPool
+        rd *MessageReader
     }
     TcpTransport "1" --> "TcpConnectionPool"
     TcpTransport -up-|> Transport
 
     class UdpTransport {
         pool *UdpSocketPool
+        rd *MessageReader
     }
     UdpTransport "1" --> "UdpSocketPool"
     UdpTransport -up-|> Transport
 
 
     interface ConnectionPool {
+        +GetConn() (net.Conn, error)
+        +FreeConn(net.Conn)
     }
     TcpConnectionPool --|> ConnectionPool
     UdpSocketPool --|> ConnectionPool
@@ -168,18 +169,19 @@ package "client" {
         +Write([]byte) (n, error)
     }
 
-    class ClientX {
+    class ClientAdapter {
         name string
         codec Codec
         selector Selector
         trans Transport
         +Invoke(ctx, req) (rsp, error)
     }
-    ClientX -left-|> Client
-    ClientX -up-> Codec
-    ClientX --> Transport
-    ClientX --> Selector
+    note left: general client
 
+    ClientAdapter -right-|> Client
+    ClientAdapter -up-> MessageReader
+    ClientAdapter --> Transport
+    ClientAdapter --> Selector
 
     package "selector" {
         interface Selector {
@@ -188,33 +190,40 @@ package "client" {
 	        Reset(service string)
 	        Close() error
         }
-        note left of Selector
-            建立在名字服务至上的客户端负载均衡
-        end note
 
         L5Selector -up-|> Selector
         CmlbSelector -up-|> Selector
         EtcdSelector -up-|> Selector
-        EtcdSelector -up-> Registry
+        Selector -up-> Registry
+        note bottom of EtcdSelector
+            loadbanlancer based on NamingService
+        end note
+
     }
 }
 
-package "trpc" {
-    class GoRpc {
+package "gorpc" {
+    class Wrapper {
         +NewService(name, addr, version string)
-        +Run(svr *Server)
+        +Run()
         +NewServiceClient(name, version string)
     }
-    GoRpc --> Registry
-    GoRpc --> Server
-    GoRpc --> Client
-    note right of GoRpc
-        trpc.NewService注册新服务
-        Run运行服务实例
-        NewClient创建rpcclient
-    end note
-}
+    Wrapper --> Service
 
+    class Service {
+        +Name string
+        +Version string
+        +Run(svr *Server)
+    }
+
+    Service -left-> helloworld
+    Service -left-> Server
+}
+note left of Wrapper
+    gorpc.NewService注册新服务
+    Run运行服务实例
+    NewClient创建rpcclient
+end note
 
 package "broker" {
     interface Broker {
@@ -222,39 +231,31 @@ package "broker" {
         Subsribe(ctx, topic, gp) (<-chan interface{}, error)
         Publish(ctx, topic, req) error
     }
-    Broker -up-|> ServerModule
+    Broker -right-|> ServerModule
 
-    class BrokerHippo {
-        NewBrokerHippo(masterAddr) (Broker, error)
+    class Hippo {
+        NewBroker(masterAddr) (Broker, error)
     }
-    BrokerHippo -up-|> Broker
+    Hippo -up-|> Broker
 
-    class BrokerKafka {
-        NewBrokerKafa(masterAddr) (Broker, error)
+    class Kafka {
+        NewBroker(masterAddr) (Broker, error)
     }
-    BrokerKafka -up-|> Broker
+    Kafka -up-|> Broker
 }
+note top of Broker
+message bus
+end note
 
 package "tracing" {
     interface Tracer {
         Begin(session)
         Finish(session)
     }
-    PacketServer -down-> Tracer
-    StreamServer -down-> Tracer
-    HttpServer -down-> Tracer
 
-    BrokerKafka -down-> Tracer
-    BrokerHippo -down-> Tracer
-
-    ClientX -left-> Tracer
-
-    note left of Tracer
-        确定好tracing埋点位置
-        traceContext由包头传递
-        并寄存在session中
-    end note
-
+    Server -right-> Tracer
+    ClientAdapter -up-> Tracer
 }
+note right: tracing definition
 
 @enduml

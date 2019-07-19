@@ -2,11 +2,11 @@ package cmds
 
 import (
 	"flag"
-	"gorpc/tools/gorpc/log"
-	"gorpc/tools/gorpc/params"
-	"gorpc/tools/gorpc/parser"
-	"gorpc/tools/gorpc/spec"
-	"gorpc/tools/gorpc/tpl"
+	"github.com/hitzhangjie/gorpc/tools/gorpc/log"
+	"github.com/hitzhangjie/gorpc/tools/gorpc/params"
+	"github.com/hitzhangjie/gorpc/tools/gorpc/parser"
+	"github.com/hitzhangjie/gorpc/tools/gorpc/spec"
+	"github.com/hitzhangjie/gorpc/tools/gorpc/tpl"
 	"os"
 	"os/exec"
 	"path"

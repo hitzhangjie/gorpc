@@ -2,12 +2,12 @@ package parser
 
 import (
 	"fmt"
+	"github.com/hitzhangjie/gorpc/tools/gorpc/log"
+	"github.com/hitzhangjie/gorpc/tools/gorpc/spec"
 	"github.com/jhump/protoreflect/desc"
 	"strconv"
 	"strings"
 
-	"gorpc/tools/gorpc/log"
-	"gorpc/tools/gorpc/spec"
 	"github.com/jhump/protoreflect/desc/protoparse"
 )
 
@@ -58,17 +58,17 @@ func ParseProtoFile(fname, protocol string, protodirs []string) (*ServerDescript
 
 	// package
 	log.Debug("packageName: %s", fd.GetPackage())
-	serverDescriptor.PackageName = fd.GetPackage()
+	PackageName = fd.GetPackage()
 
 	// service
 	log.Debug("serviceName: %s", fd.GetServices()[0].GetName())
-	serverDescriptor.ServerName = fd.GetServices()[0].GetName()
+	ServerName = fd.GetServices()[0].GetName()
 
 	// protocol
-	serverDescriptor.Protocol = protocol
+	Protocol = protocol
 
 	// spec
-	serverDescriptor.ProtoSpec = *spec.GetTypeSpec(protocol)
+	ProtoSpec = *spec.GetTypeSpec(protocol)
 
 	// serviceCmd: ilive bigCmd+subCmd, simplesso serviceCmd, nrpc don't need this.
 	log.Debug("enums: %v", fd.GetEnumTypes())
@@ -99,23 +99,23 @@ func ParseProtoFile(fname, protocol string, protodirs []string) (*ServerDescript
 			Name:                     m.GetName(),
 			RequestType:              m.GetInputType().GetFullyQualifiedName(),
 			ResponseType:             m.GetOutputType().GetFullyQualifiedName(),
-			RequestTypeNameInRpcTpl:  GetNameWithPackageCheck(m.GetInputType().GetFullyQualifiedName(), serverDescriptor.PackageName),
-			ResponseTypeNameInRpcTpl: GetNameWithPackageCheck(m.GetOutputType().GetFullyQualifiedName(), serverDescriptor.PackageName),
+			RequestTypeNameInRpcTpl:  GetNameWithPackageCheck(m.GetInputType().GetFullyQualifiedName(), PackageName),
+			ResponseTypeNameInRpcTpl: GetNameWithPackageCheck(m.GetOutputType().GetFullyQualifiedName(), PackageName),
 		}
 		if protocol == "ilive" {
-			rpc.Cmd = fmt.Sprintf("%#x_%#x", iliveBigCmd, iliveSubCmd[idx])
+			Cmd = fmt.Sprintf("%#x_%#x", iliveBigCmd, iliveSubCmd[idx])
 		}
 		if protocol == "simplesso" {
-			rpc.Cmd = strconv.FormatInt(int64(simplessoCmd[idx]), 10)
+			Cmd = strconv.FormatInt(int64(simplessoCmd[idx]), 10)
 		}
 		if protocol == "nrpc" {
-			rpc.Cmd = rpc.Name
+			Cmd = Name
 		}
-		serverDescriptor.RPC = append(serverDescriptor.RPC, rpc)
+		RPC = append(RPC, rpc)
 	}
 
-	serverDescriptor.Imports = getGolangImports(fd)
-	log.Debug("imports: %s", strings.Join(serverDescriptor.Imports, ","))
+	Imports = getGolangImports(fd)
+	log.Debug("imports: %s", strings.Join(Imports, ","))
 
 	return serverDescriptor, nil
 }

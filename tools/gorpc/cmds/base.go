@@ -2,7 +2,7 @@ package cmds
 
 import (
 	"flag"
-	"gorpc/tools/gorpc/params"
+	"github.com/hitzhangjie/gorpc/tools/gorpc/params"
 	"os"
 	"path"
 	"path/filepath"

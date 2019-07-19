@@ -28,7 +28,7 @@ var protoSpecs map[string]*ProtoSpec
 
 func init() {
 
-	log.Debug("step 0: Load config ~/.goneat/protospec.json or /etc/goneat/protospec.json")
+	log.Debug("step 0: Load config ~/.gorpc/protospec.json or /etc/gorpc/protospec.json")
 
 	dir, err := LocateCfgPath()
 	if err != nil {

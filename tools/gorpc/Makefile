@@ -1,7 +1,7 @@
 user := $(shell whoami)
 
 all: *.go
-	@GOPATH=$(GOPATH) go build -o goneat main.go
+	@GOPATH=$(GOPATH) go build -o gorpc main.go
 
 .PHONY: clean
 .PHONY: install
@@ -9,27 +9,24 @@ all: *.go
 install:
 ifeq ($(user),root)
 #root, install for all user
-	@cp ./goneat /usr/bin/
-	@ln -sf /usr/bin/goneat /usr/bin/gogen
-	@[ -d /etc/goneat ] || mkdir /etc/goneat
-	@cp -rf ./asset /etc/goneat/
-	@cp -rf ./asset_taf /etc/goneat/
-	@cp -f ./spec/protospec.json /etc/goneat/
-	@cp -f ./spec/deployspec.json /etc/goneat/
+	@cp ./gorpc /usr/bin/
+	@[ -d /etc/gorpc ] || mkdir /etc/gorpc
+	@cp -rf ./asset /etc/gorpc/
+	@cp -f ./spec/protospec.json /etc/gorpc/
+	@cp -f ./spec/deployspec.json /etc/gorpc/
 else
 #!root, install for current user
 	@mkdir -p ~/bin/
-	@cp ./goneat ~/bin/
-	@ln -sf ~/bin/goneat ~/bin/gogen
-	@[ -d ~/.goneat ] || mkdir ~/.goneat
-	@cp -rf ./asset ~/.goneat/
-	@cp -rf ./asset_taf ~/.goneat/
-	@cp -f ./spec/protospec.json ~/.goneat/
-	@cp -f ./spec/deployspec.json ~/.goneat/
+	@cp ./gorpc ~/bin/
+	@[ -d ~/.gorpc ] || mkdir ~/.gorpc
+	@cp -rf ./asset ~/.gorpc/
+	@cp -f ./spec/protospec.json ~/.gorpc/
+	@cp -f ./spec/deployspec.json ~/.gorpc/
 endif
 	@echo "install finished"
+
 clean:
-	@rm ./goneat -f
+	@rm ./gorpc -f
 	@rm ./test_ilive -rf
 	@rm ./test_nrpc -rf
 	@rm ./test_simplesso -rf

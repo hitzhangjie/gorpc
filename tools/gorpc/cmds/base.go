@@ -2,7 +2,7 @@ package cmds
 
 import (
 	"flag"
-	"git.code.oa.com/go-neat/tools/codegen/params"
+	"gorpc/tools/gorpc/params"
 	"os"
 	"path"
 	"path/filepath"

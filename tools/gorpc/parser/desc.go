@@ -1,6 +1,6 @@
 package parser
 
-import "git.code.oa.com/go-neat/tools/codegen/spec"
+import "gorpc/tools/gorpc/spec"
 
 // ServerDescriptor 将pb文件中用于描述服务信息的内容提取出来，包括所属的包名、服务名、支持的协议、启用HTTP、RPC请求等信息，
 // 后续结合go template很方便地实现自动化代码生成，基于模板的方式也更容易后期调整、维护、扩展。

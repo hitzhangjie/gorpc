@@ -1,9 +1,9 @@
 package main
 
 import (
-	"git.code.oa.com/go-neat/tools/codegen/cmds"
-	"git.code.oa.com/go-neat/tools/codegen/i18n"
-	"git.code.oa.com/go-neat/tools/codegen/params"
+	"gorpc/tools/gorpc/i18n"
+	"gorpc/tools/gorpc/params"
+	"gorpc/tools/gorpc/cmds"
 	"os"
 )
 
@@ -22,46 +22,20 @@ var (
 func init() {
 }
 
-var subcmds = map[string]cmds.Commander{
-	"help":   cmds.NewHelpCmd(),
-	"create": cmds.NewCreateCmd(),
-	"update": cmds.NewUpdateCmd(),
-	"taf": cmds.NewTafCmd(),
-}
+var subcmds = cmds.RegisteredSubCmds()
 
 func main() {
+
 	if l := len(os.Args); l == 1 {
 		subcmds["help"].Run()
 		return
 	}
-	switch os.Args[1] {
-	case "help":
-		if len(os.Args) > 2 {
-			subcmds["help"].Run(os.Args[2:]...)
-		} else {
-			subcmds["help"].Run()
-		}
-	case "create", "update", "pull", "push":
-		if cmd, ok := subcmds[os.Args[1]]; !ok {
-			panic("subcmd invalid")
-		} else {
-			if len(os.Args) == 2 {
-				panic("subcmd options invalid")
-			}
-			cmd.Run(os.Args[2:]...)
-		}
-	case "taf":
-		if cmd, ok := subcmds[os.Args[1]]; !ok {
-			panic("subcmd invalid")
-		} else {
-			if len(os.Args) == 2 {
-				panic("subcmd options invalid")
-			}
-			cmd.Run(os.Args[2:]...)
-		}
 
-	default:
+	f, ok := subcmds[os.Args[1]]
+	if !ok || f == nil {
 		subcmds["help"].Run()
+		return
 	}
-}
 
+	f.Run(os.Args[2:]...)
+}

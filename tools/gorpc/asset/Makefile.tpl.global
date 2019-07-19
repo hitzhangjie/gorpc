@@ -19,6 +19,3 @@ clean:
 	@rm -rf bin/{{.ServerName}}
 	@rm -rf bin/{{.ServerName}}_client
 
-install:
-	@cd bin && /deploy_nfs/now_ci/deploy
-

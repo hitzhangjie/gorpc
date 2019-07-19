@@ -18,6 +18,7 @@ note right of helloworld
     - 指导client和server stub生成
 end note
 
+
 package "server" {
 
     class Server {
@@ -66,6 +67,16 @@ package "server" {
         Route(Session) (Method, error)
     }
     Server -left-> Router
+
+    interface Interceptor {
+    }
+    interface Auth {
+    }
+    interface Breaker {
+    }
+    interface Limiter {
+    }
+
 }
 
 package "codec" {

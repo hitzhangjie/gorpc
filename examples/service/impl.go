@@ -2,13 +2,13 @@ package service
 
 import (
 	"context"
-	pb "gorpc/examples/helloworld"
+	helloworld2 "github.com/hitzhangjie/gorpc/examples/helloworld"
 )
 
 type GreeterService struct {
 }
 
-func (s *GreeterService) SayHello(ctx context.Context, req pb.Request) (rsp pb.Response, err error) {
+func (s *GreeterService) SayHello(ctx context.Context, req helloworld2.Request) (rsp helloworld2.Response, err error) {
 
 	return
 }

@@ -64,10 +64,6 @@ func ParseProtoFile(fname, protocol string, protodirs []string) (*ServerDescript
 	log.Debug("serviceName: %s", fd.GetServices()[0].GetName())
 	serverDescriptor.ServerName = fd.GetServices()[0].GetName()
 
-	// author
-	serverDescriptor.Author = spec.GetDeploySpec().Author
-	serverDescriptor.Ips = spec.GetDeploySpec().Ips
-
 	// protocol
 	serverDescriptor.Protocol = protocol
 

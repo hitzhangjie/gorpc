@@ -13,7 +13,6 @@ ifeq ($(user),root)
 	@[ -d /etc/gorpc ] || mkdir /etc/gorpc
 	@cp -rf ./asset /etc/gorpc/
 	@cp -f ./spec/protospec.json /etc/gorpc/
-	@cp -f ./spec/deployspec.json /etc/gorpc/
 else
 #!root, install for current user
 	@mkdir -p ~/bin/
@@ -21,7 +20,6 @@ else
 	@[ -d ~/.gorpc ] || mkdir ~/.gorpc
 	@cp -rf ./asset ~/.gorpc/
 	@cp -f ./spec/protospec.json ~/.gorpc/
-	@cp -f ./spec/deployspec.json ~/.gorpc/
 endif
 	@echo "install finished"
 

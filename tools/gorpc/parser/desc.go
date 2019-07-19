@@ -14,7 +14,6 @@ type ServerDescriptor struct {
 	ProtoSpec   spec.ProtoSpec        // 协议相关附加信息
 	CreateTime  string                // 服务创建时间
 	Author      string                // 作者
-	Ips         string                // deploy部署的ip列表
 }
 
 // ServerRPCDescriptor 将pb文件中用于描述RPC的内容提取出来，包括RPC的名字、命令字、请求类型、响应类型等信息。

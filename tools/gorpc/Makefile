@@ -25,20 +25,5 @@ endif
 
 clean:
 	@rm ./gorpc -f
-	@rm ./test_ilive -rf
-	@rm ./test_nrpc -rf
-	@rm ./test_simplesso -rf
 	@echo "clean finished"
-
-test_ilive: 
-	@go run main.go -protodir=test/ilive -protofile=test_ilive.proto -protocol=ilive -verbose=false
-	@echo "test_ilive generated"
-
-test_nrpc:
-	@go run main.go -protodir=test/nrpc -protofile=test_nrpc.proto -protocol=nrpc
-	@echo "test_nrpc generated"
-
-test_simplesso:
-	@go run main.go -protodir=test/simplesso -protofile=test_simplesso.proto -protocol=simplesso
-	@echo "test_simplesso generated"
 

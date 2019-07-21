@@ -2,11 +2,11 @@ package cmds
 
 import (
 	"flag"
-	"github.com/hitzhangjie/gorpc/tools/gorpc/log"
-	"github.com/hitzhangjie/gorpc/tools/gorpc/params"
-	"github.com/hitzhangjie/gorpc/tools/gorpc/parser"
-	"github.com/hitzhangjie/gorpc/tools/gorpc/spec"
-	"github.com/hitzhangjie/gorpc/tools/gorpc/tpl"
+	"github.com/hitzhangjie/go-rpc/tools/gorpc/log"
+	"github.com/hitzhangjie/go-rpc/tools/gorpc/params"
+	"github.com/hitzhangjie/go-rpc/tools/gorpc/parser"
+	"github.com/hitzhangjie/go-rpc/tools/gorpc/spec"
+	"github.com/hitzhangjie/go-rpc/tools/gorpc/tpl"
 	"os"
 	"os/exec"
 	"path"
@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	protodirs params.StringArray // pb import路径
+	protodirs params.List // pb import路径
 	protofile string
 	protocol  string
 	httpon    bool
@@ -25,8 +25,8 @@ var (
 )
 
 func init() {
-	alllock.Lock()
-	defer alllock.Unlock()
+	mux.Lock()
+	defer mux.Unlock()
 	all["create"] = NewCreateCmd()
 }
 
@@ -42,13 +42,13 @@ func NewCreateCmd() *CreateCmd {
 	fs.String("assetdir", "", "search path for project template")
 
 	u := Cmd{
-		usageLine: `gorpc create`,
+		usageLine: `go-rpc create`,
 		descShort: `
 how to create project:
-	gorpc create -protodir=. -protofile=*.proto -protocol=nrpc -httpon=false
-	gorpc create -protofile=*.proto -protocol=nrpc`,
+	go-rpc create -protodir=. -protofile=*.proto -protocol=nrpc -httpon=false
+	go-rpc create -protofile=*.proto -protocol=nrpc`,
 		descLong: `
-gorpc create:
+go-rpc create:
 	-protodir, search path for protofile
 	-protofile, protofile to handle
 	-protocol, protocol to use, nrpc, simplesso or ilive
@@ -92,7 +92,7 @@ func (c *CreateCmd) create() error {
 
 	// Q:解析库jhump parser本身支持pb依赖的解析，为什么这里还要再额外的去判断导入路径呢？
 	// A:nrpc页面也要支持pb依赖解析，nrpc页面上传的pb文件是按照flat layout进行组织的！
-	fpaths := ImportDirs(&protodirs, protofile)
+	fpaths := parser.ImportDirs(&protodirs, protofile)
 
 	if len(fpaths) == 0 {
 		log.Error("step 1: proto file:[%s] not found in dirs:%v", protofile, protodirs.String())
@@ -105,7 +105,7 @@ func (c *CreateCmd) create() error {
 	}
 
 	// 解析pb
-	server_asset, err := parser.ParseProtoFile(protofile, protocol, protodirs)
+	server_asset, err := parser.ParseProtoFile(protofile, protocol, protodirs...)
 	if err != nil {
 		log.Error("step 2: Parse proto file:[%s] error:[%v]", protofile, err)
 		os.Exit(1)

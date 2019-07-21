@@ -1,41 +1,41 @@
 {
-  "nrpc": {
-    "name": "nrpc",
-    "handler": "git.code.oa.com/go-neat/core/proto/nrpc/nrpc_svr/default_nrpc_handler",
-    "repo": "git.code.oa.com/nrpc_protos/nrpc_protos.git",
-    "repoPrefix": "git.code.oa.com/nrpc_protos",
-    "localPrefix": "/data/home/go_proj/src/git.code.oa.com/nrpc_protos/",
-    "asset": "git.code.oa.com/go-neat/core/proto/nrpc",
-    "spec": "git.code.oa.com/go-neat/core/proto/nrpc/nrpc_pb",
-    "clientPkg": "git.code.oa.com/go-neat/core/proto/nrpc/nrpc_clt",
-    "clientType": "NRPCRpcClient",
-    "clientFactory": "NewNRPCRpcClient",
-    "sessionType": "NRPCSession"
+  "gorpc": {
+    "name": "gorpc",
+    "handler": "git.code.oa.com/go-neat/core/proto/gorpc/gorpc_svr/default_gorpc_handler",
+    "repo": "git.code.oa.com/gorpc_protos/gorpc_protos.git",
+    "repoPrefix": "git.code.oa.com/gorpc_protos",
+    "localPrefix": "/data/home/go_proj/src/git.code.oa.com/gorpc_protos/",
+    "asset": "git.code.oa.com/go-neat/core/proto/gorpc",
+    "spec": "git.code.oa.com/go-neat/core/proto/gorpc/gorpc_pb",
+    "clientPkg": "git.code.oa.com/go-neat/core/proto/gorpc/gorpc_clt",
+    "clientType": "gorpcRpcClient",
+    "clientFactory": "NewgorpcRpcClient",
+    "sessionType": "gorpcSession"
   },
-  "simplesso": {
-    "name": "simplesso",
-    "handler": "git.code.oa.com/go-neat/core/proto/simplesso/simplesso_svr/default_simplesso_handler",
-    "repo": "git.code.oa.com/simplesso_protos/simplesso_protos.git",
-    "repoPrefix": "git.code.oa.com/simplesso_protos",
-    "localPrefix": "/data/home/go_proj/src/git.code.oa.com/simplesso_protos/",
-    "asset": "git.code.oa.com/go-neat/core/proto/simplesso",
-    "spec": "git.code.oa.com/go-neat/core/proto/simplesso/simplessoparser",
-    "clientPkg": "git.code.oa.com/go-neat/core/proto/simplesso/simplesso_clt",
-    "clientType": "SimpleSsoRpcClient",
-    "clientFactory": "NewSimpleSsoRpcClient",
-    "sessionType": "SimpleSsoSession"
+  "chick": {
+    "name": "chick",
+    "handler": "git.code.oa.com/go-neat/core/proto/chick/chick_svr/default_chick_handler",
+    "repo": "git.code.oa.com/chick_protos/chick_protos.git",
+    "repoPrefix": "git.code.oa.com/chick_protos",
+    "localPrefix": "/data/home/go_proj/src/git.code.oa.com/chick_protos/",
+    "asset": "git.code.oa.com/go-neat/core/proto/chick",
+    "spec": "git.code.oa.com/go-neat/core/proto/chick/chickparser",
+    "clientPkg": "git.code.oa.com/go-neat/core/proto/chick/chick_clt",
+    "clientType": "chickRpcClient",
+    "clientFactory": "NewchickRpcClient",
+    "sessionType": "chickSession"
   },
-  "ilive": {
-    "name": "ilive",
-    "handler": "git.code.oa.com/go-neat/core/proto/ilive/ilive_nsvr/default_ilive_handler",
+  "swan": {
+    "name": "swan",
+    "handler": "git.code.oa.com/go-neat/core/proto/swan/swan_nsvr/default_swan_handler",
     "repo": "git.code.oa.com/NowProtos/NowProtos.git",
     "repoPrefix": "git.code.oa.com/NowProtos",
     "localPrefix": "/data/home/go_proj/src/git.code.oa.com/NowProtos/",
-    "asset": "git.code.oa.com/go-neat/core/proto/ilive",
-    "spec": "git.code.oa.com/go-neat/core/proto/ilive/ilive_pb",
-    "clientPkg": "git.code.oa.com/go-neat/core/proto/ilive/ilive_client",
-    "clientType": "ILiveRpcClient",
-    "clientFactory": "NewILiveRpcClient",
-    "sessionType": "ILiveSession"
+    "asset": "git.code.oa.com/go-neat/core/proto/swan",
+    "spec": "git.code.oa.com/go-neat/core/proto/swan/swan_pb",
+    "clientPkg": "git.code.oa.com/go-neat/core/proto/swan/swan_client",
+    "clientType": "swanRpcClient",
+    "clientFactory": "NewswanRpcClient",
+    "sessionType": "swanSession"
   }
 }

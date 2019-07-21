@@ -14,12 +14,12 @@ import (
 var (
 	serverDescriptor ServerDescriptor
 
-	// ilive
-	iliveBigCmd = 0
-	iliveSubCmd = []int{}
+	// swan
+	swanBigCmd = 0
+	swanSubCmd = []int{}
 
-	// simplesso
-	simplessoCmd = []int{}
+	// chick
+	chickCmd = []int{}
 )
 
 func GetNameWithPackageCheck(fullTypeName string, goPackageName string) string {
@@ -70,23 +70,23 @@ func ParseProtoFile(fname, protocol string, protodirs ...string) (*ServerDescrip
 	// spec
 	serverDescriptor.ProtoSpec = *spec.GetTypeSpec(protocol)
 
-	// serviceCmd: ilive bigCmd+subCmd, simplesso serviceCmd, nrpc don't need this.
+	// serviceCmd: swan bigCmd+subCmd, chick serviceCmd, gorpc don't need this.
 	log.Debug("enums: %v", fd.GetEnumTypes())
 	for _, e := range fd.GetEnumTypes() {
 		name := e.GetName()
-		if protocol == "ilive" {
+		if protocol == "swan" {
 			if name == "BIG_CMD" {
-				iliveBigCmd = int(e.GetValues()[0].GetNumber())
+				swanBigCmd = int(e.GetValues()[0].GetNumber())
 			}
 			if name == "SUB_CMD" {
 				for _, v := range e.GetValues() {
-					iliveSubCmd = append(iliveSubCmd, int(v.GetNumber()))
+					swanSubCmd = append(swanSubCmd, int(v.GetNumber()))
 				}
 			}
-		} else if protocol == "simplesso" {
+		} else if protocol == "chick" {
 			if name == "SERVICE_CMD" {
 				for _, v := range e.GetValues() {
-					simplessoCmd = append(simplessoCmd, int(v.GetNumber()))
+					chickCmd = append(chickCmd, int(v.GetNumber()))
 				}
 			}
 		}
@@ -102,13 +102,13 @@ func ParseProtoFile(fname, protocol string, protodirs ...string) (*ServerDescrip
 			RequestTypeNameInRpcTpl:  GetNameWithPackageCheck(m.GetInputType().GetFullyQualifiedName(), serverDescriptor.PackageName),
 			ResponseTypeNameInRpcTpl: GetNameWithPackageCheck(m.GetOutputType().GetFullyQualifiedName(), serverDescriptor.PackageName),
 		}
-		if protocol == "ilive" {
-			rpc.Cmd = fmt.Sprintf("%#x_%#x", iliveBigCmd, iliveSubCmd[idx])
+		if protocol == "swan" {
+			rpc.Cmd = fmt.Sprintf("%#x_%#x", swanBigCmd, swanSubCmd[idx])
 		}
-		if protocol == "simplesso" {
-			rpc.Cmd = strconv.FormatInt(int64(simplessoCmd[idx]), 10)
+		if protocol == "chick" {
+			rpc.Cmd = strconv.FormatInt(int64(chickCmd[idx]), 10)
 		}
-		if protocol == "nrpc" {
+		if protocol == "gorpc" {
 			rpc.Cmd = rpc.Name
 		}
 		serverDescriptor.RPC = append(serverDescriptor.RPC, rpc)

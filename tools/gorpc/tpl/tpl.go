@@ -59,7 +59,7 @@ func GenerateFiles(asset *parser.ServerDescriptor, fAbsPath string, create bool,
 	}
 
 	// clientRpcStub + copy proto + generate *.pb.go
-	funcMap := template.FuncMap{"splitIliveCmd": splitIliveCmd}
+	funcMap := template.FuncMap{"splitSwanCmd": splitSwanCmd}
 	generateFile(asset, "rpc/rpc.go.tpl", "rpc/"+asset.ServerName+"_rpc.go", funcMap, outputdir, options)
 
 	// move rpcStub/pb/pb.go to /data/home/go-rpc/src/github.com/hitzhangjie/go-rpc-protos/${server}
@@ -177,7 +177,7 @@ func generateFile(asset *parser.ServerDescriptor, infile, outfile string, funcMa
 	return nil
 }
 
-func splitIliveCmd(cmdStr string) string {
+func splitSwanCmd(cmdStr string) string {
 	cmds := strings.Split(cmdStr, "_")
 	bigCmd, _ := strconv.ParseInt(cmds[0], 0, 32)
 	subCmd, _ := strconv.ParseInt(cmds[1], 0, 32)

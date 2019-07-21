@@ -24,7 +24,6 @@ func init() {
 
 func Init(addr string, proto nclient.ConnType, logger *nlog.NLog) {
 	once.Do(func() {
-		//cltRpc = clt.NewNRPCRpcClient("test_nrpc", addr, proto, logger)
 		cltRpc = clt.{{.ProtoSpec.ClientFactory}}("{{.ServerName}}", addr, proto, logger)
 	})
 }
@@ -41,18 +40,18 @@ func {{.Name}}(ctx context.Context, session nsession.NSession, req *{{.RequestTy
 		return nil, nclient.CreateErrorWithMsg(20, "client not init", false)
 	}
 
-	{{- /*nrpc*/}}
-	{{- if eq $protocol "nrpc"}}
+	{{- /*gorpc*/}}
+	{{- if eq $protocol "gorpc"}}
 	err = cltRpc.SendWithContext(ctx, session, "{{$serverName}}", "{{.Name}}", req, rsp)
 	{{- end}}
 
-    {{- /*ilive*/}}
-	{{- if eq $protocol "ilive"}}
-	err = cltRpc.SendWithContext(ctx, session, {{splitIliveCmd .Cmd}}, req, rsp)
+    {{- /*swan*/}}
+	{{- if eq $protocol "swan"}}
+	err = cltRpc.SendWithContext(ctx, session, {{splitSwanCmd .Cmd}}, req, rsp)
 	{{- end}}
 
-    {{- /*simplesso*/}}
-	{{- if eq $protocol "simplesso"}}
+    {{- /*chick*/}}
+	{{- if eq $protocol "chick"}}
 	err = cltRpc.SendWithContext(ctx, session, {{.Cmd}}, req, rsp)
 	{{- end}}
 

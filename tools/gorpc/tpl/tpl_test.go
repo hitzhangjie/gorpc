@@ -2,7 +2,7 @@ package tpl
 
 import (
 	"fmt"
-	"github.com/hitzhangjie/gorpc/tools/gorpc/parser"
+	"github.com/hitzhangjie/go-rpc/tools/gorpc/parser"
 	"os"
 	"testing"
 	"text/template"

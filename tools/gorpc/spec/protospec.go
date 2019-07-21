@@ -3,7 +3,7 @@ package spec
 import (
 	"encoding/json"
 	"fmt"
-	"git.code.oa.com/go-neat/tools/codegen/log"
+	"github.com/hitzhangjie/go-rpc/tools/gorpc/log"
 	"io/ioutil"
 	"os"
 	"path/filepath"

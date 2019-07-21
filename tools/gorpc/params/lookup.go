@@ -22,8 +22,8 @@ func Lookup(pname string, pval interface{}) {
 			*pval.(*bool) = v.(bool)
 		case *int:
 			*pval.(*int) = v.(int)
-		case *StringArray:
-			*pval.(*StringArray) = v.(StringArray)
+		case *List:
+			*pval.(*List) = v.(List)
 		default:
 			fmt.Println("Unknown flag type:[%T]", pval)
 		}

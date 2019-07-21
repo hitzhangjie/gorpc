@@ -11,8 +11,8 @@ type HelpCmd struct {
 }
 
 func init() {
-	alllock.Lock()
-	defer alllock.Unlock()
+	mux.Lock()
+	defer mux.Unlock()
 	all["help"] = NewHelpCmd()
 }
 
@@ -55,26 +55,26 @@ global options:
 
 func (c *HelpCmd) usageShort() string {
 	b := strings.Builder{}
-	b.WriteString(descShort + "\n")
+	b.WriteString(c.descShort + "\n")
 
 	for k, v := range all {
 		if k == "help" {
 			continue
 		}
-		b.WriteString(DescShort() + "\n")
+		b.WriteString(v.DescShort() + "\n")
 	}
 	return b.String()
 }
 
 func (c *HelpCmd) usageLong() string {
 	b := strings.Builder{}
-	b.WriteString(descLong + "\n")
+	b.WriteString(c.descLong + "\n")
 
 	for k, v := range all {
 		if k == "help" {
 			continue
 		}
-		b.WriteString(DescLong() + "\n")
+		b.WriteString(v.DescLong() + "\n")
 	}
 	return b.String()
 }

@@ -118,6 +118,7 @@ func (c *CreateCmd) create() error {
 
 	// 代码生成
 	fp := path.Join(fpaths[0], protofile)
+	log.Info(fp)
 	options := map[string]interface{}{
 		"protodir":  protodirs,
 		"protofile": protofile,

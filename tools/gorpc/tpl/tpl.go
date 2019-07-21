@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"text/template"
@@ -37,38 +38,58 @@ func GenerateFiles(asset *parser.ServerDescriptor, fAbsPath string, create bool,
 		outputdir = path.Join(os.TempDir(), asset.ServerName)
 	}
 
-	err = PrepareOutputDir(outputdir)
-	failfast(err)
+	// gopath模式:project or global
+	assetdir := options["assetdir"].(string)
+	global := options["g"].(bool)
+
+	if global {
+		assetdir = filepath.Join(assetdir, "gopath.glob")
+	} else {
+		assetdir = filepath.Join(assetdir, "gopath.proj")
+	}
+	log.Debug("assetdir: %s", assetdir)
 
 	// 处理模板文件
-	tpllist := map[string]string{}
+	f := func(path string, info os.FileInfo, err error) error {
 
-	// 新建模式go-rpc create需要生成服务代码，gorpc update只更新rpc就可以了
-	if create {
-		tpllist = filelist(asset, options)
-		for fin, fout := range tpllist {
-			generateFile(asset, fin, fout, nil, outputdir, options)
+		// if incoming error encounter, return at once
+		if err != nil {
+			fmt.Println(err)
+			return err
 		}
-
-		// global GOPATH
-		if global, ok := options["g"].(bool); ok && global {
-			fs.Move(path.Join(outputdir, "src", asset.ServerName+".go"), outputdir)
-			fs.Move(path.Join(outputdir, "src/exec"), outputdir)
-			os.Remove(path.Join(outputdir, "src"))
+		log.Debug("fileEntry: %s", path)
+		relPath := strings.TrimPrefix(path, assetdir)
+		log.Debug("fileEntry relPath: %s", relPath)
+		outPath := filepath.Join(outputdir, relPath)
+		log.Debug("fileEntry outPath: %s", outPath)
+		// if `path` is directory, create the same entry in `outputdir`
+		if info.IsDir() {
+			return os.MkdirAll(outPath, os.ModePerm)
 		}
+		outPath = strings.TrimSuffix(outPath, ".tpl")
+		funcMap := template.FuncMap{"splitSwanCmd": splitSwanCmd}
+		generateFile(asset, path, outPath, funcMap, options)
+		return nil
+	}
+	err = filepath.Walk(assetdir, f)
+	if err != nil {
+		return err
 	}
 
-	// clientRpcStub + copy proto + generate *.pb.go
-	funcMap := template.FuncMap{"splitSwanCmd": splitSwanCmd}
-	generateFile(asset, "rpc/rpc.go.tpl", "rpc/"+asset.ServerName+"_rpc.go", funcMap, outputdir, options)
-
-	// move rpcStub/pb/pb.go to /data/home/go-rpc/src/github.com/hitzhangjie/go-rpc-protos/${server}
 	protofile := options["protofile"].(string)
 	protodirs := options["protodir"].(params.List)
 
 	// - copy pb to /rpc + /proto
+	if err = os.MkdirAll(filepath.Join(outputdir, "proto"), os.ModePerm); err != nil {
+		return err
+	}
 	src := fAbsPath
 	dest := path.Join(outputdir, "proto", protofile)
+
+	// - copy pb to /rpc + /proto
+	if err = os.MkdirAll(filepath.Join(outputdir, "rpc"), os.ModePerm); err != nil {
+		return err
+	}
 	fs.Copy(src, dest)
 	dest = path.Join(outputdir, "rpc", protofile)
 	fs.Copy(src, dest)
@@ -88,12 +109,10 @@ func GenerateFiles(asset *parser.ServerDescriptor, fAbsPath string, create bool,
 	}
 
 	// cannot handle invalid cross-device link, try copy and delete, or use `mv` instead.
-	/*
-		if err = fs.Move(src, dest); err != nil {
-			log.Error("move file error:%v, src:%s to dest:%s", err, src, dest)
-			return err
-		}
-	*/
+	//if err = fs.Move(src, dest); err != nil {
+	//	log.Error("move file error:%v, src:%s to dest:%s", err, src, dest)
+	//	return err
+	//}
 	if err = exec.Command("mv", src, dest).Run(); err != nil {
 		log.Error("move file error:%v, src:%s to dest:%s", err, src, dest)
 		return err
@@ -106,34 +125,7 @@ func GenerateFiles(asset *parser.ServerDescriptor, fAbsPath string, create bool,
 	return nil
 }
 
-func PrepareOutputDir(outputdir string) error {
-
-	_, err := os.Stat(outputdir)
-	if err == nil {
-		return fmt.Errorf("Stat Output directory existed: %s", outputdir)
-	} else {
-		if os.IsNotExist(err) {
-			os.MkdirAll(outputdir, os.ModePerm)
-			log.Debug("Create Output directory ok: %s", outputdir)
-		} else {
-			return err
-		}
-	}
-
-	dirs := []string{"/src/", "/src/exec/", "/rpc/", "/client/", "/conf/", "/bin/", "/DEVOPS/"}
-	for _, dir := range dirs {
-		abs := path.Join(outputdir, dir)
-		err := os.MkdirAll(abs, os.ModePerm)
-		if err != nil {
-			log.Debug("Create directory error: %v", err)
-			return fmt.Errorf("Create directory error: %v", err)
-		}
-	}
-
-	return nil
-}
-
-func generateFile(asset *parser.ServerDescriptor, infile, outfile string, funcMap template.FuncMap, outputdir string, options map[string]interface{}) (err error) {
+func generateFile(asset *parser.ServerDescriptor, infile, outfile string, funcMap template.FuncMap, options map[string]interface{}) (err error) {
 
 	defer func() {
 		if err != nil {
@@ -149,12 +141,12 @@ func generateFile(asset *parser.ServerDescriptor, infile, outfile string, funcMa
 	}
 
 	// stat template
-	tplFilePath := path.Join(assetdir, infile)
+	tplFilePath := infile
 	_, err = os.Stat(tplFilePath)
 	failfast(err)
 
 	// create output file
-	dest := path.Join(outputdir, outfile)
+	dest := outfile
 	fout, err := os.Create(dest)
 	failfast(err)
 	defer fout.Close()
@@ -235,18 +227,18 @@ func failfast(err error) {
 func filelist(asset *parser.ServerDescriptor, options map[string]interface{}) map[string]string {
 
 	filelist := map[string]string{
-		"src/svr_main.go.tpl":          path.Join("src", asset.ServerName+".go"),
-		"src/exec/exec.go.tpl":         path.Join("src/exec", "exec_"+asset.ServerName+".go"),
-		"src/exec/exec_impl.go.tpl":    path.Join("src/exec", "exec_"+asset.ServerName+"_impl.go"),
-		"src/exec/exec_init.go.tpl":    path.Join("src/exec", "exec_"+asset.ServerName+"_init.go"),
-		"client/client.go.tpl":         path.Join("client", asset.ServerName+"_client.go"),
-		"conf/service.ini.tpl":         path.Join("conf", "service.ini"),
-		"conf/metric.ini.tpl":         path.Join("conf", "metric.ini"),
-		"conf/trace.ini.tpl":           path.Join("conf", "trace.ini"),
-		"conf/log.ini.tpl":             path.Join("conf", "log.ini"),
-		"bin/run.sh.tpl":               path.Join("bin", "run.sh"),
-		"README.md.tpl":                "README.md",
-		"Makefile.tpl":                 "Makefile",
+		"src/svr_main.go.tpl":       path.Join("src", asset.ServerName+".go"),
+		"src/exec/exec.go.tpl":      path.Join("src/exec", "exec_"+asset.ServerName+".go"),
+		"src/exec/exec_impl.go.tpl": path.Join("src/exec", "exec_"+asset.ServerName+"_impl.go"),
+		"src/exec/exec_init.go.tpl": path.Join("src/exec", "exec_"+asset.ServerName+"_init.go"),
+		"client/client.go.tpl":      path.Join("client", asset.ServerName+"_client.go"),
+		"conf/service.ini.tpl":      path.Join("conf", "service.ini"),
+		"conf/metric.ini.tpl":       path.Join("conf", "metric.ini"),
+		"conf/trace.ini.tpl":        path.Join("conf", "trace.ini"),
+		"conf/log.ini.tpl":          path.Join("conf", "log.ini"),
+		"bin/run.sh.tpl":            path.Join("bin", "run.sh"),
+		"README.md.tpl":             "README.md",
+		"Makefile.tpl":              "Makefile",
 	}
 
 	filelistG := map[string]string{
@@ -257,7 +249,7 @@ func filelist(asset *parser.ServerDescriptor, options map[string]interface{}) ma
 		"src.global/exec/exec_init.go.tpl": path.Join("src/exec", "exec_"+asset.ServerName+"_init.go"),
 		"client/client.go.tpl":             path.Join("client", asset.ServerName+"_client.go"),
 		"conf/service.ini.tpl":             path.Join("conf", "service.ini"),
-		"conf/metric.ini.tpl":             path.Join("conf", "metric.ini"),
+		"conf/metric.ini.tpl":              path.Join("conf", "metric.ini"),
 		"conf/trace.ini.tpl":               path.Join("conf", "trace.ini"),
 		"conf/log.ini.tpl":                 path.Join("conf", "log.ini"),
 		"bin/run.sh.tpl":                   path.Join("bin", "run.sh"),

@@ -11,7 +11,7 @@ import (
 func ImportDirs(fileDirs *params.List, fileName string) []string {
 
 	// ./$protofile
-	if len(*fileDirs) == 0 {
+	if len(*fileDirs) == 0 || (len(*fileDirs) == 1 && (*fileDirs)[0] == ".") {
 		abs, _ := filepath.Abs(".")
 		fileDirs.Set(".")
 		return []string{abs}
@@ -27,7 +27,7 @@ func ImportDirs(fileDirs *params.List, fileName string) []string {
 		p := path.Join(dir, fileName)
 
 		if info, err := os.Stat(p); err == nil && !info.IsDir() {
-			fpath = append(fpath, p)
+			fpath = append(fpath, dir)
 		}
 	}
 

@@ -2,11 +2,11 @@ package tpl
 
 import (
 	"fmt"
-	"github.com/hitzhangjie/gorpc/tools/gorpc/fs"
-	"github.com/hitzhangjie/gorpc/tools/gorpc/log"
-	"github.com/hitzhangjie/gorpc/tools/gorpc/params"
-	"github.com/hitzhangjie/gorpc/tools/gorpc/parser"
-	"github.com/hitzhangjie/gorpc/tools/gorpc/spec"
+	"github.com/hitzhangjie/go-rpc/tools/gorpc/fs"
+	"github.com/hitzhangjie/go-rpc/tools/gorpc/log"
+	"github.com/hitzhangjie/go-rpc/tools/gorpc/params"
+	"github.com/hitzhangjie/go-rpc/tools/gorpc/parser"
+	"github.com/hitzhangjie/go-rpc/tools/gorpc/spec"
 	"github.com/pkg/errors"
 	"os"
 	"os/exec"
@@ -43,7 +43,7 @@ func GenerateFiles(asset *parser.ServerDescriptor, fAbsPath string, create bool,
 	// 处理模板文件
 	tpllist := map[string]string{}
 
-	// 新建模式gorpc create需要生成服务代码，gorpc update只更新rpc就可以了
+	// 新建模式go-rpc create需要生成服务代码，gorpc update只更新rpc就可以了
 	if create {
 		tpllist = filelist(asset, options)
 		for fin, fout := range tpllist {
@@ -62,9 +62,9 @@ func GenerateFiles(asset *parser.ServerDescriptor, fAbsPath string, create bool,
 	funcMap := template.FuncMap{"splitIliveCmd": splitIliveCmd}
 	generateFile(asset, "rpc/rpc.go.tpl", "rpc/"+asset.ServerName+"_rpc.go", funcMap, outputdir, options)
 
-	// move rpcStub/pb/pb.go to /data/home/gorpc/src/git.code.oa.com/${server}
+	// move rpcStub/pb/pb.go to /data/home/go-rpc/src/git.code.oa.com/${server}
 	protofile := options["protofile"].(string)
-	protodirs := options["protodir"].(params.StringArray)
+	protodirs := options["protodir"].(params.List)
 
 	// - copy pb to /rpc + /proto
 	src := fAbsPath
@@ -197,7 +197,7 @@ func getOutputdir(asset *parser.ServerDescriptor) (string, error) {
 	return path.Join(wd, asset.ServerName), nil
 }
 
-func runProtocGoOut(protodirs params.StringArray, protofile, outputdir string) error {
+func runProtocGoOut(protodirs params.List, protofile, outputdir string) error {
 
 	args := make([]string, 0)
 

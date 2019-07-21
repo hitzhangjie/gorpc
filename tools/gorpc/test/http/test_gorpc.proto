@@ -1,0 +1,28 @@
+syntax = "proto2";
+package gorpc;
+
+// buy apple
+message BuyAppleReq {
+    optional uint32 num = 1;
+};
+
+message BuyAppleRsp {
+    optional uint32 errcode = 1;   
+    optional string errmsg = 2;
+};
+
+// buy banana
+message BuyBananaReq {
+    optional uint32 num = 1;
+};
+
+message BuyBananaRsp {
+    optional uint32 errcode = 1;   
+    optional string errmsg = 2;
+};
+
+// service fruit_svr
+service fruit_svr {
+    rpc BuyApple(BuyAppleReq) returns(BuyAppleRsp);     // BuyApple
+    rpc BuyBanana(BuyBananaReq) returns(BuyBananaRsp);  // BuyBanana
+}

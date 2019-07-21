@@ -1,22 +1,31 @@
 package params
 
-import "strings"
+import (
+	"fmt"
+)
 
-type StringArray []string
+type List []string
 
-func (strArr *StringArray) String() string {
-	return strings.Join(*strArr, " ")
+func (l *List) String() string {
+	return fmt.Sprintf("%v", *l)
 }
 
-func (strArr *StringArray) Get() interface{} {
-	return *strArr
-}
-
-func (strArr *StringArray) Set(value string) error {
-	*strArr = append(*strArr, value)
+func (l *List) Set(value string) error {
+	*l = append(*l, value)
 	return nil
 }
 
-func (strArr *StringArray) Replace(arr *[]string) {
-	*strArr = *arr
+func (l *List) Replace(arr *[]string) {
+	*l = *arr
+}
+
+type arrayFlags []string
+
+func (i *arrayFlags) String() string {
+	return "my string representation"
+}
+
+func (i *arrayFlags) Set(value string) error {
+	*i = append(*i, value)
+	return nil
 }

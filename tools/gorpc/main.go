@@ -1,26 +1,20 @@
 package main
 
 import (
-	"github.com/hitzhangjie/gorpc/tools/gorpc/cmds"
-	"github.com/hitzhangjie/gorpc/tools/gorpc/i18n"
-	"github.com/hitzhangjie/gorpc/tools/gorpc/params"
+	"github.com/hitzhangjie/go-rpc/tools/gorpc/cmds"
+	"github.com/hitzhangjie/go-rpc/tools/gorpc/params"
 	"os"
 )
 
-var usage map[string]string = i18n.UsagesEn
-
 var (
-	protodirs params.StringArray // pb import路径
-	protofile *string            // pb 文件
-	protocol  *string            // 协议类型，nrpc、simplesso、ilive
-	httpon    *bool              // 是否开启http
-	assetdir  *string            // 模板路径
-	global    *bool              // 生成代码时使用全局GOPATH
-	verbose   *bool              // 打印详细日志
+	protodirs params.List // pb import路径
+	protofile *string     // pb 文件
+	protocol  *string     // 协议类型，如gorpc等等
+	httpon    *bool       // 是否开启http
+	assetdir  *string     // 模板路径
+	global    *bool       // 生成代码时使用全局GOPATH
+	verbose   *bool       // 打印详细日志
 )
-
-func init() {
-}
 
 var subcmds = cmds.RegisteredSubCmds()
 

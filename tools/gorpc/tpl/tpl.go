@@ -62,7 +62,7 @@ func GenerateFiles(asset *parser.ServerDescriptor, fAbsPath string, create bool,
 	funcMap := template.FuncMap{"splitIliveCmd": splitIliveCmd}
 	generateFile(asset, "rpc/rpc.go.tpl", "rpc/"+asset.ServerName+"_rpc.go", funcMap, outputdir, options)
 
-	// move rpcStub/pb/pb.go to /data/home/go-rpc/src/git.code.oa.com/${server}
+	// move rpcStub/pb/pb.go to /data/home/go-rpc/src/github.com/hitzhangjie/go-rpc-protos/${server}
 	protofile := options["protofile"].(string)
 	protodirs := options["protodir"].(params.List)
 

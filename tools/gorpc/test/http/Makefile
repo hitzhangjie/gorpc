@@ -1,8 +1,7 @@
-all: test_nrpc.proto
-	#protoc --neat_out=plugins=nserver:. Test.proto
-	goneat test_nrpc.proto nrpc httpon
+all: test_gorpc.proto
+	goneat create -protodir=. -protofile=test_gorpc.proto -protocol=gorpc -httpon
 
 .PHONY: clean
 
 clean:
-	rm -rf test_nrpc
+	rm -rf test_gorpc

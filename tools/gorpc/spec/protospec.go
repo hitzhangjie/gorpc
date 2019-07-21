@@ -62,6 +62,9 @@ func init() {
 
 func GetTypeSpec(protocol string) *ProtoSpec {
 
+	log.Debug("param: ", protocol)
+	log.Debug("specs: ", protoSpecs)
+
 	typespec, ok := protoSpecs[protocol]
 	if !ok {
 		return nil

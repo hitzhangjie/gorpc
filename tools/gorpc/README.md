@@ -68,12 +68,12 @@ how to display help:
         gorpc help
 
 how to create project:
-        gorpc create -protodir=. -protofile=*.proto -protocol=nrpc -httpon=false
-        gorpc create -protofile=*.proto -protocol=nrpc
+        gorpc create -protodir=. -protofile=*.proto -protocol=gorpc -httpon=false
+        gorpc create -protofile=*.proto -protocol=gorpc
 
 how to update project:
-        gorpc update -protodir=. -protofile=*.proto -protocol=nrpc
-        gorpc update -protofile=*.proto -protocol=nrpc
+        gorpc update -protodir=. -protofile=*.proto -protocol=gorpc
+        gorpc update -protofile=*.proto -protocol=gorpc
 ```
 
 or 
@@ -91,13 +91,13 @@ global options:
 gorpc create:
 	-protodir, search path for protofile
 	-protofile, protofile to handle
-	-protocol, protocol to use, nrpc, simplesso or ilive
+	-protocol, protocol to use, gorpc, chick or swan
 	-httpon, enable http mode
 	-g, generate code structure conforming to global gopath
 
 gorpc update:
 	-protodir, search path for protofile
 	-protofile, protofile to handle
-	-protocol, protocol to use, nrpc, simplesso or ilive
+	-protocol, protocol to use, gorpc, chick or swan
 ```
 

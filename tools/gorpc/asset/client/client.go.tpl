@@ -55,29 +55,29 @@ func init() {
 func initReqSession() * prototype.{{.ProtoSpec.SessionType}}{
 
 	{{- /*nrpc*/}}
-	{{- if eq $protocol "nrpc"}}
-	headRequest := &cltpkg.NRPCPkg{Head:&cltpkg.Head{}}
-	session := &prototype.NRPCSession{NRPCReq: headRequest}
+	{{- if eq $protocol "gorpc"}}
+	headRequest := &cltpkg.GoRPCPkg{Head:&cltpkg.Head{}}
+	session := &prototype.GoRPCSession{GoRPCReq: headRequest}
 	return session
 	{{- end}}
 
-    {{- /*simplesso*/}}
-	{{- if eq $protocol "simplesso"}}
-	headRequest := &cltpkg.Server2SsoPack{}
-	session := &prototype.SimpleSsoSession{SsoHeadReq: headRequest}
+    {{- /*chick*/}}
+	{{- if eq $protocol "chick"}}
+	headRequest := &cltpkg.ChickPack{}
+	session := &prototype.ChickSession{ChickHeadReq: headRequest}
 	return session
 	{{- end}}
 
-    {{- /*ilive*/}}
-	{{- if eq $protocol "ilive"}}
+    {{- /*swan*/}}
+	{{- if eq $protocol "swan"}}
 	var (
    		uid uint64 = 1194606858
    		version uint32 = 1
    		clientType uint32 = 1
    		clientIp uint32 = 1
 	)
-	headRequest := &cltpkg.ILiveRequest{Uid: &uid, Version: &version, ClientIp: &clientIp, ClientType: &clientType}
-	session := &prototype.ILiveSession{ILiveHeadReq: headRequest}
+	headRequest := &cltpkg.SwanRequest{Uid: &uid, Version: &version, ClientIp: &clientIp, ClientType: &clientType}
+	session := &prototype.SwanSession{SwanHeadReq: headRequest}
 	return session
 	{{- end}}
 }

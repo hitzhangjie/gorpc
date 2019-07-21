@@ -23,7 +23,7 @@ func NewUpdateCmd() *UpdateCmd {
 
 	fs.Var(&protodirs, "protodir", "search path for protofile")
 	fs.String("protofile", "any.proto", "protofile to handle")
-	fs.String("protocol", "nrpc", "protocol to use, nrpc, simplesso or ilive")
+	fs.String("protocol", "gorpc", "protocol to use, gorpc, chick or swan")
 	fs.Bool("g", false, "generate code structure conforming to global gopath")
 	fs.Bool("v", false, "verbose help info")
 	fs.String("assetdir", "", "search path for project template")
@@ -32,14 +32,14 @@ func NewUpdateCmd() *UpdateCmd {
 		usageLine: `go-rpc update`,
 		descShort: `
 how to update project:
-	go-rpc update -protodir=. -protofile=*.proto -protocol=nrpc
-	go-rpc update -protofile=*.proto -protocol=nrpc`,
+	go-rpc update -protodir=. -protofile=*.proto -protocol=gorpc
+	go-rpc update -protofile=*.proto -protocol=gorpc`,
 
 		descLong: `
 go-rpc update:
 	-protodir, search path for protofile
 	-protofile, protofile to handle
-	-protocol, protocol to use, nrpc, simplesso or ilive`,
+	-protocol, protocol to use, gorpc, chick or swan`,
 		flagSet: fs,
 	}
 
@@ -74,8 +74,6 @@ func (c *UpdateCmd) Run(args ...string) error {
 }
 
 func (c *UpdateCmd) update() error {
-	// Q:解析库jhump parser本身支持pb依赖的解析，为什么这里还要再额外的去判断导入路径呢？
-	// A:nrpc页面也要支持pb依赖解析，nrpc页面上传的pb文件是按照flat layout进行组织的！
 	fpaths := parser.ImportDirs(&protodirs, protofile)
 
 	if len(fpaths) == 0 {

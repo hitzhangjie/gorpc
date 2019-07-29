@@ -244,10 +244,10 @@ package "broker" {
     }
     Broker -right-|> ServerModule
 
-    class Hippo {
+    class NATS {
         NewBroker(masterAddr) (Broker, error)
     }
-    Hippo -up-|> Broker
+    NATS -up-|> Broker
 
     class Kafka {
         NewBroker(masterAddr) (Broker, error)

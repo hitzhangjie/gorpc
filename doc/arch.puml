@@ -202,8 +202,8 @@ package "client" {
 	        Close() error
         }
 
-        L5Selector -up-|> Selector
-        CmlbSelector -up-|> Selector
+        SimpleSelector -up-|> Selector
+        ConsulSelector -up-|> Selector
         EtcdSelector -up-|> Selector
         Selector -up-> Registry
         note bottom of EtcdSelector

@@ -11,31 +11,5 @@
     "clientType": "gorpcRpcClient",
     "clientFactory": "NewgorpcRpcClient",
     "sessionType": "gorpcSession"
-  },
-  "chick": {
-    "name": "chick",
-    "handler": "github.com/hitzhangjie/go-neat/core/proto/chick/chick_svr/default_chick_handler",
-    "repo": "github.com/hitzhangjie/chick_protos/chick_protos.git",
-    "repoPrefix": "github.com/hitzhangjie/chick_protos",
-    "localPrefix": "/data/home/go_proj/src/github.com/hitzhangjie/chick_protos/",
-    "asset": "github.com/hitzhangjie/go-neat/core/proto/chick",
-    "spec": "github.com/hitzhangjie/go-neat/core/proto/chick/chickparser",
-    "clientPkg": "github.com/hitzhangjie/go-neat/core/proto/chick/chick_clt",
-    "clientType": "chickRpcClient",
-    "clientFactory": "NewchickRpcClient",
-    "sessionType": "chickSession"
-  },
-  "swan": {
-    "name": "swan",
-    "handler": "github.com/hitzhangjie/go-neat/core/proto/swan/swan_nsvr/default_swan_handler",
-    "repo": "github.com/hitzhangjie/SwanProtos/SwanProtos.git",
-    "repoPrefix": "github.com/hitzhangjie/SwanProtos",
-    "localPrefix": "/data/home/go_proj/src/github.com/hitzhangjie/SwanProtos/",
-    "asset": "github.com/hitzhangjie/go-neat/core/proto/swan",
-    "spec": "github.com/hitzhangjie/go-neat/core/proto/swan/swan_pb",
-    "clientPkg": "github.com/hitzhangjie/go-neat/core/proto/swan/swan_client",
-    "clientType": "swanRpcClient",
-    "clientFactory": "NewswanRpcClient",
-    "sessionType": "swanSession"
   }
 }

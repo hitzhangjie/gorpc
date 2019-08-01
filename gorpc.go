@@ -1,4 +1,4 @@
-package go_rpc
+package gorpc
 
 import (
 	"github.com/hitzhangjie/go-rpc/server"
@@ -37,3 +37,4 @@ func (s *Service) Handle(service interface{}) {
 
 func (s *Service) Start() {
 }
+

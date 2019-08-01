@@ -1,11 +1,16 @@
 syntax = "proto2";
-package gorpc;
+package whisper;
 
 // PkgHeader request/response统一包头
 //
 // 二进制编码协议：
 // | STX | PKG LENGTH | Request/Response BODY | ETX |
 // 0     1            5                       ~    ~+1
+//
+// STX: 0x38
+// ETX: 0x49
+
+// Request definition
 //
 // In Request, tracing `traceContext` is stored in map `meta`.
 message Request {
@@ -17,8 +22,11 @@ message Request {
     optional bytes body = 6; // 业务包体
     map<string, string> meta = 7; // 元信息
 }
-// In Response, frame only return `err_msg` , why? `err_code` is easy to conflide
-// with user developing, so here `err_code` can only be set by business logic.
+
+// Response definition
+//
+// `err_code` and `err_msg` should indicate errors in framework,
+// rather than business logic error or error description.
 message Response {
     optional uint64 seqno = 1; // 包序号
     optional uint32 err_code = 2; // 错误码

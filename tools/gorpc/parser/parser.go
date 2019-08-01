@@ -1,26 +1,15 @@
 package parser
 
 import (
-	"fmt"
 	"github.com/hitzhangjie/go-rpc/tools/gorpc/log"
 	"github.com/hitzhangjie/go-rpc/tools/gorpc/spec"
 	"github.com/jhump/protoreflect/desc"
-	"strconv"
 	"strings"
 
 	"github.com/jhump/protoreflect/desc/protoparse"
 )
 
-var (
-	serverDescriptor ServerDescriptor
-
-	// swan
-	swanBigCmd = 0
-	swanSubCmd = []int{}
-
-	// chick
-	chickCmd = []int{}
-)
+var serverDescriptor ServerDescriptor
 
 func GetNameWithPackageCheck(fullTypeName string, goPackageName string) string {
 	//根据go文件的package来判断是使用全限定的类型名(如package_a.TypeA)，还是直接使用简单类型名(如TypeA)
@@ -70,43 +59,15 @@ func ParseProtoFile(fname, protocol string, protodirs ...string) (*ServerDescrip
 	// spec
 	serverDescriptor.ProtoSpec = *spec.GetTypeSpec(protocol)
 
-	// serviceCmd: swan bigCmd+subCmd, chick serviceCmd, gorpc don't need this.
-	log.Debug("enums: %v", fd.GetEnumTypes())
-	for _, e := range fd.GetEnumTypes() {
-		name := e.GetName()
-		if protocol == "swan" {
-			if name == "BIG_CMD" {
-				swanBigCmd = int(e.GetValues()[0].GetNumber())
-			}
-			if name == "SUB_CMD" {
-				for _, v := range e.GetValues() {
-					swanSubCmd = append(swanSubCmd, int(v.GetNumber()))
-				}
-			}
-		} else if protocol == "chick" {
-			if name == "SERVICE_CMD" {
-				for _, v := range e.GetValues() {
-					chickCmd = append(chickCmd, int(v.GetNumber()))
-				}
-			}
-		}
-	}
-
 	// service rpc
 	service := fd.GetServices()[0]
-	for idx, m := range service.GetMethods() {
+	for _, m := range service.GetMethods() {
 		rpc := ServerRPCDescriptor{
 			Name:                     m.GetName(),
 			RequestType:              m.GetInputType().GetFullyQualifiedName(),
 			ResponseType:             m.GetOutputType().GetFullyQualifiedName(),
 			RequestTypeNameInRpcTpl:  GetNameWithPackageCheck(m.GetInputType().GetFullyQualifiedName(), serverDescriptor.PackageName),
 			ResponseTypeNameInRpcTpl: GetNameWithPackageCheck(m.GetOutputType().GetFullyQualifiedName(), serverDescriptor.PackageName),
-		}
-		if protocol == "swan" {
-			rpc.Cmd = fmt.Sprintf("%#x_%#x", swanBigCmd, swanSubCmd[idx])
-		}
-		if protocol == "chick" {
-			rpc.Cmd = strconv.FormatInt(int64(chickCmd[idx]), 10)
 		}
 		if protocol == "gorpc" {
 			rpc.Cmd = rpc.Name

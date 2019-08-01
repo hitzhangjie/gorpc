@@ -1,0 +1,37 @@
+syntax = "proto2";
+package helloworld;
+
+// SayHello
+message HelloReq {
+    optional string words = 1;
+}
+
+message HelloRsp {
+    optional uint32 err_code = 1;
+    optional string err_msg = 2;
+}
+
+// SayBye
+message ByeReq {
+    optional string words = 1;
+}
+
+message ByeRsp {
+    optional uint32 err_code = 1;
+    optional string err_msg = 2;
+}
+
+// greeter
+service greeter {
+    //SayHello
+    rpc SayHello (HelloReq) returns (HelloRsp);
+    //SayBye
+    rpc SayBye (ByeReq) returns (ByeRsp);
+}
+
+// greeter_bye
+service greeter_bye {
+    //SayBye
+    rpc SayBye (ByeReq) returns (ByeRsp);
+}
+

@@ -12,7 +12,6 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"text/template"
 )
@@ -67,7 +66,7 @@ func GenerateFiles(asset *parser.ServerDescriptor, fAbsPath string, create bool,
 			return os.MkdirAll(outPath, os.ModePerm)
 		}
 		outPath = strings.TrimSuffix(outPath, ".tpl")
-		funcMap := template.FuncMap{"splitSwanCmd": splitSwanCmd}
+		funcMap := template.FuncMap{"Title": Title}
 		generateFile(asset, path, outPath, funcMap, options)
 		return nil
 	}
@@ -169,12 +168,8 @@ func generateFile(asset *parser.ServerDescriptor, infile, outfile string, funcMa
 	return nil
 }
 
-func splitSwanCmd(cmdStr string) string {
-	cmds := strings.Split(cmdStr, "_")
-	bigCmd, _ := strconv.ParseInt(cmds[0], 0, 32)
-	subCmd, _ := strconv.ParseInt(cmds[1], 0, 32)
-
-	return strconv.Itoa(int(bigCmd)) + ", " + strconv.Itoa(int(subCmd))
+func Title(cmdStr string) string {
+	return strings.Title(cmdStr)
 }
 
 func getOutputdir(asset *parser.ServerDescriptor) (string, error) {

@@ -1,4 +1,4 @@
-package go_rpc
+package gorpc
 
 import (
 	"github.com/hitzhangjie/go-rpc/examples/service"

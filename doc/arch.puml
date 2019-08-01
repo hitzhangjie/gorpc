@@ -202,8 +202,8 @@ package "client" {
 	        Close() error
         }
 
-        L5Selector -up-|> Selector
-        CmlbSelector -up-|> Selector
+        SimpleSelector -up-|> Selector
+        ConsulSelector -up-|> Selector
         EtcdSelector -up-|> Selector
         Selector -up-> Registry
         note bottom of EtcdSelector
@@ -244,10 +244,10 @@ package "broker" {
     }
     Broker -right-|> ServerModule
 
-    class Hippo {
+    class NATS {
         NewBroker(masterAddr) (Broker, error)
     }
-    Hippo -up-|> Broker
+    NATS -up-|> Broker
 
     class Kafka {
         NewBroker(masterAddr) (Broker, error)

@@ -65,7 +65,7 @@ func GenerateFiles(asset *parser.ServerDescriptor, fAbsPath string, create bool,
 			return os.MkdirAll(outPath, os.ModePerm)
 		}
 		outPath = strings.TrimSuffix(outPath, ".tpl")
-		funcMap := template.FuncMap{"Title": Title}
+		funcMap := template.FuncMap{"Title": Title, "Simplify": Simplify}
 		generateFile(asset, path, outPath, funcMap, options)
 		return nil
 	}
@@ -165,6 +165,24 @@ func generateFile(asset *parser.ServerDescriptor, infile, outfile string, funcMa
 
 func Title(cmdStr string) string {
 	return strings.Title(cmdStr)
+}
+
+func Simplify(fullTypeName string, goPackageName string) string {
+	//根据go文件的package来判断是使用全限定的类型名(如package_a.TypeA)，还是直接使用简单类型名(如TypeA)
+	eles := strings.Split(fullTypeName, ".")
+	if eles != nil && len(eles) > 1 {
+		//type所在package名
+		typePackageName := strings.Join(eles[:len(eles)-1], ".")
+		//type简单名
+		typeSimpleName := eles[len(eles)-1]
+
+		if typePackageName == goPackageName {
+			//如果type就在当前go文件所在package中，则使用简单类型名
+			return typeSimpleName
+		}
+	}
+
+	return fullTypeName
 }
 
 func getOutputdir(asset *parser.ServerDescriptor) (string, error) {

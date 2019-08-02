@@ -11,7 +11,7 @@ import (
 type {{$svrName|Title}}Server interface{
     // template: range rpc
     {{- range .RPC}}
-    {{.Name}}(ctx context.Context, req *{{simplify .RequestType $pkgName}}) returns(*{{simplify .ResponseType $pkgName}}, error)
+    {{.Name}}(ctx context.Context, req *{{Simplify .RequestType $pkgName}}) returns(*{{Simplify .ResponseType $pkgName}}, error)
     {{- end}}
 }
 

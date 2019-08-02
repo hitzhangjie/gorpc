@@ -41,7 +41,7 @@ func (r *Router) RegisterService(serviceDesc *gorpc.ServiceDesc, serviceImpl int
 	return nil
 }
 
-type HandleFunc func(svr interface{}, ctx context.Context, session codec.Session)
+type HandleFunc func(svr interface{}, ctx context.Context, session codec.Session) error
 
 const (
 	idxPackageName = iota

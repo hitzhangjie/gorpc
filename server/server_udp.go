@@ -71,7 +71,11 @@ func (s *UdpServer) read(conn net.Conn) {
 				session.SetErrorResponse(err)
 				return
 			}
-			handle(service, s.svr.ctx, session)
+			err = handle(service, s.svr.ctx, session)
+			if err != nil {
+				session.SetErrorResponse(err)
+			}
+			s.rspChan <- session
 		}()
 	}
 }
@@ -100,4 +104,3 @@ func (s *UdpServer) write(conn net.Conn) {
 		}
 	}
 }
-

@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"github.com/hitzhangjie/go-rpc/tools/gorpc/spec"
 )
 
 // ServerDescriptor 将pb文件中用于描述服务信息的内容提取出来，包括所属的包名、服务名、支持的协议、启用HTTP、RPC请求等信息，
@@ -13,7 +12,6 @@ type ServerDescriptor struct {
 	Protocol    string                // 协议类型，如gorpc等等
 	HttpOn      bool                  // http开关
 	RPC         []ServerRPCDescriptor // rpc接口定义
-	ProtoSpec   spec.ProtoSpec        // 协议相关附加信息
 	CreateTime  string                // 服务创建时间
 	Author      string                // 作者
 }

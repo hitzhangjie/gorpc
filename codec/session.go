@@ -8,6 +8,7 @@ type Session interface {
 
 	Response() interface{}
 	SetResponse(rsp interface{})
+	SetErrorResponse(error)
 
 	TraceContext() interface{}
 	//TraceStart() func(Session)

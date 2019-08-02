@@ -4,11 +4,9 @@ import (
 	"flag"
 	"github.com/hitzhangjie/go-rpc/tools/gorpc/log"
 	"github.com/hitzhangjie/go-rpc/tools/gorpc/parser"
-	"github.com/hitzhangjie/go-rpc/tools/gorpc/spec"
 	"github.com/hitzhangjie/go-rpc/tools/gorpc/tpl"
 	"os"
 	"path"
-	"path/filepath"
 	"time"
 )
 
@@ -50,7 +48,7 @@ type UpdateCmd struct {
 	Cmd
 }
 
-func (c *UpdateCmd) Run(args ...string) error {
+func (c *UpdateCmd) Run(args ...string) (err error) {
 
 	c.flagSet.Parse(args)
 
@@ -61,15 +59,11 @@ func (c *UpdateCmd) Run(args ...string) error {
 
 	assetdir = c.flagSet.Lookup("assetdir").Value.(flag.Getter).Get().(string)
 	if len(assetdir) == 0 {
-		if dir, err := spec.LocateCfgPath(); err != nil {
-			panic(err)
-		} else {
-			assetdir = filepath.Join(dir, "asset")
+		if assetdir, err = defaultAssetDir(); err != nil {
+			return err
 		}
 	}
-
 	log.InitLogging(verbose)
-
 	return c.update()
 }
 

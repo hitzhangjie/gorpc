@@ -65,7 +65,14 @@ func (s *UdpServer) read(conn net.Conn) {
 			// fixme handle error
 		}
 		// fixme using workerpool instead of goroutine
-		go s.handle(session)
+		go func() {
+			service, handle, err := s.svr.router.Route(session)
+			if err != nil {
+				session.SetErrorResponse(err)
+				return
+			}
+			handle(service, s.svr.ctx, session)
+		}()
 	}
 }
 
@@ -94,11 +101,3 @@ func (s *UdpServer) write(conn net.Conn) {
 	}
 }
 
-func (s *UdpServer) handle(session codec.Session) {
-	// fixme handle session logic
-
-	// fixme handle session begin
-
-	// fixme handle session finish
-	s.rspChan <- session
-}

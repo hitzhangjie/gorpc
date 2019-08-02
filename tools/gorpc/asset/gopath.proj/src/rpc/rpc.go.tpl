@@ -1,17 +1,18 @@
+{{- $pkgName := .PackageName -}}
+{{- $svrName := .ServerName -}}
+{{- $protocol := .Protocol -}}
 package helloworld;
 
 import (
     "context"
 )
 
-// template: range service
-
-// ------------------------
-// server
-type GreeterServer interface{
+// {{$svrName|Title}}Server service definition
+type {{$svrName|Title}}Server interface{
     // template: range rpc
-    SayHello(ctx context.Context, req *helloworld.HelloReq) returns(*helloworld.HelloRsp, error)
-    SayByte(ctx context.Context, req *helloworld.ByteReq) returns(*helloworld.ByteRsp, error)
+    {{- range .RPC}}
+    {{.Name}}(ctx context.Context, req *{{simplify .RequestType $pkgName}}) returns(*{{simplify .ResponseType $pkgName}}, error)
+    {{- end}}
 }
 
 type gorpc.ServiceDesc struct {
@@ -26,9 +27,6 @@ type GreeterClient interface{
     SayHello(ctx context.Context, req *helloworld.HelloReq) returns(*helloworld.HelloRsp, error)
     SayByte(ctx context.Context, req *helloworld.ByteReq) returns(*helloworld.ByteRsp, error)
 }
-
-
-
 
 // -------------------------
 // server

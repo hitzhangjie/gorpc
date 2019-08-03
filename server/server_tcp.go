@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"github.com/hitzhangjie/go-rpc/codec"
 	"net"
 )
@@ -89,6 +90,8 @@ func (s *TcpServer) read(conn net.Conn) {
 		session, err := s.reader.Read(conn)
 		if err != nil {
 			// fixme handle error
+			fmt.Println("read error:", err)
+			return
 		}
 		// fixme using workerpool instead of goroutine
 		go func() {

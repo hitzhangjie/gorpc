@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"github.com/gogo/protobuf/proto"
 	"github.com/hitzhangjie/go-rpc/codec"
 )
@@ -41,6 +42,7 @@ func (s *ServerCodec) Encode(pkg interface{}) ([]byte, error) {
 func (s *ServerCodec) Decode(in []byte) (interface{}, error) {
 
 	if len(in) < 5 {
+		fmt.Println("<5")
 		return nil, codec.CodecReadIncomplete
 	}
 
@@ -53,35 +55,42 @@ func (s *ServerCodec) Decode(in []byte) (interface{}, error) {
 	)
 	// stx
 	if err := binary.Read(b, binary.BigEndian, &pkgStx); err != nil {
+		fmt.Println("read stx:", err)
 		return nil, err
 	}
 	if pkgStx != 0x38 {
+		fmt.Println("stx != 0x38, read:", pkgStx)
 		return nil, codec.CodecReadInvalid
 	}
 	// len
 	if err := binary.Read(b, binary.BigEndian, &pkgLen); err != nil {
+		fmt.Println("len =", pkgLen)
 		return nil, err
 	}
 	if pkgLen > maxWhisperPkgSize {
 		return nil, codec.CodecReadTooBig
 	}
-	if len(in) != int(1+4+pkgLen+1) {
+	if len(in) < int(1+4+pkgLen+1) {
+		fmt.Println("<", (1 + 4 + pkgLen + 1))
 		return nil, codec.CodecReadIncomplete
 	}
-	// etx
-	if err := binary.Read(b, binary.BigEndian, &pkgEtx); err != nil {
-		return nil, err
-	}
-	if pkgEtx != 0x49 {
-		return nil, codec.CodecReadInvalid
-	}
 	// payload
-	payload := &bytes.Buffer{}
+	payload := make([]byte, pkgLen, pkgLen)
 	if err := binary.Read(b, binary.BigEndian, payload); err != nil {
 		return nil, codec.CodecReadError
 	}
+	// etx
+	if err := binary.Read(b, binary.BigEndian, &pkgEtx); err != nil {
+		fmt.Println("read etx, err:", err)
+		return nil, err
+	}
+	if pkgEtx != 0x49 {
+		fmt.Println("etx != 0x49, read:", pkgEtx)
+		return nil, codec.CodecReadInvalid
+	}
+
 	request := &Request{}
-	if err := proto.Unmarshal(payload.Bytes(), request); err != nil {
+	if err := proto.Unmarshal(payload, request); err != nil {
 		return nil, err
 	}
 
@@ -147,6 +156,11 @@ func (c *ClientCodec) Decode(in []byte) (interface{}, error) {
 	if len(in) != int(1+4+pkgLen+1) {
 		return nil, codec.CodecReadIncomplete
 	}
+	// payload
+	payload := make([]byte, pkgLen, pkgLen)
+	if err := binary.Read(b, binary.BigEndian, payload); err != nil {
+		return nil, codec.CodecReadError
+	}
 	// etx
 	if err := binary.Read(b, binary.BigEndian, &pkgEtx); err != nil {
 		return nil, err
@@ -154,13 +168,8 @@ func (c *ClientCodec) Decode(in []byte) (interface{}, error) {
 	if pkgEtx != 0x49 {
 		return nil, codec.CodecReadInvalid
 	}
-	// payload
-	payload := &bytes.Buffer{}
-	if err := binary.Read(b, binary.BigEndian, payload); err != nil {
-		return nil, codec.CodecReadError
-	}
 	response := &Response{}
-	if err := proto.Unmarshal(payload.Bytes(), response); err != nil {
+	if err := proto.Unmarshal(payload, response); err != nil {
 		return nil, err
 	}
 

@@ -142,7 +142,7 @@ func (c *ClientCodec) Decode(in []byte) (interface{}, error) {
 		return nil, err
 	}
 	if pkgLen > maxWhisperPkgSize {
-		return codec.CodecReadTooBig
+		return nil, codec.CodecReadTooBig
 	}
 	if len(in) != int(1+4+pkgLen+1) {
 		return nil, codec.CodecReadIncomplete

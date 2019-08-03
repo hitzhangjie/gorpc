@@ -2,6 +2,8 @@ package cmds
 
 import (
 	"flag"
+	"os/user"
+	"path/filepath"
 )
 
 // Commander defines the subcmd behavior
@@ -42,5 +44,18 @@ func (c *Cmd) DescLong() string {
 // FlagSet returns the flagset
 func (c *Cmd) FlagSet() *flag.FlagSet {
 	return c.flagSet
+}
+
+func defaultAssetDir() (dir string, err error) {
+	u, err := user.Current()
+	if err != nil {
+		return
+	}
+	if u.Username != "root" {
+		dir = filepath.Join(u.HomeDir, ".gorpc/asset")
+	} else {
+		dir = "/etc/gorpc/assetdir"
+	}
+	return
 }
 

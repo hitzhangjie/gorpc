@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"github.com/hitzhangjie/go-rpc/router"
 )
 
 // Server represents a server instance (a server process), it can plug in ServerModules,
@@ -11,15 +12,17 @@ type Server struct {
 	opts   []*Option
 	mods   []ServerModule
 	closed chan (struct{})
+	router *router.Router
 }
 
 // NewServer create new server with option
 //
 func NewServer(opts ...Option) (*Server, error) {
 	s := &Server{
-		ctx:  context.TODO(),
-		opts: []*Option{},
-		mods: []ServerModule{},
+		ctx:    context.TODO(),
+		opts:   []*Option{},
+		mods:   []ServerModule{},
+		router: router.NewRouter(),
 	}
 	return s, nil
 }
@@ -30,6 +33,6 @@ func (s *Server) Start() {
 	}
 	println("server started")
 
-	<- s.closed
+	<-s.closed
 	println("server stopped")
 }

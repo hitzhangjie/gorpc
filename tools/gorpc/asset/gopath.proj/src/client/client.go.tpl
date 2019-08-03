@@ -11,7 +11,7 @@ import (
     "gorpc/common"
     "gorpc/depmod/trace"
     "gorpc/nlog"
-    "{{.ProtoSpec.RepoPrefix}}/{{$svrName}}"
+    "rpc/{{$svrName}}"
     prototype "{{.ProtoSpec.Asset}}"
     cltpkg "{{.ProtoSpec.Spec}}"
 	"os"

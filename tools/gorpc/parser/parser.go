@@ -2,7 +2,6 @@ package parser
 
 import (
 	"github.com/hitzhangjie/go-rpc/tools/gorpc/log"
-	"github.com/hitzhangjie/go-rpc/tools/gorpc/spec"
 	"github.com/jhump/protoreflect/desc"
 	"strings"
 
@@ -10,24 +9,6 @@ import (
 )
 
 var serverDescriptor ServerDescriptor
-
-func GetNameWithPackageCheck(fullTypeName string, goPackageName string) string {
-	//根据go文件的package来判断是使用全限定的类型名(如package_a.TypeA)，还是直接使用简单类型名(如TypeA)
-	eles := strings.Split(fullTypeName, ".")
-	if eles != nil && len(eles) > 1 {
-		//type所在package名
-		typePackageName := strings.Join(eles[:len(eles)-1], ".")
-		//type简单名
-		typeSimpleName := eles[len(eles)-1]
-
-		if typePackageName == goPackageName {
-			//如果type就在当前go文件所在package中，则使用简单类型名
-			return typeSimpleName
-		}
-	}
-
-	return fullTypeName
-}
 
 func ParseProtoFile(fname, protocol string, protodirs ...string) (*ServerDescriptor, error) {
 
@@ -56,9 +37,6 @@ func ParseProtoFile(fname, protocol string, protodirs ...string) (*ServerDescrip
 	// protocol
 	serverDescriptor.Protocol = protocol
 
-	// spec
-	serverDescriptor.ProtoSpec = *spec.GetTypeSpec(protocol)
-
 	// service rpc
 	service := fd.GetServices()[0]
 	for _, m := range service.GetMethods() {
@@ -66,8 +44,6 @@ func ParseProtoFile(fname, protocol string, protodirs ...string) (*ServerDescrip
 			Name:                     m.GetName(),
 			RequestType:              m.GetInputType().GetFullyQualifiedName(),
 			ResponseType:             m.GetOutputType().GetFullyQualifiedName(),
-			RequestTypeNameInRpcTpl:  GetNameWithPackageCheck(m.GetInputType().GetFullyQualifiedName(), serverDescriptor.PackageName),
-			ResponseTypeNameInRpcTpl: GetNameWithPackageCheck(m.GetOutputType().GetFullyQualifiedName(), serverDescriptor.PackageName),
 		}
 		if protocol == "gorpc" {
 			rpc.Cmd = rpc.Name

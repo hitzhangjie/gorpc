@@ -6,7 +6,6 @@ import (
 	"github.com/hitzhangjie/go-rpc/tools/gorpc/log"
 	"github.com/hitzhangjie/go-rpc/tools/gorpc/params"
 	"github.com/hitzhangjie/go-rpc/tools/gorpc/parser"
-	"github.com/hitzhangjie/go-rpc/tools/gorpc/spec"
 	"github.com/pkg/errors"
 	"os"
 	"os/exec"
@@ -66,7 +65,7 @@ func GenerateFiles(asset *parser.ServerDescriptor, fAbsPath string, create bool,
 			return os.MkdirAll(outPath, os.ModePerm)
 		}
 		outPath = strings.TrimSuffix(outPath, ".tpl")
-		funcMap := template.FuncMap{"Title": Title}
+		funcMap := template.FuncMap{"Title": Title, "Simplify": Simplify}
 		generateFile(asset, path, outPath, funcMap, options)
 		return nil
 	}
@@ -78,18 +77,18 @@ func GenerateFiles(asset *parser.ServerDescriptor, fAbsPath string, create bool,
 	protofile := options["protofile"].(string)
 	protodirs := options["protodir"].(params.List)
 
-	// - copy pb to /rpc + /proto
+	// - copy pb to /proto + /rpc
+	// + copy pb to /proto
 	if err = os.MkdirAll(filepath.Join(outputdir, "proto"), os.ModePerm); err != nil {
 		return err
 	}
 	src := fAbsPath
 	dest := path.Join(outputdir, "proto", protofile)
-
-	// - copy pb to /rpc + /proto
+	fs.Copy(src, dest)
+	// + copy pb to /proto
 	if err = os.MkdirAll(filepath.Join(outputdir, "rpc"), os.ModePerm); err != nil {
 		return err
 	}
-	fs.Copy(src, dest)
 	dest = path.Join(outputdir, "rpc", protofile)
 	fs.Copy(src, dest)
 
@@ -101,11 +100,7 @@ func GenerateFiles(asset *parser.ServerDescriptor, fAbsPath string, create bool,
 
 	// move outputdir/rpc to public/servername
 	src = path.Join(outputdir, "rpc")
-	dest = path.Join(spec.GetTypeSpec(asset.Protocol).LocalPrefix, asset.ServerName)
-	if err = os.RemoveAll(dest); err != nil && os.IsNotExist(err) {
-		log.Error("remove file error:%v, file:%s", err, dest)
-		return err
-	}
+	dest = path.Join(outputdir, "src/rpc", asset.ServerName)
 
 	// cannot handle invalid cross-device link, try copy and delete, or use `mv` instead.
 	//if err = fs.Move(src, dest); err != nil {
@@ -119,7 +114,7 @@ func GenerateFiles(asset *parser.ServerDescriptor, fAbsPath string, create bool,
 	log.Debug("move file success, src:%s to dest:%s", src, dest)
 
 	// 生成log目录
-	os.Mkdir(path.Join(outputdir, "log"), os.ModePerm)
+	//os.Mkdir(path.Join(outputdir, "log"), os.ModePerm)
 
 	return nil
 }
@@ -170,6 +165,24 @@ func generateFile(asset *parser.ServerDescriptor, infile, outfile string, funcMa
 
 func Title(cmdStr string) string {
 	return strings.Title(cmdStr)
+}
+
+func Simplify(fullTypeName string, goPackageName string) string {
+	//根据go文件的package来判断是使用全限定的类型名(如package_a.TypeA)，还是直接使用简单类型名(如TypeA)
+	eles := strings.Split(fullTypeName, ".")
+	if eles != nil && len(eles) > 1 {
+		//type所在package名
+		typePackageName := strings.Join(eles[:len(eles)-1], ".")
+		//type简单名
+		typeSimpleName := eles[len(eles)-1]
+
+		if typePackageName == goPackageName {
+			//如果type就在当前go文件所在package中，则使用简单类型名
+			return typeSimpleName
+		}
+	}
+
+	return fullTypeName
 }
 
 func getOutputdir(asset *parser.ServerDescriptor) (string, error) {

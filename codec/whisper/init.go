@@ -5,18 +5,10 @@ import (
 )
 
 const (
-	WhisperClientCodec = "whisper_client_codec"
-	WhisperServerCodec = "whisper_server_codec"
+	Whisper = "whisper"
 )
 
 func init() {
-	codec.Mux.Lock()
-
-	c := &ClientCodec{}
-	s := &ServerCodec{}
-	codec.CodecMappings[WhisperClientCodec] = c
-	codec.CodecMappings[WhisperServerCodec] = s
-	codec.ReaderMappings[WhisperClientCodec] = codec.NewMessageReader(c)
-	codec.ReaderMappings[WhisperServerCodec] = codec.NewMessageReader(s)
-	codec.Mux.Unlock()
+	codec.RegisterCodec(Whisper, &ServerCodec{}, &ClientCodec{})
+	codec.RegisterSessionBuilder(Whisper, NewSession)
 }

@@ -1,4 +1,4 @@
-package gorpc
+package router
 
 import (
 	"context"
@@ -12,9 +12,11 @@ type ServiceDesc struct {
 	Stream      map[string]*StreamDesc
 }
 
+type HandleFunc = func(svr interface{}, ctx context.Context, session codec.Session) error
+
 type MethodDesc struct {
 	Name   string
-	Method func(service interface{}, ctx context.Context, session codec.Session)
+	Method HandleFunc
 }
 
 type StreamDesc struct {

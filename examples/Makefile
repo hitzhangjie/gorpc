@@ -1,5 +1,5 @@
 all:
-	trpc create -protofile=greeter.proto -protocol=whisper
+	gorpc create -protofile=greeter.proto -protocol=whisper
 
 .PHONY: clean
 clean:

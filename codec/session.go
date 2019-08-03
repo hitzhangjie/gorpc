@@ -1,5 +1,9 @@
 package codec
 
+import (
+	"sync"
+)
+
 type Session interface {
 	RPC() string
 
@@ -11,6 +15,28 @@ type Session interface {
 	SetErrorResponse(error)
 
 	TraceContext() interface{}
-	//TraceStart() func(Session)
-	//TraceFinish() func(Session)
+}
+
+type BaseSession struct {
+	Request  interface{}
+	Response interface{}
+}
+
+var (
+	lock     sync.RWMutex
+	builders = map[string]SessionBuilder{}
+)
+
+type SessionBuilder func(reqHead []byte) (Session, error)
+
+func RegisterSessionBuilder(name string, builder SessionBuilder) {
+	lock.Lock()
+	defer lock.Unlock()
+	builders[name] = builder
+}
+
+func GetSessionBuilder(name string) SessionBuilder {
+	lock.RLock()
+	defer lock.RUnlock()
+	return builders[name]
 }

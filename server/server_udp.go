@@ -17,11 +17,12 @@ type UdpServer struct {
 }
 
 func NewUdpServer(net, addr string, codecName string, opts ...Option) (ServerModule, error) {
+	c := codec.ServerCodec(codecName)
 	s := &UdpServer{
 		net:    net,
 		addr:   addr,
-		codec:  codec.CodecMappings[codecName],
-		reader: codec.ReaderMappings[codecName],
+		codec:  c,
+		reader: codec.NewMessageReader(c),
 	}
 	return s, nil
 }

@@ -1,9 +1,7 @@
 package router
 
 import (
-	"context"
 	"fmt"
-	gorpc "github.com/hitzhangjie/go-rpc"
 	"github.com/hitzhangjie/go-rpc/codec"
 	"reflect"
 	"strings"
@@ -11,19 +9,19 @@ import (
 )
 
 type Router struct {
-	descMapping    map[string]*gorpc.ServiceDesc
+	descMapping    map[string]*ServiceDesc
 	serviceMapping map[string]interface{}
 	mux            sync.RWMutex
 }
 
 func NewRouter() *Router {
 	return &Router{
-		descMapping:    map[string]*gorpc.ServiceDesc{},
+		descMapping:    map[string]*ServiceDesc{},
 		serviceMapping: map[string]interface{}{},
 	}
 }
 
-func (r *Router) RegisterService(serviceDesc *gorpc.ServiceDesc, serviceImpl interface{}) error {
+func (r *Router) RegisterService(serviceDesc *ServiceDesc, serviceImpl interface{}) error {
 
 	// check whether serviceImpl implements serviceDesc.ServiceType
 	ht := reflect.TypeOf(serviceDesc.ServiceType).Elem()
@@ -40,8 +38,6 @@ func (r *Router) RegisterService(serviceDesc *gorpc.ServiceDesc, serviceImpl int
 
 	return nil
 }
-
-type HandleFunc func(svr interface{}, ctx context.Context, session codec.Session) error
 
 const (
 	idxPackageName = iota

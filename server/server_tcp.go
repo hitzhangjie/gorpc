@@ -21,11 +21,12 @@ const (
 )
 
 func NewTcpServer(net, addr string, codecName string, opts ...Option) (ServerModule, error) {
+	c := codec.ServerCodec(codecName)
 	s := &TcpServer{
 		net:     net,
 		addr:    addr,
-		codec:   codec.CodecMappings[codecName],
-		reader:  codec.ReaderMappings[codecName],
+		codec:   c,
+		reader:  codec.NewMessageReader(c),
 		rspChan: make(chan codec.Session, tcpServerRspChanMaxLength),
 	}
 	return s, nil

@@ -6,9 +6,12 @@ import (
 
 var (
 	// Codec error
-	codecDecodeError = errors.New("decode error")
-	codecEncodeError = errors.New("encode error")
+	CodecDecodeError = errors.New("decode error")
+	CodecEncodeError = errors.New("encode error")
 
 	// MsgReader error
-	codecReadError = errors.New("read error")
+	CodecReadError      = errors.New("read error")
+	CodecReadIncomplete = errors.New("read incomplete package")
+	CodecReadInvalid    = errors.New("read invalid package")
+	CodecReadTooBig     = errors.New("read too big package")
 )

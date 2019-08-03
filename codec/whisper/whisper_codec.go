@@ -38,60 +38,54 @@ func (s *ServerCodec) Encode(pkg interface{}) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-func (s *ServerCodec) Decode(in []byte, message interface{}) error {
-
-	request, ok := message.(*Request)
-	if !ok {
-		return errors.New("message not *whisper.Request")
-	}
+func (s *ServerCodec) Decode(in []byte) (interface{}, error) {
 
 	if len(in) < 5 {
-		return codec.CodecReadIncomplete
+		return nil, codec.CodecReadIncomplete
 	}
 
 	b := bytes.NewBuffer(in)
-
 	// pkg: | 1B:0x38 | 4B:len | payload | 1B: 0x49 |
 	var (
 		pkgStx int8
 		pkgLen int32
 		pkgEtx int8
-		err    error
 	)
 	// stx
-	if err = binary.Read(b, binary.BigEndian, &pkgStx); err != nil {
-		return err
+	if err := binary.Read(b, binary.BigEndian, &pkgStx); err != nil {
+		return nil, err
 	}
 	if pkgStx != 0x38 {
-		return codec.CodecReadInvalid
+		return nil, codec.CodecReadInvalid
 	}
 	// len
-	if err = binary.Read(b, binary.BigEndian, &pkgLen); err != nil {
-		return err
+	if err := binary.Read(b, binary.BigEndian, &pkgLen); err != nil {
+		return nil, err
 	}
 	if pkgLen > maxWhisperPkgSize {
-		return codec.CodecReadTooBig
+		return nil, codec.CodecReadTooBig
 	}
 	if len(in) != int(1+4+pkgLen+1) {
-		return codec.CodecReadIncomplete
+		return nil, codec.CodecReadIncomplete
 	}
 	// etx
-	if err = binary.Read(b, binary.BigEndian, &pkgEtx); err != nil {
-		return err
+	if err := binary.Read(b, binary.BigEndian, &pkgEtx); err != nil {
+		return nil, err
 	}
 	if pkgEtx != 0x49 {
-		return codec.CodecReadInvalid
+		return nil, codec.CodecReadInvalid
 	}
 	// payload
 	payload := &bytes.Buffer{}
-	if err = binary.Read(b, binary.BigEndian, payload); err != nil {
-		return codec.CodecReadError
+	if err := binary.Read(b, binary.BigEndian, payload); err != nil {
+		return nil, codec.CodecReadError
 	}
-	if err = proto.Unmarshal(payload.Bytes(), request); err != nil {
-		return err
+	request := &Request{}
+	if err := proto.Unmarshal(payload.Bytes(), request); err != nil {
+		return nil, err
 	}
 
-	return nil
+	return request, nil
 }
 
 // ClientCodec clientside codec
@@ -122,14 +116,10 @@ func (c *ClientCodec) Encode(pkg interface{}) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-func (c *ClientCodec) Decode(in []byte, message interface{}) error {
-	request, ok := message.(*Response)
-	if !ok {
-		return errors.New("message not *whisper.Request")
-	}
+func (c *ClientCodec) Decode(in []byte) (interface{}, error) {
 
 	if len(in) < 5 {
-		return codec.CodecReadIncomplete
+		return nil, codec.CodecReadIncomplete
 	}
 
 	b := bytes.NewBuffer(in)
@@ -139,42 +129,42 @@ func (c *ClientCodec) Decode(in []byte, message interface{}) error {
 		pkgStx int8
 		pkgLen int32
 		pkgEtx int8
-		err    error
 	)
 	// stx
-	if err = binary.Read(b, binary.BigEndian, &pkgStx); err != nil {
-		return err
+	if err := binary.Read(b, binary.BigEndian, &pkgStx); err != nil {
+		return nil, err
 	}
 	if pkgStx != 0x38 {
-		return codec.CodecReadInvalid
+		return nil, codec.CodecReadInvalid
 	}
 	// len
-	if err = binary.Read(b, binary.BigEndian, &pkgLen); err != nil {
-		return err
+	if err := binary.Read(b, binary.BigEndian, &pkgLen); err != nil {
+		return nil, err
 	}
 	if pkgLen > maxWhisperPkgSize {
 		return codec.CodecReadTooBig
 	}
 	if len(in) != int(1+4+pkgLen+1) {
-		return codec.CodecReadIncomplete
+		return nil, codec.CodecReadIncomplete
 	}
 	// etx
-	if err = binary.Read(b, binary.BigEndian, &pkgEtx); err != nil {
-		return err
+	if err := binary.Read(b, binary.BigEndian, &pkgEtx); err != nil {
+		return nil, err
 	}
 	if pkgEtx != 0x49 {
-		return codec.CodecReadInvalid
+		return nil, codec.CodecReadInvalid
 	}
 	// payload
 	payload := &bytes.Buffer{}
-	if err = binary.Read(b, binary.BigEndian, payload); err != nil {
-		return codec.CodecReadError
+	if err := binary.Read(b, binary.BigEndian, payload); err != nil {
+		return nil, codec.CodecReadError
 	}
-	if err = proto.Unmarshal(payload.Bytes(), request); err != nil {
-		return err
+	response := &Response{}
+	if err := proto.Unmarshal(payload.Bytes(), response); err != nil {
+		return nil, err
 	}
 
-	return nil
+	return response, nil
 }
 
 func (c *ClientCodec) Session([]byte) (codec.Session, error) {

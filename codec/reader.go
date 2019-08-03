@@ -29,8 +29,7 @@ func (r *MessageReader) Read(conn net.Conn) (Session, error) {
 	dat := buf[:n]
 
 	// decode请求
-	req := []byte{}
-	err = r.Codec.Decode(dat, &req)
+	req, err := r.Codec.Decode(dat)
 	if err != nil {
 		return nil, err
 	}

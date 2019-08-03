@@ -1,7 +1,7 @@
 package whisper
 
 import (
-	"github.com/golang/protobuf/proto"
+	"fmt"
 	"github.com/hitzhangjie/go-rpc/codec"
 )
 
@@ -37,12 +37,13 @@ func (w *WhisperSession) TraceContext() interface{} {
 	panic("implement me")
 }
 
-func NewSession(req []byte) (codec.Session, error) {
+func NewSession(req interface{}) (codec.Session, error) {
 
-	reqHead := &Request{}
-	if err := proto.Unmarshal(req, reqHead); err != nil {
-		return nil, err
+	reqHead, ok := req.(*Request)
+	if !ok {
+		return nil, fmt.Errorf("req:%v not *whisper.Request", req)
 	}
+
 	rspHead := &Response{}
 	rspHead.Seqno = reqHead.Seqno
 

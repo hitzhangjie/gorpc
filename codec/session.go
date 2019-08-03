@@ -27,7 +27,7 @@ var (
 	builders = map[string]SessionBuilder{}
 )
 
-type SessionBuilder func(reqHead []byte) (Session, error)
+type SessionBuilder func(reqHead interface{}) (Session, error)
 
 func RegisterSessionBuilder(name string, builder SessionBuilder) {
 	lock.Lock()

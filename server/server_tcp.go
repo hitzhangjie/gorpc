@@ -87,12 +87,20 @@ func (s *TcpServer) read(conn net.Conn) {
 		}
 		// fixme set read deadline
 		// read message
-		session, err := s.reader.Read(conn)
+		req, err := s.reader.Read(conn)
 		if err != nil {
 			// fixme handle error
 			fmt.Println("read error:", err)
 			return
 		}
+
+		// fixme build session
+		builder := codec.GetSessionBuilder(s.reader.Codec.Name())
+		session, err := builder.Build(req)
+		if err != nil {
+			return
+		}
+
 		// fixme using workerpool instead of goroutine
 		go func() {
 			service, handle, err := s.svr.router.Route(session)

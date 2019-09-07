@@ -8,13 +8,19 @@ import (
 
 // Commander defines the subcmd behavior
 type Commander interface {
-	// subcmd usage
+	// UsageLine cmd example
 	UsageLine() string
+
+	// DescShort cmd brief description
 	DescShort() string
+
+	// DescLong cmd detailed description
 	DescLong() string
-	// subcmd params
+
+	// FlagSet cmd flagset
 	FlagSet() *flag.FlagSet
-	// subcmd logic
+
+	// Run cmd run
 	Run(args ...string) error
 }
 
@@ -58,4 +64,3 @@ func defaultAssetDir() (dir string, err error) {
 	}
 	return
 }
-

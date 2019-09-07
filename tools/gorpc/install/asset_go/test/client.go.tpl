@@ -14,8 +14,8 @@ import (
 	"time"
 	"log"
 
-	_ "git.code.oa.com/trpc-go/trpc-go"
-	"git.code.oa.com/trpc-go/trpc-go/client"
+	_ "github.com/hitzhangjie/go-rpc"
+	"github.com/hitzhangjie/go-rpc/client"
 
     {{ if ne $goPkgOption "" -}}
 	pb "{{$goPkgOption}}"
@@ -43,8 +43,7 @@ func main() {
 	defer cancel()
 
 	opts := []client.Option{
-		client.WithCodecName("trpc"),
-		client.WithCheckerName("trpc"),
+		client.WithCodecName("whisper"),
 		client.WithNetwork("tcp4"),
 		client.WithTarget("ip://127.0.0.1:8000"),
 	}

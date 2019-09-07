@@ -19,7 +19,7 @@ http.port = 8080                     #监听http端口
 http.prefix = /cgi-bin/web           #httpUrl前缀
 {{- end}}
 
-[rpc-{{.ServerName}}]
+[rpc-{{$svrName}}]
 addr = ip://127.0.0.1:8000           #rpc调用地址
 trans = 3                            #网络传输模式,UDP,TCP_SHORT,TCP_KEEPALIVE,...
 timeout = 1000                       #rpc全局默认timeout

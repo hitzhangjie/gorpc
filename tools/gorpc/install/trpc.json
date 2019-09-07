@@ -1,0 +1,34 @@
+{
+  "go": {
+    "asset_dir": "asset_go",
+    "tpl_file_ext": ".tpl",
+    "rpc_server_stub": "service_rpc.go.tpl",
+    "rpc_client_stub": [
+      "rpc/trpc.go.tpl"
+    ],
+    "pb_file_option": "go_package",
+    "scripts": [
+      "mv rpc/* ./",
+      "grep go_package rpc/trpc.go.tpl; "
+    ]
+  },
+  "java": {
+    "asset_dir": "asset_java",
+    "tpl_file_ext": ".tpl",
+    "rpc_server_stub": "service_rpc.java.tpl",
+    "rpc_client_stub": [
+      "rpc/pom.xml",
+      "rpc/service.java.tpl"
+    ],
+    "pb_file_option": "java_package"
+  },
+  "cpp": {
+    "asset_dir": "asset_cpp",
+    "tpl_file_ext": ".tpl",
+    "rpc_server_stub": "service_rpc.cpp.tpl",
+    "rpc_client_stub": [
+      "rpc/service.cpp.tpl"
+    ],
+    "pb_file_option": ""
+  }
+}

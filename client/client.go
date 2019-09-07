@@ -2,7 +2,7 @@ package client
 
 import (
 	"context"
-	"git.code.oa.com/trpc-go/trpc-go/selector"
+	"github.com/hitzhangjie/go-rpc/client/selector"
 	"github.com/hitzhangjie/go-rpc/client/transport"
 	"github.com/hitzhangjie/go-rpc/codec"
 	"github.com/hitzhangjie/go-rpc/codec/whisper"

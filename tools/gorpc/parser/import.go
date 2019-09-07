@@ -1,37 +1,45 @@
 package parser
 
 import (
+	"fmt"
 	"github.com/hitzhangjie/go-rpc/tools/gorpc/params"
 	"os"
 	"path"
 	"path/filepath"
 )
 
-// pb导入路径解析
-func ImportDirs(fileDirs *params.List, fileName string) []string {
+// pb导入路径解析，返回$protodir/$protofile下存在的文件目录列表
+func ImportDirs(protodirs *params.RepeatedOption, protofile string) ([]string, error) {
 
-	// ./$protofile
-	if len(*fileDirs) == 0 || (len(*fileDirs) == 1 && (*fileDirs)[0] == ".") {
+	// `-protodir not specified` or `-protodir=.`
+	if len(*protodirs) == 0 || (len(*protodirs) == 1 && (*protodirs)[0] == ".") {
 		abs, _ := filepath.Abs(".")
-		fileDirs.Set(".")
-		return []string{abs}
+
+
+		//protodirs.Set(".")
+
+		return []string{abs}, nil
 	}
 
 	// $protodir/$protofile
-	dirs := Uniq(*fileDirs)
-	fileDirs.Replace(&dirs)
+	dirs := Uniq(*protodirs)
+	protodirs.Replace(&dirs)
 
 	//查找protofile的绝对路径
-	fpath := []string{}
-	for _, dir := range *fileDirs {
-		p := path.Join(dir, fileName)
+	fpaths := []string{}
+	for _, dir := range *protodirs {
+		p := path.Join(dir, protofile)
 
 		if info, err := os.Stat(p); err == nil && !info.IsDir() {
-			fpath = append(fpath, dir)
+			fpaths = append(fpaths, dir)
 		}
 	}
-
-	return fpath
+	if len(fpaths) == 0 {
+		return nil, fmt.Errorf("protofile:%s not found in dirs:%v", protofile, protodirs.String())
+	} else if len(fpaths) > 1 {
+		return nil, fmt.Errorf("protofile:%s found duplicate ones under dirs:%v", protofile, fpaths)
+	}
+	return fpaths, nil
 }
 
 // 字符串去重

@@ -2,274 +2,193 @@ package tpl
 
 import (
 	"fmt"
-	"github.com/hitzhangjie/go-rpc/tools/gorpc/fs"
 	"github.com/hitzhangjie/go-rpc/tools/gorpc/log"
 	"github.com/hitzhangjie/go-rpc/tools/gorpc/params"
 	"github.com/hitzhangjie/go-rpc/tools/gorpc/parser"
-	"github.com/pkg/errors"
+	"go/format"
+	"io/ioutil"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/pkg/errors"
 )
 
-func GenerateFiles(asset *parser.ServerDescriptor, fAbsPath string, create bool, options map[string]interface{}) error {
+func GenerateFiles(fd *parser.FileDescriptor, protofilePath, outputdir string, option *params.Option) (err error) {
 
-	var (
-		outputdir string // 输出目录
-		err       error
-	)
-
-	defer func() {
-		if !create {
-			os.RemoveAll(outputdir)
-		}
-	}()
+	serviceIdx := 0
+	if len(fd.Services) > 1 {
+		// todo 忽略多余的service定义
+		log.Info("You have defined more than one service which will be ignored")
+	}
 
 	// 准备输出目录
-	if create {
-		outputdir, err = getOutputdir(asset)
-		failfast(err)
-	} else {
-		outputdir = path.Join(os.TempDir(), asset.ServerName)
+	if err := prepareOutputdir(outputdir); err != nil {
+		return fmt.Errorf("GenerateFiles prepareOutputdir:%v", err)
 	}
 
-	// gopath模式:project or global
-	assetdir := options["assetdir"].(string)
-	global := options["g"].(bool)
-
-	if global {
-		assetdir = filepath.Join(assetdir, "gopath.glob")
-	} else {
-		assetdir = filepath.Join(assetdir, "gopath.proj")
-	}
-	log.Debug("assetdir: %s", assetdir)
-
-	// 处理模板文件
+	// 遍历模板文件进行处理
 	f := func(path string, info os.FileInfo, err error) error {
-
-		// if incoming error encounter, return at once
-		if err != nil {
-			fmt.Println(err)
-			return err
-		}
-		log.Debug("fileEntry: %s", path)
-		relPath := strings.TrimPrefix(path, assetdir)
-		log.Debug("fileEntry relPath: %s", relPath)
-		outPath := filepath.Join(outputdir, relPath)
-		log.Debug("fileEntry outPath: %s", outPath)
-		// if `path` is directory, create the same entry in `outputdir`
-		if info.IsDir() {
-			return os.MkdirAll(outPath, os.ModePerm)
-		}
-		outPath = strings.TrimSuffix(outPath, ".tpl")
-		funcMap := template.FuncMap{"Title": Title, "Simplify": Simplify}
-		generateFile(asset, path, outPath, funcMap, options)
-		return nil
+		return fileEntryHandler(path, info, err, &mixedOptions{fd, serviceIdx, outputdir, option})
 	}
-	err = filepath.Walk(assetdir, f)
+
+	err = filepath.Walk(option.Assetdir, f)
 	if err != nil {
-		return err
+		return fmt.Errorf("GenerateFiles filepath.Walk:%v", err)
 	}
-
-	protofile := options["protofile"].(string)
-	protodirs := options["protodir"].(params.List)
-
-	// - copy pb to /proto + /rpc
-	// + copy pb to /proto
-	if err = os.MkdirAll(filepath.Join(outputdir, "proto"), os.ModePerm); err != nil {
-		return err
-	}
-	src := fAbsPath
-	dest := path.Join(outputdir, "proto", protofile)
-	fs.Copy(src, dest)
-	// + copy pb to /proto
-	if err = os.MkdirAll(filepath.Join(outputdir, "rpc"), os.ModePerm); err != nil {
-		return err
-	}
-	dest = path.Join(outputdir, "rpc", protofile)
-	fs.Copy(src, dest)
-
-	// generate *.pb.go in /rpc
-	err = runProtocGoOut(protodirs, protofile, outputdir)
-	if err != nil {
-		return err
-	}
-
-	// move outputdir/rpc to public/servername
-	src = path.Join(outputdir, "rpc")
-	dest = path.Join(outputdir, "src/rpc", asset.ServerName)
-
-	// cannot handle invalid cross-device link, try copy and delete, or use `mv` instead.
-	//if err = fs.Move(src, dest); err != nil {
-	//	log.Error("move file error:%v, src:%s to dest:%s", err, src, dest)
-	//	return err
-	//}
-	if err = exec.Command("mv", src, dest).Run(); err != nil {
-		log.Error("move file error:%v, src:%s to dest:%s", err, src, dest)
-		return err
-	}
-	log.Debug("move file success, src:%s to dest:%s", src, dest)
-
-	// 生成log目录
-	//os.Mkdir(path.Join(outputdir, "log"), os.ModePerm)
 
 	return nil
 }
 
-func generateFile(asset *parser.ServerDescriptor, infile, outfile string, funcMap template.FuncMap, options map[string]interface{}) (err error) {
+func prepareOutputdir(outputdir string) (err error) {
 
-	defer func() {
-		if err != nil {
-			log.Error("generate file:[%s] error:[%v]", outfile, err)
+	_, err = os.Lstat(outputdir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			err = os.MkdirAll(outputdir, os.ModePerm)
+			if err != nil {
+				return err
+			}
 		} else {
-			log.Debug("generate file:[%s] succ", outfile)
+			return err
 		}
-	}()
+	}
+	return nil
+}
 
-	assetdir := options["assetdir"].(string)
+func GenerateFile(fd *parser.FileDescriptor, infile, outfile string, option *params.Option, rpcIndex ...int) (err error) {
+
+	assetdir := option.Assetdir
 	if !path.IsAbs(assetdir) {
 		return errors.New("assetdir must be specified an absolute path")
 	}
 
 	// stat template
 	tplFilePath := infile
-	_, err = os.Stat(tplFilePath)
-	failfast(err)
+	if _, err = os.Stat(tplFilePath); err != nil {
+		log.Error("%v", err)
+		return err
+	}
 
 	// create output file
-	dest := outfile
-	fout, err := os.Create(dest)
-	failfast(err)
+	fout, err := os.Create(outfile)
+	if err != nil {
+		log.Error("%v", err)
+		return err
+	}
 	defer fout.Close()
 
 	// template execute and populate the output file
 	var tplInstance *template.Template
 
-	baseName := infile[strings.LastIndex(infile, "/")+1:]
+	baseName := path.Base(infile)
 	if funcMap == nil {
 		tplInstance, err = template.New(baseName).ParseFiles(tplFilePath)
 	} else {
 		tplInstance, err = template.New(baseName).Funcs(funcMap).ParseFiles(tplFilePath)
 	}
+	if err != nil {
+		log.Error("%v", err)
+		return err
+	}
 
-	failfast(err)
+	// 将需要的descriptor信息、命令行控制参数信息、其他分文件需要的rpcindex信息传入
+	err = tplInstance.Execute(fout, struct {
+		*parser.FileDescriptor
+		*params.Option
+		RPCIndex int
+	}{
+		fd,
+		option,
+		func() int {
+			if len(rpcIndex) != 0 {
+				return rpcIndex[0]
+			}
+			return 999999
+		}(),
+	})
+	if err != nil {
+		log.Error("%v", err)
+		return err
+	}
 
-	err = tplInstance.Execute(fout, *asset)
-	failfast(err)
-
-	return nil
-}
-
-func Title(cmdStr string) string {
-	return strings.Title(cmdStr)
-}
-
-func Simplify(fullTypeName string, goPackageName string) string {
-	//根据go文件的package来判断是使用全限定的类型名(如package_a.TypeA)，还是直接使用简单类型名(如TypeA)
-	eles := strings.Split(fullTypeName, ".")
-	if eles != nil && len(eles) > 1 {
-		//type所在package名
-		typePackageName := strings.Join(eles[:len(eles)-1], ".")
-		//type简单名
-		typeSimpleName := eles[len(eles)-1]
-
-		if typePackageName == goPackageName {
-			//如果type就在当前go文件所在package中，则使用简单类型名
-			return typeSimpleName
+	// 进行 gofmt
+	if strings.HasSuffix(outfile, ".go") {
+		in, err := ioutil.ReadFile(outfile)
+		if err != nil {
+			log.Error("%v", err)
+			return err
+		}
+		out, err := format.Source(in)
+		if err != nil {
+			log.Error("%v", err)
+			return err
+		}
+		err = ioutil.WriteFile(outfile, out, 0644)
+		if err != nil {
+			log.Error("%v", err)
+			return err
 		}
 	}
 
-	return fullTypeName
-}
-
-func getOutputdir(asset *parser.ServerDescriptor) (string, error) {
-
-	wd, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-	log.Debug("Current working directory: %s", wd)
-
-	// 准备输出目录
-	return path.Join(wd, asset.ServerName), nil
-}
-
-func runProtocGoOut(protodirs params.List, protofile, outputdir string) error {
-
-	args := make([]string, 0)
-
-	//wd, _ := os.Getwd()
-
-	for _, protodir := range protodirs {
-		arg_proto_path := fmt.Sprintf("--proto_path=%s", protodir)
-		args = append(args, arg_proto_path)
-	}
-	arg_go_out := fmt.Sprintf("--go_out=%s", path.Join(outputdir, "rpc"))
-	arg_proto_file := protofile
-
-	args = append(args, arg_go_out)
-	args = append(args, arg_proto_file)
-
-	log.Debug("run: protoc %s", strings.Join(args, " "))
-	cmd := exec.Command("protoc", args...)
-	output, err := cmd.CombinedOutput()
-
-	log.Debug(string(output))
-	if err != nil {
-		return fmt.Errorf("Run error: %v, errmsg: %s", err, string(output))
-	}
-
 	return nil
 }
 
-func failfast(err error) {
+// fileEntryHandler 处理模板文件
+func fileEntryHandler(entry string, info os.FileInfo, err error, options *mixedOptions) error {
+
+	fd := options.FileDescriptor
+	option := options.Option
+	outputdir := options.OutputDir
+	serviceIdx := options.ServiceIdx
+
+	// if incoming error encounter, return at once
 	if err != nil {
-		log.Error("Error: %v", err)
-		os.Exit(1)
+		return err
 	}
+
+	// ignore ${asset_dir}
+	var relPath string
+	if relPath = strings.TrimPrefix(entry, option.Assetdir); len(relPath) == 0 {
+		return nil
+	}
+	relPath = strings.TrimPrefix(relPath, "/")
+
+	log.Debug("entry srcPath:%s", entry)
+
+	// 如果server stub需要分文件，则指定rpc_server_stub模板文件名
+	sd := fd.Services[serviceIdx]
+	if relPath == option.GoRPCConfig.RPCServerStub {
+		for idx, rpc := range sd.RPC {
+			outPath := filepath.Join(outputdir, relPath)
+			dir := filepath.Dir(outPath)
+			base := sd.Name + "_" + rpc.Name + "." + option.GoRPCConfig.Language
+			outPath = filepath.Join(dir, base)
+			if err := GenerateFile(fd, entry, outPath, option, idx); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	outPath := filepath.Join(outputdir, relPath)
+	log.Debug("entry destPath: %s", outPath)
+
+	// if `entry` is directory, create the same entry in `outputdir`
+	if info.IsDir() {
+		return os.MkdirAll(outPath, os.ModePerm)
+	}
+	outPath = strings.TrimSuffix(outPath, option.GoRPCConfig.TplFileExt)
+
+	return GenerateFile(fd, entry, outPath, option)
 }
 
-func filelist(asset *parser.ServerDescriptor, options map[string]interface{}) map[string]string {
-
-	filelist := map[string]string{
-		"src/svr_main.go.tpl":       path.Join("src", asset.ServerName+".go"),
-		"src/exec/exec.go.tpl":      path.Join("src/exec", "exec_"+asset.ServerName+".go"),
-		"src/exec/exec_impl.go.tpl": path.Join("src/exec", "exec_"+asset.ServerName+"_impl.go"),
-		"src/exec/exec_init.go.tpl": path.Join("src/exec", "exec_"+asset.ServerName+"_init.go"),
-		"client/client.go.tpl":      path.Join("client", asset.ServerName+"_client.go"),
-		"conf/service.ini.tpl":      path.Join("conf", "service.ini"),
-		"conf/metric.ini.tpl":       path.Join("conf", "metric.ini"),
-		"conf/trace.ini.tpl":        path.Join("conf", "trace.ini"),
-		"conf/log.ini.tpl":          path.Join("conf", "log.ini"),
-		"bin/run.sh.tpl":            path.Join("bin", "run.sh"),
-		"README.md.tpl":             "README.md",
-		"Makefile.tpl":              "Makefile",
-	}
-
-	filelistG := map[string]string{
-
-		"src.global/svr_main.go.tpl":       path.Join("src", asset.ServerName+".go"),
-		"src.global/exec/exec.go.tpl":      path.Join("src/exec", "exec_"+asset.ServerName+".go"),
-		"src.global/exec/exec_impl.go.tpl": path.Join("src/exec", "exec_"+asset.ServerName+"_impl.go"),
-		"src.global/exec/exec_init.go.tpl": path.Join("src/exec", "exec_"+asset.ServerName+"_init.go"),
-		"client/client.go.tpl":             path.Join("client", asset.ServerName+"_client.go"),
-		"conf/service.ini.tpl":             path.Join("conf", "service.ini"),
-		"conf/metric.ini.tpl":              path.Join("conf", "metric.ini"),
-		"conf/trace.ini.tpl":               path.Join("conf", "trace.ini"),
-		"conf/log.ini.tpl":                 path.Join("conf", "log.ini"),
-		"bin/run.sh.tpl":                   path.Join("bin", "run.sh"),
-		"README.md.tpl":                    "README.md",
-		"Makefile.tpl.global":              "Makefile",
-	}
-
-	global := options["g"].(bool)
-
-	if global {
-		return filelistG
-	} else {
-		return filelist
-	}
+// mixedOptions 将众多选项聚集在一起，简化方法签名
+type mixedOptions struct {
+	*parser.FileDescriptor
+	ServiceIdx int
+	OutputDir  string
+	*params.Option
 }

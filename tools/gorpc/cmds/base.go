@@ -2,7 +2,11 @@ package cmds
 
 import (
 	"flag"
+	"github.com/hitzhangjie/go-rpc/tools/gorpc/params"
+	"github.com/hitzhangjie/go-rpc/tools/gorpc/parser"
+	"os"
 	"os/user"
+	"path"
 	"path/filepath"
 )
 
@@ -63,4 +67,29 @@ func defaultAssetDir() (dir string, err error) {
 		dir = "/etc/gorpc/assetdir"
 	}
 	return
+}
+
+func getOutputDir(fd *parser.FileDescriptor, options *params.Option) (string, error) {
+
+	wd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	if len(options.GoMod) != 0 {
+		return wd, nil
+	}
+
+	// 准备输出目录
+	//pkgName := fd.PackageName
+	//switch options.Language {
+	//case "go", "java":
+	//	fo := fmt.Sprintf("%s_package", options.Language)
+	//	if v, ok := fd.FileOptions[fo]; ok && len(v.(string)) != 0 {
+	//		pkgName = v.(string)
+	//	}
+	//}
+	//return path.Join(wd, pkgName), nil
+
+	return path.Join(wd, fd.Services[0].Name), nil
 }

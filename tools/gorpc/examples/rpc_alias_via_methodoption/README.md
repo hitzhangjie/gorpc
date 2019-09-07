@@ -14,8 +14,8 @@ protoc --go_out=. helloworld.proto
 - 一方面要将业务代码和框架代码进行粘合，组合框架能力、默认插件实现、整合wrapper方法等实现开箱即用；
 
 server要处理的请求命令字或者rpc接口，都已经在*.proto中定义：
-- `trpc` 根据service中定义的rpc，建立映射关系rpcName->Handler；
-- `trpc` 提供方法，使得server能够注册上述映射关系，并在router中根据req找到Handler；
+- `gorpc` 根据service中定义的rpc，建立映射关系rpcName->Handler；
+- `gorpc` 提供方法，使得server能够注册上述映射关系，并在router中根据req找到Handler；
 
 可以参考 `protoc --go_out=plugins=grpc:.` 与 `protoc --go_out=.` 两种方式生成的代码的区别，来参考下grpc是如何建立映射关系的。
 
@@ -56,7 +56,7 @@ service greeter {
 }
 ```
 
-运行trpc来生成server工程：`trpc create -protofile=helloworld.proto -protocol=trpc`，需要生成的内容应该包括：
+运行gorpc来生成server工程：`gorpc create -protofile=helloworld.proto -protocol=gorpc`，需要生成的内容应该包括：
 
 - helloworld.pb.go
 - service interface
@@ -93,10 +93,10 @@ func _Greeter_SayHello_Handler(svr interface{}, ctx context.Context) error {
     return nil
 }
 
-var _Greeter_serviceDesc = trpc.ServiceDesc{
+var _Greeter_serviceDesc = gorpc.ServiceDesc{
     ServiceName: "helloworld.greeter",
     HandlerType: (*GreeterServer)(nil),
-    Methods: []trpc.MethodDesc{
+    Methods: []gorpc.MethodDesc{
         {
             MethodName: "SayHello",
             Handler: _Greeter_SayHello_Handler,
@@ -106,7 +106,7 @@ var _Greeter_serviceDesc = trpc.ServiceDesc{
             Handler: _Greeter_SayBye_Handler,
         }
     },
-    Streams: []trpc.StreamDesc{},
+    Streams: []gorpc.StreamDesc{},
     MetaData: "helloworld.proto",
 }
 
@@ -114,8 +114,8 @@ var _Greeter_serviceDesc = trpc.ServiceDesc{
 
 当前server端提供了一个server.WithHandler(....)来封装所有的请求处理、tracing、拦截器、监控、logging等逻辑，这个没问题，Handler内部会请求Dispatcher来完成rpc请求到rpc处理函数的分发。所以这里还需要提供一个Dispatcher？
 
-- 方法1：trpc可以显示提供一个dispatcher出来，server端使用的时候WithDispatcher(GreeterServer.Dispatcher)就可以；
-- 方法2：新增一个方法server.RegisterService(trpc.ServiceDesc)，server自己注册；
+- 方法1：gorpc可以显示提供一个dispatcher出来，server端使用的时候WithDispatcher(GreeterServer.Dispatcher)就可以；
+- 方法2：新增一个方法server.RegisterService(gorpc.ServiceDesc)，server自己注册；
 - 方法3：Dispatcher接口提供Add等方法，支持直接注册到dispatcher；
 - 方法4：server提供Dispatch(rpcName, rpcMethod)直接进行注册，内部注册到server.Opts.Dispatcher上；
 

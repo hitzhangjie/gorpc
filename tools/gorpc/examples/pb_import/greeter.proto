@@ -1,7 +1,7 @@
 syntax = "proto3";
-package trpc.greeter;
+package gorpc.greeter;
 
-option go_package="git.code.oa.com/trpc.app/trpc.greeter";
+option go_package="github.com/hitzhangjie/gorpc.greeter";
 
 import "helloworld/helloworld.proto";
 

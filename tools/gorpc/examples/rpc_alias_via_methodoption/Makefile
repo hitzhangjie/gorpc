@@ -1,6 +1,6 @@
 all:
-	@echo "------------- [trpc create] --------------"
-	trpc create -protofile=helloworld.proto -protocol=trpc
+	@echo "------------- [gorpc create] --------------"
+	gorpc create -protofile=helloworld.proto -protocol=whisper
 
 .PHONY: clean
 
@@ -8,7 +8,7 @@ clean:
 	rm -rf greeter
 
 compile:
-	@echo "------------- [compile trpc] -------------"
-	cd ../../../trpc-go-cmdline/
+	@echo "------------- [compile gorpc] -------------"
+	cd ../../../gorpc/
 	make clean && make && make install
 	@cd -

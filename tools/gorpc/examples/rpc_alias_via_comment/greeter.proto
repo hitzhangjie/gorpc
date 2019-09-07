@@ -1,7 +1,7 @@
 syntax = "proto3";
 package greeter;
 
-option go_package="git.code.oa.com/trpc.app/greeter";
+option go_package="github.com/hitzhangjie/gorpc.greeter";
 
 // HelloReq say hello request
 message HelloReq {

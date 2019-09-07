@@ -96,11 +96,16 @@ package "codec" {
 
     interface MessageReader {
         Codec
-        Read(net.Conn) (Session, error)
+        Read(net.Conn) (interface{}, error)
+    }
+
+    interface SessionBuilder {
+    	Build(req interface{}) (Session, error)
     }
 
     MessageReader -right-> Codec
-    MessageReader -left-> Session
+    MessageReader -left-> SessionBuilder
+    SessionBuilder -left-> Session
 
     StreamServer -down-> MessageReader
     PacketServer -down-> MessageReader

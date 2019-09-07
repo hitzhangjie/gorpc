@@ -1,7 +1,7 @@
 package tpl
 
 import (
-	"git.code.oa.com/trpc-go/trpc-go-cmdline/parser"
+	"github.com/hitzhangjie/go-rpc/tools/gorpc/parser"
 	"text/template"
 )
 

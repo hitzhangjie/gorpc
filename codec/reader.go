@@ -18,7 +18,7 @@ func NewMessageReader(codec Codec) *MessageReader {
 	return r
 }
 
-func (r *MessageReader) Read(conn net.Conn) (Session, error) {
+func (r *MessageReader) Read(conn net.Conn) (interface{}, error) {
 	// fixme using sync.Pool instead of []byte
 	buf := make([]byte, 1024, 1024)
 
@@ -34,11 +34,5 @@ func (r *MessageReader) Read(conn net.Conn) (Session, error) {
 		return nil, err
 	}
 
-	// 根据请求构建session，这里就意味着Codec要做更多事情，NewSession
-	builder := GetSessionBuilder(r.Codec.Name())
-	session, err := builder(req)
-	if err != nil {
-		return nil, err
-	}
-	return session, nil
+	return req, nil
 }

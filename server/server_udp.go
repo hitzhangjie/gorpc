@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/hitzhangjie/go-rpc/codec"
+	"github.com/hitzhangjie/go-rpc/router"
 	"net"
 	"sync"
 )
@@ -99,17 +100,23 @@ func (s *UdpServer) read(conn net.Conn) {
 		}
 
 		// fixme using workerpool instead of goroutine
-		router := s.opts.router
+		r := s.opts.router
 		go func() {
-			service, handle, err := router.Route(session)
+			// find route
+			handle, err := r.Route(session.RPC())
 			if err != nil {
 				session.SetErrorResponse(err)
 				return
 			}
-			err = handle(service, s.ctx, session)
+			// pass session+req to handlefunc
+			ctx := context.WithValue(s.ctx, router.SessionKey(), session)
+			rsp, err := handle(ctx, session)
 			if err != nil {
 				session.SetErrorResponse(err)
+			} else {
+				session.SetResponse(rsp)
 			}
+			// ready to response
 			s.rspChan <- session
 		}()
 	}

@@ -2,7 +2,6 @@ package router
 
 import (
 	"context"
-	"github.com/hitzhangjie/go-rpc/codec"
 )
 
 type ServiceDesc struct {
@@ -12,7 +11,7 @@ type ServiceDesc struct {
 	Stream      map[string]*StreamDesc
 }
 
-type HandleFunc = func(svr interface{}, ctx context.Context, session codec.Session) error
+type HandleFunc = func(svr interface{}, ctx context.Context, req interface{}) (rsp interface{}, err error)
 
 type MethodDesc struct {
 	Name   string

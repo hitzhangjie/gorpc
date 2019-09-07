@@ -3,6 +3,7 @@ package cmds
 import (
 	"flag"
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -51,10 +52,13 @@ func (c *HelpCmd) usageShort() string {
 	b := strings.Builder{}
 	b.WriteString(c.descShort + "\n")
 
-	for k, v := range cmds {
+	keys := c.sortedCmds()
+
+	for _, k := range keys {
 		if k == "help" {
 			continue
 		}
+		v := cmds[k]
 		b.WriteString(v.DescShort() + "\n")
 	}
 	return b.String()
@@ -64,11 +68,23 @@ func (c *HelpCmd) usageLong() string {
 	b := strings.Builder{}
 	b.WriteString(c.descLong + "\n")
 
-	for k, v := range cmds {
+	keys := c.sortedCmds()
+
+	for _, k := range keys {
 		if k == "help" {
 			continue
 		}
+		v := cmds[k]
 		b.WriteString(v.DescLong() + "\n")
 	}
 	return b.String()
+}
+
+func (c *HelpCmd) sortedCmds() []string {
+	keys := make([]string, 0, len(cmds))
+	for k, _ := range cmds {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	return keys
 }

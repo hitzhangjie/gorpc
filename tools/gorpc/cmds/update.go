@@ -2,106 +2,135 @@ package cmds
 
 import (
 	"flag"
-	"github.com/hitzhangjie/go-rpc/tools/gorpc/log"
+	"fmt"
+	"github.com/hitzhangjie/go-rpc/tools/gorpc/config"
+	"github.com/hitzhangjie/go-rpc/tools/gorpc/params"
 	"github.com/hitzhangjie/go-rpc/tools/gorpc/parser"
+	"github.com/hitzhangjie/go-rpc/tools/gorpc/parser/gomod"
 	"github.com/hitzhangjie/go-rpc/tools/gorpc/tpl"
+	"github.com/hitzhangjie/go-rpc/tools/gorpc/util/log"
 	"os"
 	"path"
+	"path/filepath"
 )
-
-func newUpdateCmd() *UpdateCmd {
-	fs := flag.NewFlagSet("updatecmd", flag.ContinueOnError)
-
-	fs.Var(&protodirs, "protodir", "search path for protofile")
-	fs.String("protofile", "any.proto", "protofile to handle")
-	fs.String("protocol", "gorpc", "protocol to use, gorpc, chick or swan")
-	fs.Bool("g", false, "generate code structure conforming to global gopath")
-	fs.Bool("v", false, "verbose help info")
-	fs.String("assetdir", "", "search path for project template")
-
-	u := Cmd{
-		usageLine: `go-rpc update`,
-		descShort: `
-how to update project:
-	go-rpc update -protodir=. -protofile=*.proto -protocol=gorpc
-	go-rpc update -protofile=*.proto -protocol=gorpc`,
-
-		descLong: `
-go-rpc update:
-	-protodir, search path for protofile
-	-protofile, protofile to handle
-	-protocol, protocol to use, gorpc, chick or swan`,
-		flagSet: fs,
-	}
-
-	return &UpdateCmd{u}
-}
 
 type UpdateCmd struct {
 	Cmd
+	*params.Option
+}
+
+func newUpdateCmd() *UpdateCmd {
+
+	cmd := Cmd{
+		usageLine: `gorpc update`,
+		descShort: `
+how to update project:
+	gorpc update -protodir=. -protofile=*.proto -protocol=whisper
+	gorpc update -protofile=*.proto -protocol=whisper`,
+
+		descLong: `
+gorpc update:
+	-protodir, search path for protofile
+	-protofile, protofile to handle
+	-lang, language including: go, java, cpp, etc
+	-protocol, protocol to use, gorpc, chick or swan`,
+		flagSet: newUpdateFlagSet(),
+	}
+
+	return &UpdateCmd{cmd, params.NewOption()}
+}
+
+func newUpdateFlagSet() *flag.FlagSet {
+
+	fs := flag.NewFlagSet("updatecmd", flag.ContinueOnError)
+
+	fs.Var(&params.RepeatedOption{}, "protodir", "search path of protofile")
+	fs.String("protofile", "any.proto", "protofile to handle")
+	fs.String("protocol", "gorpc", "protocol to use, gorpc, chick or swan")
+	//fs.Bool("httpon", false, "enable http mode")
+	fs.Bool("v", false, "verbose mode")
+	fs.String("assetdir", "", "search path of project template")
+	fs.Bool("alias", false, "rpcname alias mode")
+	//fs.Bool("rpconly", false, "generate rpc stub only")
+	fs.String("lang", "go", "language, including go, java, cpp, etc")
+
+	return fs
 }
 
 func (c *UpdateCmd) Run(args ...string) (err error) {
 
 	c.flagSet.Parse(args)
 
-	protofile = c.flagSet.Lookup("protofile").Value.(flag.Getter).Get().(string)
-	protocol = c.flagSet.Lookup("protocol").Value.(flag.Getter).Get().(string)
-	verbose = c.flagSet.Lookup("v").Value.(flag.Getter).Get().(bool)
-	global = c.flagSet.Lookup("g").Value.(flag.Getter).Get().(bool)
+	var protofile string
 
-	assetdir = c.flagSet.Lookup("assetdir").Value.(flag.Getter).Get().(string)
-	if len(assetdir) == 0 {
-		if assetdir, err = defaultAssetDir(); err != nil {
-			return err
-		}
+	params.LookupFlag(c.flagSet, "protodir", &c.Protodirs)
+	params.LookupFlag(c.flagSet, "protofile", &protofile)
+	params.LookupFlag(c.flagSet, "lang", &c.Language)
+	params.LookupFlag(c.flagSet, "protocol", &c.Protocol)
+	params.LookupFlag(c.flagSet, "alias", &c.AliasOn)
+	params.LookupFlag(c.flagSet, "assetdir", &c.Assetdir)
+	params.LookupFlag(c.flagSet, "v", &c.Verbose)
+
+	// `-protofile=abc/d.proto`, works like `-protodir=abc -protofile=d.proto`ma
+	p, err := filepath.Abs(protofile)
+	if err != nil {
+		panic(err)
 	}
-	log.InitLogging(verbose)
+	c.Protofile = filepath.Base(p)
+	c.Protodirs = append(c.Protodirs, filepath.Dir(p))
+
+	// load language config in gorpc.json
+	c.GoRPCConfig, err = config.GetLanguageCfg(c.Language)
+	if err != nil {
+		return err
+	}
+
+	// using assetdir in gorpc.json
+	if len(c.Assetdir) == 0 {
+		c.Assetdir = c.GoRPCConfig.AssetDir
+	}
+
+	// init logging level
+	log.InitLogging(c.Verbose)
+
 	return c.update()
 }
 
 func (c *UpdateCmd) update() error {
-	fpaths := parser.ImportDirs(&protodirs, protofile)
 
-	if len(fpaths) == 0 {
-		log.Error("step 1: proto file:[%s] not found in dirs:%v", protofile, protodirs.String())
-		os.Exit(1)
-	} else if len(fpaths) > 1 {
-		log.Error("step 1: proto file:[%s] found in multiple dirs:[%v], cannot determine which one to use", protofile, fpaths)
-		os.Exit(1)
-	} else {
-		log.Info("step 1: found proto file:[%s] in following dirs:[%v]", protofile, fpaths)
+	// 检查pb中的导入路径
+	fpaths, err := parser.ImportDirs(&c.Protodirs, c.Protofile)
+	if err != nil {
+		return err
 	}
+	log.Info("Found protofile:%s in following dir:%v", c.Protofile, fpaths)
 
 	// 解析pb
-	server_asset, err := parser.ParseProtoFile(protofile, protocol, protodirs...)
+	fd, err := parser.ParseProtoFile(c.Option)
 	if err != nil {
-		log.Error("step 2: Parse proto file:[%s] error:[%v]", err)
-		os.Exit(1)
-	} else {
-		log.Info("step 2: Parse proto file:[%s] succ", protofile)
-		//log.Debug("[ServerDescriptor] %#v\n", server_asset)
+		return fmt.Errorf("parse protofile:%s error:%v", c.Protofile, err)
 	}
-	server_asset.HttpOn = httpon
+
+	// 解析gomod
+	mod, err := gomod.LoadGoMod()
+	if err == nil && len(mod) != 0 {
+		c.GoMod = mod
+	}
 
 	// 代码生成
-	fp := path.Join(fpaths[0], protofile)
-	options := map[string]interface{}{
-		"protodir":  protodirs,
-		"protofile": protofile,
-		"assetdir":  assetdir,
-		"g":         global,
-		"v":         verbose,
-	}
+	fp := path.Join(fpaths[0], c.Protofile)
 
-	err = tpl.GenerateFiles(server_asset, fp, false, options)
+	outputdir := path.Join(os.TempDir(), fd.PackageName)
+
+	err = tpl.GenerateFiles(fd, fp, outputdir, c.Option)
 
 	if err != nil {
-		log.Error("step 3: Generate service files error:[%v]", err)
-		os.Exit(1)
-	} else {
-		log.Info("step 3: Generate service files success.")
+		return fmt.Errorf("generate files error:%v", err)
 	}
+
+	os.RemoveAll(outputdir)
+
+	log.Info("Generate files success")
 
 	return nil
 }

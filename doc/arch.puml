@@ -2,15 +2,19 @@
 
 package "helloworld" {
 
-    interface Greeter {
+    interface GreeterService {
         +Hello(ctx, *Request) (*Response, error)
     }
 
-    class GreeterService {
+    class GreeterServiceImpl {
         +Hello(ctx, *Request) (*Response, error)
     }
-    GreeterService --|> Greeter
-    GreeterService --|> Handler
+    GreeterServiceImpl -up-|> GreeterService
+
+    class GreeterServiceDesc {
+        Name
+        Methods map[strin]HandleFunc
+    }
 }
 note right of helloworld
     通常我们由google protobuf作为IDL:
@@ -54,17 +58,13 @@ package "server" {
     }
     HttpServer -up-|> ServerModule
 
-    interface Handler {
-    	Name() string
-    	Handler() interface{}
-    	Endpoints() []*registry.Endpoint
-    	Options() HandlerOptions
-    }
-    Server -up-> Handler
+    Server -up-> GreeterServiceImpl
     'note left of Handler : type GreeterService struct{} \nfunc (s *GreeterService) Hello(ctx, req) (rsp, error)
 
+    Server -up-> GreeterServiceDesc
+
     interface Router {
-        Route(Session) (Method, error)
+        Route(rpc string) (Method, error)
     }
     Server -left-> Router
 
@@ -142,8 +142,6 @@ package "registry" {
 note top of registry
 naming service
 end note
-
-
 
 package "client" {
 

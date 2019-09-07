@@ -4,12 +4,12 @@
     "tpl_file_ext": ".tpl",
     "rpc_server_stub": "service_rpc.go.tpl",
     "rpc_client_stub": [
-      "rpc/trpc.go.tpl"
+      "rpc/gorpc.go.tpl"
     ],
     "pb_file_option": "go_package",
     "scripts": [
       "mv rpc/* ./",
-      "grep go_package rpc/trpc.go.tpl; "
+      "grep go_package rpc/gorpc.go.tpl; "
     ]
   },
   "java": {

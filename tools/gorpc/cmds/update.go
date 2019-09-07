@@ -7,16 +7,9 @@ import (
 	"github.com/hitzhangjie/go-rpc/tools/gorpc/tpl"
 	"os"
 	"path"
-	"time"
 )
 
-func init() {
-	mux.Lock()
-	defer mux.Unlock()
-	all["update"] = NewUpdateCmd()
-}
-
-func NewUpdateCmd() *UpdateCmd {
+func newUpdateCmd() *UpdateCmd {
 	fs := flag.NewFlagSet("updatecmd", flag.ContinueOnError)
 
 	fs.Var(&protodirs, "protodir", "search path for protofile")

@@ -16,7 +16,7 @@ var (
 	verbose   *bool       // 打印详细日志
 )
 
-var subcmds = cmds.RegisteredSubCmds()
+var subcmds = cmds.SubCmds()
 
 func main() {
 

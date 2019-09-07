@@ -21,13 +21,7 @@ var (
 	assetdir  string
 )
 
-func init() {
-	mux.Lock()
-	defer mux.Unlock()
-	all["create"] = NewCreateCmd()
-}
-
-func NewCreateCmd() *CreateCmd {
+func newCreateCmd() *CreateCmd {
 	fs := flag.NewFlagSet("createcmd", flag.ContinueOnError)
 
 	fs.Var(&protodirs, "protodir", "search path for protofile")

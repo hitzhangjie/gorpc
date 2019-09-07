@@ -1,13 +1,17 @@
 package server
 
-type Option interface {
-	Apply(*Server)
+import (
+	"github.com/hitzhangjie/go-rpc/router"
+)
+
+type Options struct {
+	router *router.Router
 }
 
-//                   /---> TcpEnabled
-// ServerModule --->
-//					 \---> UdpEnabled
+type Option func(*Options)
 
-// Port ---> Protocol
-
-
+func WithRouter(r *router.Router) Option {
+	return func(opts *Options) {
+		opts.router = r
+	}
+}

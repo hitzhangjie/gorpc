@@ -1,20 +1,33 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"github.com/hitzhangjie/go-rpc/codec"
 	"net"
+	"sync"
 )
 
 // TcpServer
 type TcpServer struct {
-	svr    *Server
-	net    string
-	addr   string
+	ctx    context.Context
+	cancel context.CancelFunc
+
+	net  string
+	addr string
+
 	codec  codec.Codec
 	reader *codec.MessageReader
+
 	//reqChan chan codec.Session
 	rspChan chan codec.Session
+
+	wg sync.WaitGroup
+
+	once   sync.Once
+	closed chan struct{}
+
+	opts *Options
 }
 
 const (
@@ -22,13 +35,23 @@ const (
 )
 
 func NewTcpServer(net, addr string, codecName string, opts ...Option) (ServerModule, error) {
+	ctx, cancel := context.WithCancel(context.TODO())
 	c := codec.ServerCodec(codecName)
+
 	s := &TcpServer{
+		ctx:     ctx,
+		cancel:  cancel,
 		net:     net,
 		addr:    addr,
 		codec:   c,
 		reader:  codec.NewMessageReader(c),
 		rspChan: make(chan codec.Session, tcpServerRspChanMaxLength),
+		once:    sync.Once{},
+		closed:  make(chan struct{}, 1),
+		opts:    &Options{},
+	}
+	for _, o := range opts {
+		o(s.opts)
 	}
 	return s, nil
 }
@@ -42,10 +65,17 @@ func (s *TcpServer) Start() {
 }
 
 func (s *TcpServer) Stop() {
+
+	s.cancel()
+
+	s.once.Do(func() {
+		close(s.closed)
+	})
 }
 
 func (s *TcpServer) Register(svr *Server) {
-	s.svr = svr
+	s.ctx, s.cancel = context.WithCancel(svr.ctx)
+	s.opts.router = svr.router
 	svr.mods = append(svr.mods, s)
 }
 
@@ -58,7 +88,7 @@ func (s *TcpServer) serve(l net.Listener) {
 	for {
 		// check whether server closed
 		select {
-		case <-s.svr.ctx.Done():
+		case <-s.ctx.Done():
 			return
 		default:
 		}
@@ -81,7 +111,7 @@ func (s *TcpServer) read(conn net.Conn) {
 	for {
 		// check whether server closed
 		select {
-		case <-s.svr.ctx.Done():
+		case <-s.ctx.Done():
 			return
 		default:
 		}
@@ -102,13 +132,15 @@ func (s *TcpServer) read(conn net.Conn) {
 		}
 
 		// fixme using workerpool instead of goroutine
+		router := s.opts.router
+
 		go func() {
-			service, handle, err := s.svr.router.Route(session)
+			service, handle, err := router.Route(session)
 			if err != nil {
 				session.SetErrorResponse(err)
 				return
 			}
-			err = handle(service, s.svr.ctx, session)
+			err = handle(service, s.ctx, session)
 			if err != nil {
 				session.SetErrorResponse(err)
 			}
@@ -125,7 +157,7 @@ func (s *TcpServer) write(conn net.Conn) {
 	for {
 		// check whether server closed
 		select {
-		case <-s.svr.ctx.Done():
+		case <-s.ctx.Done():
 			return
 		default:
 		}
@@ -141,4 +173,8 @@ func (s *TcpServer) write(conn net.Conn) {
 			conn.Write(data)
 		}
 	}
+}
+
+func (s *TcpServer) Closed() <-chan struct{} {
+	return s.closed
 }

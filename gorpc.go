@@ -60,13 +60,27 @@ func (s *Service) Handle(service interface{}) {
 	// func RpcName(req interface{}) string
 }
 
-func (s *Service) Start() {
-	if s.server == nil {
-		panic(errServerNotInit)
-	}
-	s.server.Start()
+func (s *Service) Start() error {
 
-	<- s.server.Closed()
+	if s.server == nil {
+		return errServerNotInit
+	}
+
+	// start
+	if err := s.server.Start(); err != nil {
+		return err
+	}
+	// register
+	if err := s.RegisterNaming(); err != nil {
+		return err
+	}
+	// de-register
+	<-s.server.Closed()
+	if err := s.DeRegisterNaming(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *Service) RegisterServer(svr *server.Server) {
@@ -74,5 +88,13 @@ func (s *Service) RegisterServer(svr *server.Server) {
 }
 
 func (s *Service) RegisterSModule(mod *server.ServerModule) {
+	panic("implement me")
+}
+
+func (s *Service) RegisterNaming() error {
+	panic("implement me")
+}
+
+func (s *Service) DeRegisterNaming() error {
 	panic("implement me")
 }

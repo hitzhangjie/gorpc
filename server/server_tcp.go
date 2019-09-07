@@ -57,12 +57,15 @@ func NewTcpServer(net, addr string, codecName string, opts ...Option) (ServerMod
 	return s, nil
 }
 
-func (s *TcpServer) Start() {
+func (s *TcpServer) Start() error {
+
 	l, err := net.Listen(s.net, s.addr)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	go s.serve(l)
+
+	return nil
 }
 
 func (s *TcpServer) Stop() {

@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"github.com/hitzhangjie/go-rpc/router"
 	"os"
 	"os/signal"
@@ -22,46 +23,75 @@ type Server struct {
 }
 
 // NewServer create new server with option
-//
 func NewServer(opts ...Option) (*Server, error) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	s := &Server{
 		ctx:    ctx,
 		cancel: cancel,
-		opts:   []*Option{},
+
+		opts: []*Option{},
+
 		mods:   []ServerModule{},
 		router: router.NewRouter(),
+
 		once:   sync.Once{},
 		closed: make(chan struct{}, 1),
 	}
 	return s, nil
 }
 
-func (s *Server) Start() {
+// Start starts every ServerModule, after this, Service may be registered to remote naming service
+func (s *Server) Start() error {
+	cherr := make(chan error, len(s.mods))
+	chok := make(chan struct{}, len(s.mods))
+
+	wg := sync.WaitGroup{}
 	for _, m := range s.mods {
-		go m.Start()
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := m.Start(); err != nil {
+				cherr <- err
+			} else {
+				chok <- struct{}{}
+			}
+		}()
 	}
-	println("server started")
+	wg.Wait()
+
+	select {
+	case err := <-cherr:
+		return fmt.Errorf("server start error: %v", err)
+	default:
+		println("server started")
+	}
 
 	// process recv following signals to exit
-	chexit := make(chan os.Signal)
-	signal.Notify(chexit, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL)
-	<-chexit
+	go func() {
+		chexit := make(chan os.Signal)
+		signal.Notify(chexit, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL)
+		<-chexit
 
-	s.Stop()
+		s.Stop()
+		println("server stopped")
+	}()
 
-	println("server stopped")
+	return nil
 }
 
 func (s *Server) Stop() {
 
 	s.cancel()
 
+	wg := sync.WaitGroup{}
 	for _, m := range s.mods {
-		if !m.Closed() {
-			return false
-		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			<-m.Closed()
+		}()
 	}
+	wg.Wait()
 
 	s.once.Do(func() {
 		close(s.closed)

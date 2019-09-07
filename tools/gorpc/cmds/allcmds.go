@@ -4,10 +4,24 @@ import (
 	"sync"
 )
 
-var all = map[string]Commander{}
-var mux sync.Mutex
+var (
+	cmds = map[string]Commander{}
+	mux  sync.Mutex
+)
 
-// RegisteredSubCmds return all registered subcmds.
-func RegisteredSubCmds() map[string]Commander {
-	return all
+// SubCmds return cmds registered subcmds.
+func SubCmds() map[string]Commander {
+	return cmds
+}
+
+func RegisterSubCmd(name string, commander Commander) {
+	mux.Lock()
+	cmds[name] = commander
+	mux.Unlock()
+}
+
+func init() {
+	RegisterSubCmd("create", newCreateCmd())
+	RegisterSubCmd("update", newUpdateCmd())
+	RegisterSubCmd("help", newHelpCmd())
 }

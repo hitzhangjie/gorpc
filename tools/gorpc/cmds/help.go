@@ -10,12 +10,6 @@ type HelpCmd struct {
 	Cmd
 }
 
-func init() {
-	mux.Lock()
-	defer mux.Unlock()
-	all["help"] = NewHelpCmd()
-}
-
 func (c *HelpCmd) Run(args ...string) error {
 
 	c.FlagSet().Parse(args)
@@ -31,7 +25,7 @@ func (c *HelpCmd) Run(args ...string) error {
 	return nil
 }
 
-func NewHelpCmd() *HelpCmd {
+func newHelpCmd() *HelpCmd {
 
 	fs := flag.NewFlagSet("helpcmd", flag.ContinueOnError)
 	fs.Bool("v", false, "verbose help info")
@@ -57,7 +51,7 @@ func (c *HelpCmd) usageShort() string {
 	b := strings.Builder{}
 	b.WriteString(c.descShort + "\n")
 
-	for k, v := range all {
+	for k, v := range cmds {
 		if k == "help" {
 			continue
 		}
@@ -70,7 +64,7 @@ func (c *HelpCmd) usageLong() string {
 	b := strings.Builder{}
 	b.WriteString(c.descLong + "\n")
 
-	for k, v := range all {
+	for k, v := range cmds {
 		if k == "help" {
 			continue
 		}

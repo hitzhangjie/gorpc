@@ -12,7 +12,8 @@
     - 生成服务目录结构与模板中目录结构保持一致；
     - 可以自定义 `gorpc <subcmd>` 实现更多能力， 参考 `gorpc create`, ***file:cmds/create.go***
 
-`gorpc` 实现方式类似于 `go <subcmd>`，subcmd是可插拔的，借此可以来扩展 `gorpc` 的功能。
+`gorpc` 实现方式类似于 `go <subcmd>`，subcmd是可插拔的，借此可以来扩展 `gorpc` 的功能。后续也有计划增加其他能力，如快速pprof、console等能力。
+
 
 ## 使用 "Google Protobuf" 作为 IDL
 

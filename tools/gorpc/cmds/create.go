@@ -163,7 +163,7 @@ func (c *CreateCmd) create() error {
 	}
 	// - move outputdir/rpc to outputdir/dir($gopkgdir)
 	src := path.Join(outputdir, "rpc")
-	fileOption := fmt.Sprintf("%s_package", c.Option.gorpcCfg.Language)
+	fileOption := fmt.Sprintf("%s_package", c.Option.GoRPCConfig.Language)
 	gopkgdir := fd.PackageName
 	if fo := fd.FileOptions[fileOption]; fo != nil {
 		if v := fd.FileOptions[fileOption].(string); len(v) != 0 {
@@ -225,10 +225,10 @@ func (c *CreateCmd) generateRPCStub() error {
 		return err
 	}
 	// - 生成代码，只处理clientstub
-	for _, f := range c.Option.gorpcCfg.RPCClientStub {
+	for _, f := range c.Option.GoRPCConfig.RPCClientStub {
 		in := path.Join(c.Assetdir, f)
 		log.Debug("handle:%s", in)
-		out := path.Join(outputdir, strings.TrimSuffix(path.Base(in), c.gorpcCfg.TplFileExt))
+		out := path.Join(outputdir, strings.TrimSuffix(path.Base(in), c.GoRPCConfig.TplFileExt))
 		if err := tpl.GenerateFile(fd, in, out, c.Option); err != nil {
 			return err
 		}

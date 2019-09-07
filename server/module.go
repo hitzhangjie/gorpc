@@ -2,7 +2,7 @@ package server
 
 // ServerModule
 type ServerModule interface {
-	Start()
+	Start() error
 	Stop()
 	Register(*Server)
 	Closed() <-chan struct{}

@@ -46,17 +46,21 @@ func NewUdpServer(net, addr string, codecName string, opts ...Option) (ServerMod
 	return s, nil
 }
 
-func (s *UdpServer) Start() {
+func (s *UdpServer) Start() error {
+
 	addr, err := net.ResolveUDPAddr(s.net, s.addr)
 	if err != nil {
-		panic(err)
+		return err
 	}
+
 	udpconn, err := net.ListenUDP(s.net, addr)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	go s.read(udpconn)
 	go s.write(udpconn)
+
+	return nil
 }
 
 func (s *UdpServer) Stop() {

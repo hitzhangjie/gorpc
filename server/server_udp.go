@@ -1,20 +1,31 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"github.com/hitzhangjie/go-rpc/codec"
 	"net"
+	"sync"
 )
 
 // UdpServer
 type UdpServer struct {
-	svr    *Server
-	net    string
-	addr   string
+	ctx    context.Context
+	cancel context.CancelFunc
+
+	net  string
+	addr string
+
 	codec  codec.Codec
 	reader *codec.MessageReader
+
 	//reqChan chan codec.Session
 	rspChan chan codec.Session
+
+	once   sync.Once
+	closed chan struct{}
+
+	opts *Options
 }
 
 func NewUdpServer(net, addr string, codecName string, opts ...Option) (ServerModule, error) {
@@ -24,6 +35,12 @@ func NewUdpServer(net, addr string, codecName string, opts ...Option) (ServerMod
 		addr:   addr,
 		codec:  c,
 		reader: codec.NewMessageReader(c),
+		once:   sync.Once{},
+		closed: make(chan struct{}, 1),
+		opts:   &Options{},
+	}
+	for _, o := range opts {
+		o(s.opts)
 	}
 	return s, nil
 }
@@ -41,10 +58,15 @@ func (s *UdpServer) Start() {
 	go s.write(udpconn)
 }
 
-func (s *UdpServer) Stop() {}
+func (s *UdpServer) Stop() {
+	s.once.Do(func() {
+		close(s.closed)
+	})
+}
 
 func (s *UdpServer) Register(svr *Server) {
-	s.svr = svr
+	s.ctx, s.cancel = context.WithCancel(svr.ctx)
+	s.opts.router = svr.router
 	svr.mods = append(svr.mods, s)
 }
 
@@ -56,7 +78,7 @@ func (s *UdpServer) read(conn net.Conn) {
 	for {
 		// check whether server closed
 		select {
-		case <-s.svr.ctx.Done():
+		case <-s.ctx.Done():
 			return
 		default:
 		}
@@ -77,13 +99,14 @@ func (s *UdpServer) read(conn net.Conn) {
 		}
 
 		// fixme using workerpool instead of goroutine
+		router := s.opts.router
 		go func() {
-			service, handle, err := s.svr.router.Route(session)
+			service, handle, err := router.Route(session)
 			if err != nil {
 				session.SetErrorResponse(err)
 				return
 			}
-			err = handle(service, s.svr.ctx, session)
+			err = handle(service, s.ctx, session)
 			if err != nil {
 				session.SetErrorResponse(err)
 			}
@@ -99,7 +122,7 @@ func (s *UdpServer) write(conn net.Conn) {
 	for {
 		// check whether server closed
 		select {
-		case <-s.svr.ctx.Done():
+		case <-s.ctx.Done():
 			return
 		default:
 		}
@@ -115,4 +138,8 @@ func (s *UdpServer) write(conn net.Conn) {
 			conn.Write(data)
 		}
 	}
+}
+
+func (s *UdpServer) Closed() <-chan struct{} {
+	return s.closed
 }

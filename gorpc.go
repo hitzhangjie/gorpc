@@ -65,6 +65,8 @@ func (s *Service) Start() {
 		panic(errServerNotInit)
 	}
 	s.server.Start()
+
+	<- s.server.Closed()
 }
 
 func (s *Service) RegisterServer(svr *server.Server) {

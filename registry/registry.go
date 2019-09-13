@@ -5,17 +5,22 @@ import (
 )
 
 type Registry interface {
+	// Register register service
 	Register(service *server.Service, opts ...RegisterOption) error
-	DeRegister(service *server.Service) error
+	// UnRegister unregister service
+	UnRegister(service *server.Service) error
+	// GetService get services by name, which may have more than one version
 	GetService(name string) ([]*server.Service, error)
+	// ListServices list all registered services
 	ListServices() ([]*server.Service, error)
+	// Watcher returns a watcher, which watches events on NamingService backend
 	Watcher() (Watcher, error)
 }
 
-type RegisterOption func()
+// RegisterOption
+type RegisterOption func(options *RegisterOptions)
 
-type RegisterOptions struct {
-}
+type RegisterOptions struct{}
 
 type Watcher interface {
 	Next() (*Result, error)

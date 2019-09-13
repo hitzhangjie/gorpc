@@ -86,8 +86,10 @@ type {{$svrName|title}}ClientProxy interface {
 	{{ range (index .Services 0).RPC}}
 	{{- $rpcReqType := (simplify (gofulltype .RequestType $.FileDescriptor) $pkgName)|export }}
    	{{- $rpcRspType := (simplify (gofulltype .ResponseType $.FileDescriptor) $pkgName)|export }}
+   	{{ if ne .LeadingComments "" -}}
    	// {{.Name|title}} {{.LeadingComments}}
-	{{.Name|title}}(ctx context.Context, req *{{$rpcReqType}}, opts ...client.Option) (rsp *{{$rpcRspType}}, err error) // {{.TrailingComments}}
+   	{{- end }}
+	{{.Name|title}}(ctx context.Context, req *{{$rpcReqType}}, opts ...client.Option) (rsp *{{$rpcRspType}}, err error) {{ if ne .TrailingComments "" }}// {{.TrailingComments}}{{ end }}
 {{ end -}}
 }
 

@@ -1,24 +1,28 @@
 {{- $svrName := (index .Services 0).Name -}}
+{{ $service := index .Services 0 -}}
+{{ $method := (index $service.RPC .RPCIndex) -}}
+
 {{- $goPkgOption := "" -}}
 {{- with .FileOptions.go_package -}}
   {{- $goPkgOption = . -}}
 {{- end -}}
 package main
 
-{{ $service0 := index .Services 0 -}}
-{{ $method := (index $service0.RPC .RPCIndex) -}}
-{{- $rpcName := $method.Name -}}
-{{- $rpcReqType := $method.RequestType -}}
+{{ $rpcReqType := $method.RequestType -}}
 {{- $rpcRspType := $method.ResponseType -}}
+{{- $reqTypePackage := (trimright "." $method.RequestType) -}}
+{{- $rspTypePackage := (trimright "." $method.ResponseType) -}}
 
 {{/* 计算rpc中请求类型、响应类型的正确类型名 */}}
-{{- if or (eq (trimright "." $rpcReqType) ($.PackageName)) (eq (trimright "." (gofulltype $rpcReqType $.FileDescriptor)) ($goPkgOption)) -}}
+{{ $validReqPkgName := trimright "." (gofulltype $rpcReqType $.FileDescriptor) }}
+{{ $validRspPkgName := trimright "." (gofulltype $rpcRspType $.FileDescriptor) }}
+{{- if or (eq $validReqPkgName $.PackageName) (eq $validReqPkgName $goPkgOption) -}}
 	{{- $rpcReqType = (printf "pb.%s" (splitList "." $rpcReqType|last|export)) -}}
 {{- else -}}
 	{{- $rpcReqType = (gofulltype $rpcReqType $.FileDescriptor) -}}
 {{- end -}}
 
-{{- if or (eq (trimright "." $rpcRspType) $.PackageName) (eq (trimright "." (gofulltype $rpcRspType $.FileDescriptor)) $goPkgOption) -}}
+{{- if or (eq $validRspPkgName $.PackageName) (eq $validRspPkgName $goPkgOption) -}}
 	{{- $rpcRspType = (printf "pb.%s" (splitList "." $rpcRspType|last|export)) -}}
 {{- else -}}
 	{{- $rpcRspType = (gofulltype $rpcRspType $.FileDescriptor) -}}
@@ -50,7 +54,7 @@ import (
 {{ end -}}
 )
 
-func (s *{{$svrName|title}}ServerImpl) {{$rpcName|title}}(ctx context.Context, req *{{$rpcReqType}}, rsp *{{$rpcRspType}}) (err error) {
+func (s *{{$svrName|title}}ServerImpl) {{$method.Name|title}}(ctx context.Context, req *{{$rpcReqType}}, rsp *{{$rpcRspType}}) (err error) {
 	// implement business logic here ...
 	// ...
 

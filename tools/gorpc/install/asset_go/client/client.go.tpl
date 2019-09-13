@@ -17,11 +17,12 @@ import (
 	_ "github.com/hitzhangjie/go-rpc"
 	"github.com/hitzhangjie/go-rpc/client"
 
-    {{ if ne $goPkgOption "" -}}
-	pb "{{$goPkgOption}}"
-    {{- else -}}
-	pb "{{$pkgName|gopkg}}"
-    {{- end }}
+    {{ with .FileOptions.go_package }}
+    pb "{{.}}"
+    {{ else }}
+    pb "{{$.PackageName}}"
+    {{ end }}
+
     {{ range .Imports }}
 	"{{- . -}}"
     {{- end }}
@@ -48,27 +49,32 @@ func main() {
 		client.WithTarget("ip://127.0.0.1:8000"),
 	}
 
-	clientProxy := pb.New{{$svrName|title}}ClientProxy(opts...)
+	cli := pb.New{{$svrName|title}}Client(opts...)
 
+    {{ $rpcReqType := "" -}}
+    {{ $rpcRspType := "" -}}
 	switch *cmd {
 		{{range (index .Services 0).RPC}}
-        {{- $rpcReqType := .RequestType -}}
-        {{- $rpcRspType := .ResponseType -}}
 
-        {{- if or (eq (trimright "." $rpcReqType|gopkg) ($pkgName|gopkg)) (eq (trimright "." (gofulltype $rpcReqType $.FileDescriptor)|gopkg) ($goPkgOption|gopkg)) -}}
-        	{{- $rpcReqType = (printf "pb.%s" (splitList "." $rpcReqType|last|export)) -}}
+        {{- /* 根据rpc请求、响应类型，及pb中fileoptions信息计算正确的类型名 */ -}}
+        {{- $validReqPkg := trimright "." (gofulltype .RequestType $.FileDescriptor) -}}
+        {{- $validRspPkg := trimright "." (gofulltype .ResponseType $.FileDescriptor) -}}
+
+        {{- if or (eq $validReqPkg $.PackageName) (eq $validReqPkg $goPkgOption) -}}
+        	{{- $rpcReqType = (printf "pb.%s" (splitList "." .RequestType|last|export)) -}}
         {{- else -}}
-        	{{- $rpcReqType = (gofulltype $rpcReqType $.FileDescriptor) -}}
+        	{{- $rpcReqType = (gofulltype .RequestType $.FileDescriptor) -}}
         {{- end -}}
 
-        {{- if or (eq (trimright "." $rpcRspType|gopkg) ($pkgName|gopkg)) (eq (trimright "." (gofulltype $rpcRspType $.FileDescriptor)|gopkg) ($goPkgOption|gopkg)) -}}
-        	{{- $rpcRspType = (printf "pb.%s" (splitList "." $rpcRspType|last|export)) -}}
+        {{- if or (eq $validReqPkg $.PackageName) (eq $validReqPkg $goPkgOption) -}}
+        	{{- $rpcRspType = (printf "pb.%s" (splitList "." .ResponseType|last|export)) -}}
         {{- else -}}
-        	{{- $rpcRspType = (gofulltype $rpcRspType $.FileDescriptor) -}}
+        	{{- $rpcRspType = (gofulltype .ResponseType $.FileDescriptor) -}}
         {{- end -}}
+
 		case "{{.Name|title}}":
 			req := &{{$rpcReqType}}{}
-			rsp, err := clientProxy.{{.Name|title}}(ctx, req)
+			rsp, err := cli.{{.Name|title}}(ctx, req)
 			log.Printf("req:%v, rsp:%v, err:%v", req, rsp, err)
 		{{end}}
 		default:

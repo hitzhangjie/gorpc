@@ -125,6 +125,7 @@ func fillDependencies(fd *desc.FileDescriptor, nfd *FileDescriptor) error {
 	for _, dep := range fd.GetDependencies() {
 		fname := dep.GetFullyQualifiedName()
 		pkgname := dep.GetPackage()
+		pkgImportMappings[pkgname] = pkgname
 		validPkgName := pkgname
 		if opts := dep.GetFileOptions(); opts != nil {
 			if gopkgopt := opts.GetGoPackage(); len(gopkgopt) != 0 {

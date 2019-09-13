@@ -13,7 +13,7 @@ rolling.lognum = 5
 level = 1                      #日志级别,0:DEBUG,1:INFO,2:WARN,3:ERROR)
 logwrite = rolling
 logFileAndLine = 0
-rolling.filename = gorpc_frame.log
+rolling.filename = gorpc_access.log
 rolling.type = daily
 rolling.lognum = 5
 

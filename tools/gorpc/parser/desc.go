@@ -8,7 +8,7 @@ type FileDescriptor struct {
 	Services          []*ServiceDescriptor   // 支持多service
 	Dependencies      map[string]string      // 依赖pb文件对应的输出包名
 	pkgPkgMappings    map[string]string      // pkg到pkg的映射关系
-	pkgImportMappings map[string]string      // pkg到import路径的关系(go_package)
+	PkgImportMappings map[string]string      // pkg到import路径的关系(go_package)
 }
 
 // ServiceDescriptor service作用域相关的描述信息

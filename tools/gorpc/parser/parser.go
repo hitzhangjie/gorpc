@@ -141,7 +141,7 @@ func fillDependencies(fd *desc.FileDescriptor, nfd *FileDescriptor) error {
 	}
 	nfd.Dependencies = pbPkgMappings
 	nfd.pkgPkgMappings = pkgPkgMappings
-	nfd.pkgImportMappings = pkgImportMappings
+	nfd.PkgImportMappings = pkgImportMappings
 
 	return nil
 }
@@ -280,7 +280,7 @@ func getImports(fd *desc.FileDescriptor, nfd *FileDescriptor) []string {
 		//if v, ok := nfd.pkgPkgMappings[k]; ok && len(v) != 0 {
 		//	pkgs = append(pkgs, v)
 		//}
-		if v, ok := nfd.pkgImportMappings[k]; ok && len(v) != 0 {
+		if v, ok := nfd.PkgImportMappings[k]; ok && len(v) != 0 {
 			pkgs = append(pkgs, v)
 		}
 	}

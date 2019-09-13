@@ -118,23 +118,21 @@ func withErrorCheck(err error) {
 }
 
 func fillDependencies(fd *desc.FileDescriptor, nfd *FileDescriptor) error {
-	pbPkgMappings := map[string]string{}
-	pkgPkgMappings := map[string]string{}
+	pbPkgMappings := map[string]string{}     // pb文件到protoc处理后package名的映射关系
+	pkgPkgMappings := map[string]string{}    // pb文件package directive与protoc处理后package名的映射关系
+	pkgImportMappings := map[string]string{} // pb文件package directive与导入路径的
 
 	for _, dep := range fd.GetDependencies() {
 		fname := dep.GetFullyQualifiedName()
 		pkgname := dep.GetPackage()
 		validPkgName := pkgname
 		if opts := dep.GetFileOptions(); opts != nil {
-			if gopkg := opts.GetGoPackage(); len(gopkg) != 0 {
-				idx := strings.LastIndex(gopkg, ".")
-				if idx < 0 {
-					idx = 0
-				} else {
-					idx++
-				}
-				if len(gopkg[idx:]) > 0 {
-					validPkgName = gopkg[idx:]
+			if gopkgopt := opts.GetGoPackage(); len(gopkgopt) != 0 {
+				pkgImportMappings[pkgname] = gopkgopt
+				//idx := strings.LastIndex(gopkgopt, ".")
+				idx := strings.LastIndex(gopkgopt, "/")
+				if len(gopkgopt[idx+1:]) > 0 {
+					validPkgName = gopkgopt[idx+1:]
 				}
 			}
 		}
@@ -143,6 +141,7 @@ func fillDependencies(fd *desc.FileDescriptor, nfd *FileDescriptor) error {
 	}
 	nfd.Dependencies = pbPkgMappings
 	nfd.pkgPkgMappings = pkgPkgMappings
+	nfd.pkgImportMappings = pkgImportMappings
 
 	return nil
 }
@@ -266,17 +265,10 @@ func fillServices(fd *desc.FileDescriptor, nfd *FileDescriptor, aliasMode bool) 
 }
 
 func getImports(fd *desc.FileDescriptor, nfd *FileDescriptor) []string {
-	pkgs := []string{}
-	// 先搜索出哪些用了
-	//for k, v := range nfd.pkgPkgMappings {
-	//	fmt.Println("key:", k, "value:", v)
-	//
-	//	if len(v) != 0 {
-	//		pkgs = append(pkgs, v)
-	//	}
-	//}
 
-	// 遍历rpc，检查是否有req\rsp出现在对应的pkg中，是则允许添加到pkgs，否则从中提出
+	pkgs := []string{}
+
+	// 遍历rpc，检查是否有req\rsp出现在对应的pkg中，是则允许添加到pkgs，否则从中剔除
 	m := map[string]struct{}{}
 	for _, rpc := range fd.GetServices()[0].GetMethods() {
 		p1 := TrimRight(".", rpc.GetInputType().GetFullyQualifiedName())
@@ -285,7 +277,10 @@ func getImports(fd *desc.FileDescriptor, nfd *FileDescriptor) []string {
 		m[p2] = struct{}{}
 	}
 	for k, _ := range m {
-		if v, ok := nfd.pkgPkgMappings[k]; ok && len(v) != 0 {
+		//if v, ok := nfd.pkgPkgMappings[k]; ok && len(v) != 0 {
+		//	pkgs = append(pkgs, v)
+		//}
+		if v, ok := nfd.pkgImportMappings[k]; ok && len(v) != 0 {
 			pkgs = append(pkgs, v)
 		}
 	}

@@ -98,6 +98,7 @@ func getOutputDir(fd *parser.FileDescriptor, options *params.Option) (string, er
 }
 
 func gofmt(fpath string) error {
+
 	in, err := ioutil.ReadFile(fpath)
 	if err != nil {
 		return err

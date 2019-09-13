@@ -2,12 +2,13 @@ package parser
 
 // FileDescriptor 文件作用域相关的描述信息
 type FileDescriptor struct {
-	PackageName    string                 // pb包名称
-	Imports        []string               // 跟pb文件中import对应的golang import路径
-	FileOptions    map[string]interface{} // fileoptions
-	Services       []*ServiceDescriptor   // 支持多service
-	Dependencies   map[string]string      // 依赖pb文件对应的输出包名
-	pkgPkgMappings map[string]string      // pkg到pkg的映射关系
+	PackageName       string                 // pb包名称
+	Imports           []string               // 跟pb文件中import对应的golang import路径
+	FileOptions       map[string]interface{} // fileoptions
+	Services          []*ServiceDescriptor   // 支持多service
+	Dependencies      map[string]string      // 依赖pb文件对应的输出包名
+	pkgPkgMappings    map[string]string      // pkg到pkg的映射关系
+	pkgImportMappings map[string]string      // pkg到import路径的关系(go_package)
 }
 
 // ServiceDescriptor service作用域相关的描述信息

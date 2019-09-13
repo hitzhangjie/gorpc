@@ -5,8 +5,6 @@ import (
 	"github.com/hitzhangjie/go-rpc/tools/gorpc/log"
 	"github.com/hitzhangjie/go-rpc/tools/gorpc/params"
 	"github.com/hitzhangjie/go-rpc/tools/gorpc/parser"
-	"go/format"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -112,25 +110,6 @@ func GenerateFile(fd *parser.FileDescriptor, infile, outfile string, option *par
 	if err != nil {
 		log.Error("%v", err)
 		return err
-	}
-
-	// 进行 gofmt
-	if strings.HasSuffix(outfile, ".go") {
-		in, err := ioutil.ReadFile(outfile)
-		if err != nil {
-			log.Error("%v", err)
-			return err
-		}
-		out, err := format.Source(in)
-		if err != nil {
-			log.Error("%v", err)
-			return err
-		}
-		err = ioutil.WriteFile(outfile, out, 0644)
-		if err != nil {
-			log.Error("%v", err)
-			return err
-		}
 	}
 
 	return nil

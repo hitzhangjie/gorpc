@@ -183,6 +183,13 @@ func (c *CreateCmd) create() error {
 	// fixme handle .gorpc.go
 	sd := fd.Services[0]
 	err = filepath.Walk(dest, func(fpath string, info os.FileInfo, err error) error {
+		if strings.HasSuffix(dest, ".go") {
+			err := gofmt(dest)
+			if err != nil {
+				log.Error("Warn: gofmt file:%s error:%v", dest, err)
+			}
+		}
+
 		if fname := path.Base(fpath); fname == "gorpc.go" {
 			fs.Move(fpath, path.Join(path.Dir(fpath), sd.Name+".gorpc.go"))
 		}

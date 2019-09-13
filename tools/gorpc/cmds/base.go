@@ -2,8 +2,11 @@ package cmds
 
 import (
 	"flag"
+	"github.com/hitzhangjie/go-rpc/tools/gorpc/log"
 	"github.com/hitzhangjie/go-rpc/tools/gorpc/params"
 	"github.com/hitzhangjie/go-rpc/tools/gorpc/parser"
+	"go/format"
+	"io/ioutil"
 	"os"
 	"os/user"
 	"path"
@@ -92,4 +95,24 @@ func getOutputDir(fd *parser.FileDescriptor, options *params.Option) (string, er
 	//return path.Join(wd, pkgName), nil
 
 	return path.Join(wd, fd.Services[0].Name), nil
+}
+
+func gofmt(fpath string) error {
+	in, err := ioutil.ReadFile(fpath)
+	if err != nil {
+		return err
+	}
+
+	out, err := format.Source(in)
+	if err != nil {
+		log.Error("%v", err)
+		return err
+	}
+
+	err = ioutil.WriteFile(fpath, out, 0644)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

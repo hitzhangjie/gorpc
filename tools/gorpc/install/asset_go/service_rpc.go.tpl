@@ -11,15 +11,15 @@ package main
 {{- $rpcRspType := $method.ResponseType -}}
 
 {{/* 计算rpc中请求类型、响应类型的正确类型名 */}}
-{{ $validReqPkgName := trimright "." (gofulltype $rpcReqType $.FileDescriptor) }}
-{{ $validRspPkgName := trimright "." (gofulltype $rpcRspType $.FileDescriptor) }}
-{{- if or (eq $validReqPkgName $.PackageName) (eq $validReqPkgName $goPkgOption) -}}
+{{ $validReqPkg := trimright "." (gofulltype $rpcReqType $.FileDescriptor) }}
+{{ $validRspPkg := trimright "." (gofulltype $rpcRspType $.FileDescriptor) }}
+{{- if or (eq $validReqPkg $.PackageName) (eq $validReqPkg $goPkgOption) -}}
 	{{- $rpcReqType = (printf "pb.%s" (splitList "." $rpcReqType|last|export)) -}}
 {{- else -}}
 	{{- $rpcReqType = (gofulltype $rpcReqType $.FileDescriptor) -}}
 {{- end -}}
 
-{{- if or (eq $validRspPkgName $.PackageName) (eq $validRspPkgName $goPkgOption) -}}
+{{- if or (eq $validRspPkg $.PackageName) (eq $validRspPkg $goPkgOption) -}}
 	{{- $rpcRspType = (printf "pb.%s" (splitList "." $rpcRspType|last|export)) -}}
 {{- else -}}
 	{{- $rpcRspType = (gofulltype $rpcRspType $.FileDescriptor) -}}

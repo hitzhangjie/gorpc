@@ -33,11 +33,11 @@ import (
 {{ $rspTypePackage := (trimright "." $method.ResponseType) }}
 
 {{ if or (eq $reqTypePackage $.PackageName) (eq $rspTypePackage $.PackageName) }}
-{{ if ne $goPkgOption "" }}
-	pb "{{ $goPkgOption }}"
-{{- else }}
-	pb "{{$.PackageName|gopkg -}}"
-{{- end }}
+    {{ with .FileOptions.go_package }}
+	pb "{{.}}"
+    {{ else }}
+	pb "{{$.PackageName}}"
+    {{ end }}
 {{- end }}
 
 {{/* 根据rpc请求、响应类型，确定是否需要引入对应的package */}}

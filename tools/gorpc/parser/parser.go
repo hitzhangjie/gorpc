@@ -142,7 +142,7 @@ func fillDependencies(fd *desc.FileDescriptor, nfd *FileDescriptor) error {
 	}
 	nfd.Dependencies = pbPkgMappings
 	nfd.pkgPkgMappings = pkgPkgMappings
-	nfd.PkgImportMappings = pkgImportMappings
+	nfd.ImportPathMappings = pkgImportMappings
 
 	return nil
 }
@@ -267,7 +267,7 @@ func fillServices(fd *desc.FileDescriptor, nfd *FileDescriptor, aliasMode bool) 
 
 func getImports(fd *desc.FileDescriptor, nfd *FileDescriptor) []string {
 
-	pkgs := []string{}
+	importPath := []string{}
 
 	// 遍历rpc，检查是否有req\rsp出现在对应的pkg中，是则允许添加到pkgs，否则从中剔除
 	m := map[string]struct{}{}
@@ -278,13 +278,10 @@ func getImports(fd *desc.FileDescriptor, nfd *FileDescriptor) []string {
 		m[p2] = struct{}{}
 	}
 	for k, _ := range m {
-		//if v, ok := nfd.pkgPkgMappings[k]; ok && len(v) != 0 {
-		//	pkgs = append(pkgs, v)
-		//}
-		if v, ok := nfd.PkgImportMappings[k]; ok && len(v) != 0 {
-			pkgs = append(pkgs, v)
+		if v, ok := nfd.ImportPathMappings[k]; ok && len(v) != 0 {
+			importPath = append(importPath, v)
 		}
 	}
 
-	return pkgs
+	return importPath
 }

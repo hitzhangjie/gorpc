@@ -41,16 +41,15 @@ import (
 {{- end }}
 
 {{/* 根据rpc请求、响应类型，确定是否需要引入对应的package */}}
-{{ $reqTypeImportPkg := (index $.PkgImportMappings $reqTypePackage) }}
-{{ $rspTypeImportPkg := (index $.PkgImportMappings $rspTypePackage) }}
+{{ $reqTypeImportPath := (index $.ImportPathMappings $reqTypePackage) }}
+{{ $rspTypeImportPath := (index $.ImportPathMappings $rspTypePackage) }}
 
 {{ range .Imports }}
-{{- if or (hasprefix . $reqTypeImportPkg) (hasprefix . $rspTypeImportPkg) }}
+{{- if or (eq . $reqTypeImportPath) (eq . $rspTypeImportPath) }}
     "{{.}}"
 {{ end -}}
 {{ end -}}
 )
-
 
 func (s *{{$svrName|title}}ServerImpl) {{$method.Name|title}}(ctx context.Context, req *{{$rpcReqType}}) (rsp *{{$rpcRspType}}, err error) {
 	// implement business logic here ...

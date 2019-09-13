@@ -26,7 +26,7 @@ func GoFullyQualifiedType(pbFullyQualifiedType string, nfd *FileDescriptor) stri
 	typ := pbFullyQualifiedType[idx+1:]
 
 	if gopkg, ok := nfd.pkgPkgMappings[pkg]; ok && len(gopkg) != 0 {
-		rtype = gopkg + "." + typ
+		rtype = PBGoPackage(gopkg) + "." + typ
 	}
 	return rtype
 }

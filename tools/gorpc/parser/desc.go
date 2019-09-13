@@ -2,13 +2,14 @@ package parser
 
 // FileDescriptor 文件作用域相关的描述信息
 type FileDescriptor struct {
-	PackageName        string                 // pb包名称
-	Imports            []string               // pb文件可能import其他pb文件，rpc请求、响应中若有引用，记录类型对应的导入包名
-	FileOptions        map[string]interface{} // fileoptions
-	Services           []*ServiceDescriptor   // 支持多service
-	Dependencies       map[string]string      // 依赖pb文件对应的输出包名
-	pkgPkgMappings     map[string]string      // pkg到pkg的映射关系
-	ImportPathMappings map[string]string      // pkg到import路径的关系(go_package)
+	PackageName string                 // pb文件package diretive确定的包名
+	Imports     []string               // pb文件可能import其他pb文件，登记rpc请求、响应中引用的package (package diretive确定的包名)
+	FileOptions map[string]interface{} // fileoptions，如go_package, java_package等
+	Services    []*ServiceDescriptor   // 支持多service，目前只处理第一个service
+
+	Dependencies       map[string]string // 依赖(imported)的pb文件对应的正确包名（考虑了fileoptions如go_package等的影响）
+	ImportPathMappings map[string]string // pb文件package(package diretive)到正确导入路径的关系(考虑了fileoptions如go_package的响应)
+	pkgPkgMappings     map[string]string // pb文件package(package directive)到正确包名的映射关系(考虑了fileoptions如go_package的影响）
 }
 
 // ServiceDescriptor service作用域相关的描述信息

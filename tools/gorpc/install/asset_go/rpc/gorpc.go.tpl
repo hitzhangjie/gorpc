@@ -1,13 +1,9 @@
 {{- $svrName := (index .Services 0).Name -}}
-{{- $pkgName := .PackageName -}}
-{{- $goPkgOption := "" -}}
+
 {{- with .FileOptions.go_package -}}
-  {{- $goPkgOption = . -}}
-{{- end -}}
-{{- if ne $goPkgOption "" -}}
-package {{ (splitList "/" $goPkgOption)|last|gopkg}}
+package {{ (splitList "/" .) |last|gopkg }}
 {{- else -}}
-package {{ $pkgName|gopkg }}
+package {{ $.PackageName |gopkg }}
 {{- end }}
 
 import (
@@ -19,7 +15,7 @@ import (
     "github.com/hitzhangjie/go-rpc/server"
     "github.com/hitzhangjie/go-rpc/client"
     "github.com/hitzhangjie/go-rpc/codec"
-    //gorpc "github.com/hitzhangjie/go-rpc"
+
     {{ range .Imports }}
     "{{- . -}}"
     {{- end }}
@@ -31,8 +27,8 @@ import (
 type {{$svrName|title}}Server interface {
 
 	{{ range (index .Services 0).RPC }}
-	{{- $rpcReqType := (simplify (gofulltype .RequestType $.FileDescriptor) $pkgName)|export }}
-	{{- $rpcRspType := (simplify (gofulltype .ResponseType $.FileDescriptor) $pkgName)|export }}
+	{{- $rpcReqType := (simplify (gofulltype .RequestType $.FileDescriptor) $.PackageName)|export }}
+	{{- $rpcRspType := (simplify (gofulltype .ResponseType $.FileDescriptor) $.PackageName)|export }}
 	// {{.Name|title}} {{.LeadingComments}}
 	{{.Name|title }}(ctx context.Context, req *{{$rpcReqType}},rsp *{{$rpcRspType}}) (err error) // {{.TrailingComments}}
 {{ end -}}
@@ -40,8 +36,8 @@ type {{$svrName|title}}Server interface {
 
 {{range (index .Services 0).RPC -}}
 func {{$svrName|title}}Server_{{.Name|title}}_Handler(svr interface{}, ctx context.Context, f server.FilterFunc) (rspbody interface{}, err error) {
-    {{- $rpcReqType := (simplify (gofulltype .RequestType $.FileDescriptor) $pkgName)|export }}
-    {{- $rpcRspType := (simplify (gofulltype .ResponseType $.FileDescriptor) $pkgName)|export }}
+    {{- $rpcReqType := (simplify (gofulltype .RequestType $.FileDescriptor) $.PackageName)|export }}
+    {{- $rpcRspType := (simplify (gofulltype .ResponseType $.FileDescriptor) $.PackageName)|export }}
 
     req := &{{$rpcReqType}}{}
 	rsp := &{{$rpcRspType}}{}
@@ -65,7 +61,7 @@ func {{$svrName|title}}Server_{{.Name|title}}_Handler(svr interface{}, ctx conte
 
 // {{$svrName|title}}Server_ServiceDesc descriptor for server.RegisterService
 var {{$svrName|title}}Server_ServiceDesc = server.ServiceDesc {
-    ServiceName: "{{$pkgName}}.{{$svrName}}",
+    ServiceName: "{{$.PackageName}}.{{$svrName}}",
     HandlerType: ((*{{$svrName|title}}Server)(nil)),
     Methods: []server.Method{
         {{- range (index .Services 0).RPC}}
@@ -84,8 +80,8 @@ func Register{{$svrName|title}}Server(s server.Service, svr {{$svrName|title}}Se
 // {{$svrName|title}}ClientProxy defines service client proxy
 type {{$svrName|title}}ClientProxy interface {
 	{{ range (index .Services 0).RPC}}
-	{{- $rpcReqType := (simplify (gofulltype .RequestType $.FileDescriptor) $pkgName)|export }}
-   	{{- $rpcRspType := (simplify (gofulltype .ResponseType $.FileDescriptor) $pkgName)|export }}
+	{{- $rpcReqType := (simplify (gofulltype .RequestType $.FileDescriptor) $.PackageName)|export }}
+   	{{- $rpcRspType := (simplify (gofulltype .ResponseType $.FileDescriptor) $.PackageName)|export }}
    	{{ if ne .LeadingComments "" -}}
    	// {{.Name|title}} {{.LeadingComments}}
    	{{- end }}
@@ -103,8 +99,8 @@ func New{{$svrName|title}}ClientProxy(opts...client.Option) {{$svrName|title}}Cl
 }
 
 {{range $idx, $rpc := (index .Services 0).RPC}}
-{{- $rpcReqType := (simplify (gofulltype .RequestType $.FileDescriptor) $pkgName)|export }}
-{{- $rpcRspType := (simplify (gofulltype .ResponseType $.FileDescriptor) $pkgName)|export }}
+{{- $rpcReqType := (simplify (gofulltype .RequestType $.FileDescriptor) $.PackageName)|export }}
+{{- $rpcRspType := (simplify (gofulltype .ResponseType $.FileDescriptor) $.PackageName)|export }}
 func (c *{{$svrName|title}}ClientProxyImpl) {{.Name|title}}(ctx context.Context, req *{{$rpcReqType}}, opts ...client.Option) (rsp *{{$rpcRspType}}, err error) {
 
 	ctx, msg := codec.WithCloneMessage(ctx)

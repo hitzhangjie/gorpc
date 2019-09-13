@@ -179,12 +179,17 @@ func (c *CreateCmd) create() error {
 	if err := fs.Move(src, dest); err != nil {
 		return err
 	}
-	// - 将stub文件gorpc.go重命名，
-	// fixme handle .gorpc.go
+	// - 将stub文件重命名，加上前缀service
 	sd := fd.Services[0]
 	err = filepath.Walk(dest, func(fpath string, info os.FileInfo, err error) error {
-		if fname := path.Base(fpath); fname == "gorpc.go" {
-			fs.Move(fpath, path.Join(path.Dir(fpath), sd.Name+".gorpc.go"))
+		dir, fname := filepath.Split(fpath)
+
+		for _, f := range c.Option.GoRPCConfig.RPCClientStub {
+			if strings.HasSuffix(fname, c.Option.GoRPCConfig.Language) &&
+				strings.HasSuffix(f, fname+c.Option.GoRPCConfig.TplFileExt) {
+				fs.Move(fpath, path.Join(dir, sd.Name+"."+fname))
+				break
+			}
 		}
 		return nil
 	})

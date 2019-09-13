@@ -1,21 +1,16 @@
-{{- $svrName := (index .Services 0).Name -}}
-{{- $pkgName := .PackageName -}}
-{{- $goPkgOption := "" -}}
-{{- with .FileOptions.go_package -}}
-  {{- $goPkgOption = . -}}
-{{- end -}}
 package main
 
 import (
 	gorpc "github.com/hitzhangjie/go-rpc"
 
-    {{ if ne $goPkgOption "" -}}
-   	pb "{{$goPkgOption}}"
-    {{- else -}}
-    pb "{{$pkgName}}"
-	{{- end }}
+	{{ with .FileOptions.go_package }}
+	pb "{{.}}"
+	{{ else }}
+	pb "{{.PackageName}}"
+	{{ end }}
 )
 
+{{- $svrName := (index .Services 0).Name }}
 type {{$svrName|title}}ServerImpl struct {}
 
 func main() {

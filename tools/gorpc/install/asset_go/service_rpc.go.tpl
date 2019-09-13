@@ -1,7 +1,6 @@
-{{- $svrName := (index .Services 0).Name -}}
-{{ $service := index .Services 0 -}}
-{{ $method := (index $service.RPC .RPCIndex) -}}
-
+{{- $service := index .Services 0 -}}
+{{- $svrName := $service.Name -}}
+{{- $method := (index $service.RPC .RPCIndex) -}}
 {{- $goPkgOption := "" -}}
 {{- with .FileOptions.go_package -}}
   {{- $goPkgOption = . -}}
@@ -10,8 +9,6 @@ package main
 
 {{ $rpcReqType := $method.RequestType -}}
 {{- $rpcRspType := $method.ResponseType -}}
-{{- $reqTypePackage := (trimright "." $method.RequestType) -}}
-{{- $rspTypePackage := (trimright "." $method.ResponseType) -}}
 
 {{/* 计算rpc中请求类型、响应类型的正确类型名 */}}
 {{ $validReqPkgName := trimright "." (gofulltype $rpcReqType $.FileDescriptor) }}
@@ -54,7 +51,8 @@ import (
 {{ end -}}
 )
 
-func (s *{{$svrName|title}}ServerImpl) {{$method.Name|title}}(ctx context.Context, req *{{$rpcReqType}}, rsp *{{$rpcRspType}}) (err error) {
+
+func (s *{{$svrName|title}}ServerImpl) {{$method.Name|title}}(ctx context.Context, req *{{$rpcReqType}}) (rsp *{{$rpcRspType}}, err error) {
 	// implement business logic here ...
 	// ...
 

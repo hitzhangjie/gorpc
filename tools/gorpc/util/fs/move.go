@@ -6,33 +6,33 @@ import (
 	"path/filepath"
 )
 
-// MoveFileToFolder move file to folder with name filename `name`.
+// MoveFileToFolder move file or folder `src` to folder `dest`.
 func Move(src, dest string) error {
 
-	inf, err := os.Lstat(dest)
+	var (
+		inf os.FileInfo
+		err error
+	)
 
-	// move src to existed folder/file dest
-	if err == nil {
-		if inf.IsDir() {
-			_, file := filepath.Split(src)
-			return os.Rename(src, filepath.Join(dest, file))
-		} else {
-			return fmt.Errorf("dest not folder, %s", dest)
-		}
-	}
-
-	// move src to unexisted folder/file dest
-	dir, _ := filepath.Split(dest)
-	err = os.MkdirAll(dir, os.ModePerm)
-	if err != nil {
+	if inf, err = os.Lstat(dest); err != nil {
 		return err
 	}
 
-	err = os.Rename(src, dest)
-	if err != nil {
-		return err
+	// move src to existed folder dest
+	if !inf.IsDir() {
+		return fmt.Errorf("dest:%s not folder", dest)
 	}
 
-	return nil
+	_, fname := filepath.Split(src)
+	target := filepath.Join(dest, fname)
+
+	// keep behavior consistent with bash `mv` command
+	if _, err = os.Lstat(target); os.IsNotExist(err) {
+		return os.Rename(src, filepath.Join(dest, target))
+	}
+
+	if err = os.RemoveAll(target); err != nil {
+		return err
+	}
+	return os.Rename(src, filepath.Join(dest, target))
 }
-

@@ -265,7 +265,8 @@ func (c *CreateCmd) generateRPCStub() error {
 		return err
 	}
 	// - generate *.pb.go or *.java or *.pb.h/*.pb.cc under outputdir/rpc/
-	if err = pb.Protoc(c.Option.Protodirs, c.Option.Protofile, c.Option.Language, outputdir, fd.Dependencies); err != nil {
+	//if err = pb.Protoc(c.Option.Protodirs, c.Option.Protofile, c.Option.Language, outputdir, fd.Dependencies); err != nil {
+	if err = pb.Protoc(c.Option.Protodirs, c.Option.Protofile, c.Option.Language, outputdir, fd.ImportPathMappings); err != nil {
 		return fmt.Errorf("GenerateFiles: %v", err)
 	}
 	log.Info("Generate rpc stub success")

@@ -3,11 +3,22 @@ package parser
 import (
 	"fmt"
 	"strings"
+	"unicode"
 )
 
 // Title uppercase the first character of `s`
 func Title(s string) string {
-	return strings.Title(s)
+	for idx, c := range s {
+		return string(unicode.ToUpper(c)) + s[idx+1:]
+	}
+	return ""
+}
+
+func UnTitle(s string) string {
+	for idx, c := range s {
+		return string(unicode.ToLower(c)) + s[idx+1:]
+	}
+	return ""
 }
 
 // GoFullyQualifiedType convert $pkg.$type to $realpkg.$type, where $realpkg is calculated

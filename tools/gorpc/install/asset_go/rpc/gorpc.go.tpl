@@ -1,5 +1,3 @@
-{{- $svrName := (index .Services 0).Name -}}
-
 {{- with .FileOptions.go_package -}}
 package {{ (splitList "/" .) |last|gopkg }}
 {{- else -}}
@@ -23,14 +21,15 @@ import (
 
 /* ************************************ Service Definition ************************************ */
 
+{{ $svrName := (index .Services 0).Name -}}
 // {{$svrName|title}} defines service
 type {{$svrName|title}}Server interface {
 
-	{{ range (index .Services 0).RPC }}
+	{{ range $rpc := (index .Services 0).RPC }}
 	{{- $rpcReqType := (simplify (gofulltype .RequestType $.FileDescriptor) $.PackageName)|export }}
 	{{- $rpcRspType := (simplify (gofulltype .ResponseType $.FileDescriptor) $.PackageName)|export }}
-	// {{.Name|title}} {{.LeadingComments}}
-	{{.Name|title }}(ctx context.Context, req *{{$rpcReqType}},rsp *{{$rpcRspType}}) (err error) // {{.TrailingComments}}
+	{{ with .LeadingComments }}// {{$rpc.Name|title}} {{.}}{{ end }}
+	{{.Name|title }}(ctx context.Context, req *{{$rpcReqType}},rsp *{{$rpcRspType}}) (err error) {{ with .TrailingComments }}// {{.}}{{ end }}
 {{ end -}}
 }
 
@@ -79,13 +78,13 @@ func Register{{$svrName|title}}Server(s server.Service, svr {{$svrName|title}}Se
 
 // {{$svrName|title}}ClientProxy defines service client proxy
 type {{$svrName|title}}ClientProxy interface {
-	{{ range (index .Services 0).RPC}}
+	{{ range $rpc := (index .Services 0).RPC}}
 	{{- $rpcReqType := (simplify (gofulltype .RequestType $.FileDescriptor) $.PackageName)|export }}
    	{{- $rpcRspType := (simplify (gofulltype .ResponseType $.FileDescriptor) $.PackageName)|export }}
-   	{{ if ne .LeadingComments "" -}}
-   	// {{.Name|title}} {{.LeadingComments}}
+   	{{ with .LeadingComments -}}
+   	// {{$rpc.Name|title}} {{.}}
    	{{- end }}
-	{{.Name|title}}(ctx context.Context, req *{{$rpcReqType}}, opts ...client.Option) (rsp *{{$rpcRspType}}, err error) {{ if ne .TrailingComments "" }}// {{.TrailingComments}}{{ end }}
+	{{.Name|title}}(ctx context.Context, req *{{$rpcReqType}}, opts ...client.Option) (rsp *{{$rpcRspType}}, err error) {{ with .TrailingComments }}// {{.}}{{ end }}
 {{ end -}}
 }
 

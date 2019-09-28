@@ -49,6 +49,7 @@ func PBSimplifyGoType(fullTypeName string, goPackageName string) string {
 		//fmt.Println("pkg:", pkg, "=", "gopkg:", goPackageName)
 		return typ
 	}
+
 	//fmt.Println("pkg:", pkg, "!=", "gopkg:", goPackageName)
 	return fullTypeName
 }

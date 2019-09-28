@@ -12,6 +12,7 @@ var funcMap = template.FuncMap{
 	"export":     parser.GoExport,
 	"gofulltype": parser.GoFullyQualifiedType,
 	"title":      parser.Title,
+	"untitle":    parser.UnTitle,
 	"trimright":  parser.TrimRight,
 	"splitList":  parser.SplitList,
 	"last":       parser.Last,

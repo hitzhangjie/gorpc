@@ -11,7 +11,7 @@ import (
 var (
 	cwd    string
 	err    error
-	iniCfg config.Config
+	iniCfg *config.IniConfig
 )
 
 func TestMain(m *testing.M) {
@@ -21,8 +21,7 @@ func TestMain(m *testing.M) {
 		panic(err)
 	}
 
-	iniCfg = &config.IniConfig{}
-	err = iniCfg.LoadConfig(filepath.Join(cwd, "testdata/service.ini"))
+	iniCfg, err = config.LoadIniConfig(filepath.Join(cwd, "testdata/service.ini"))
 	if err != nil {
 		panic(err)
 	}
@@ -53,13 +52,53 @@ func TestIniConfig(t *testing.T) {
 			var got interface{}
 			switch tt.args.dftValue.(type) {
 			case string:
-				v := iniCfg.Read(tt.args.section, tt.args.property, tt.args.dftValue.(string))
+				v := iniCfg.String(tt.args.section, tt.args.property, tt.args.dftValue.(string))
 				got = v
 			case int8:
-				v := iniCfg.ReadInt(tt.args.section, tt.args.property, tt.args.dftValue.(int))
+				v := iniCfg.Int(tt.args.section, tt.args.property, tt.args.dftValue.(int))
 				got = v
 			case bool:
-				v := iniCfg.ReadBool(tt.args.section, tt.args.property, tt.args.dftValue.(bool))
+				v := iniCfg.Bool(tt.args.section, tt.args.property, tt.args.dftValue.(bool))
+				got = v
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("case:%s, got = %v, want = %v", tt.name, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestIniConfig_ImplConfig(t *testing.T) {
+	type args struct {
+		key      string
+		dftValue interface{}
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{"load-[]-app_mode", args{"app_mode", ""}, "development"},
+		{"load-[]-not_existed", args{"not_existed", "xxx"}, "xxx"},
+		{"load-[]=not_existed_again", args{"not_existed", "yyy"}, "yyy"},
+		{"load-[paths]-data", args{"paths.data", ""}, "/home/git/grafana"},
+		{"load-[server]-protocol", args{"server.protocol", ""}, "http"},
+		{"load-[server]-http_port", args{"server.http_port", ""}, "9999"},
+		{"load-[server]-enforce_domain", args{"server.enforce_domain", ""}, "true"},
+	}
+	var cfg config.Config = iniCfg
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var got interface{}
+			switch tt.args.dftValue.(type) {
+			case string:
+				v := cfg.Read(tt.args.key, tt.args.dftValue.(string))
+				got = v
+			case int8:
+				v := cfg.ReadInt(tt.args.key, tt.args.dftValue.(int))
+				got = v
+			case bool:
+				v := cfg.ReadBool(tt.args.key, tt.args.dftValue.(bool))
 				got = v
 			}
 			if !reflect.DeepEqual(got, tt.want) {

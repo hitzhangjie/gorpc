@@ -37,7 +37,15 @@ func (w *WhisperSession) TraceContext() interface{} {
 	panic("implement me")
 }
 
-func NewSession(req interface{}) (codec.Session, error) {
+// WhisperSessionBuilder builder for WhisperSession
+type WhisperSessionBuilder struct{}
+
+// Build build a new WhisperSession
+func (b *WhisperSessionBuilder) Build(req interface{}) (codec.Session, error) {
+	return newSession(req)
+}
+
+func newSession(req interface{}) (codec.Session, error) {
 
 	reqHead, ok := req.(*Request)
 	if !ok {

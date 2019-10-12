@@ -18,6 +18,13 @@ func LoadIniConfig(filepath string) (*IniConfig, error) {
 	return &IniConfig{cfg}, nil
 }
 
+func (c *IniConfig) Sections() []string {
+	if c.cfg == nil {
+		return nil
+	}
+	return c.Sections()
+}
+
 func (c *IniConfig) String(section, property string, dftValue string) string {
 	if c.cfg == nil {
 		return dftValue

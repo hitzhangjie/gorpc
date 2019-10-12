@@ -9,7 +9,7 @@ import (
 )
 
 type Client interface {
-	Invoke(ctx context.Context, req interface{}) (rsp interface{}, err error)
+	Invoke(ctx context.Context, req interface{}, rsp interface{}, opts ...Option) error
 }
 
 type ClientAdapter struct {
@@ -21,8 +21,8 @@ type ClientAdapter struct {
 	RpcType   RpcType             // 非必填，默认一发一收
 }
 
-func (c *ClientAdapter) Invoke(ctx context.Context, req interface{}) (rsp interface{}, err error) {
-	return
+func (c *ClientAdapter) Invoke(ctx context.Context, req interface{}, rsp interface{}, opts ...Option) error {
+	return nil
 }
 
 func NewClientAdapter(protoType ProtoType, addr, codecName string, rpcType RpcType, opts ...Option) (*ClientAdapter, error) {
@@ -41,4 +41,3 @@ func NewClientAdapter(protoType ProtoType, addr, codecName string, rpcType RpcTy
 	}
 	return c, nil
 }
-

@@ -1,7 +1,7 @@
 package registry
 
 import (
-	"git.code.oa.com/trpc-go/trpc-go/server"
+	"github.com/hitzhangjie/go-rpc/server"
 )
 
 type Registry interface {

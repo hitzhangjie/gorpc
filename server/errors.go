@@ -1,8 +1,6 @@
-package gorpc
+package server
 
-import (
-	"errors"
-)
+import "errors"
 
 var (
 	errServerNotInit = errors.New("server not initialized")

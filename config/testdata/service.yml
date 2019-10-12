@@ -1,0 +1,14 @@
+name: smallfish
+age: 99
+float: 3.14159
+bool: true
+emails:
+  - xxx@xx.com
+  - yyy@yy.com
+bb:
+  cc:
+    dd:
+      - 111
+      - 222
+      - 333
+    ee: aaa

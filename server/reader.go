@@ -19,19 +19,30 @@ func NewMessageReader(codec Codec) *MessageReader {
 }
 
 func (r *MessageReader) Read(conn net.Conn) (interface{}, error) {
-	// fixme using sync.Pool instead of []byte
-	buf := make([]byte, 1024, 1024)
 
-	n, err := conn.Read(buf)
-	if err != nil {
-		return nil, err
-	}
-	dat := buf[:n]
+	var (
+		req interface{}
+		err error
+		n   int
+		m   int
+	)
 
-	// decode请求
-	req, err := r.Codec.Decode(dat)
-	if err != nil {
-		return nil, err
+	for {
+		if m, err = conn.Read(buf[n:]); err != nil {
+			return nil, err
+		}
+		n += m
+
+		dat := buf[:n]
+
+		// decode请求
+		req, err = r.Codec.Decode(dat)
+		if err != nil {
+			if err == CodecReadIncomplete {
+				continue
+			}
+			return nil, err
+		}
 	}
 
 	return req, nil

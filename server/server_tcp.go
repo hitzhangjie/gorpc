@@ -7,6 +7,7 @@ import (
 	"github.com/hitzhangjie/go-rpc/router"
 	"net"
 	"sync"
+	"time"
 )
 
 // TcpServer
@@ -63,9 +64,7 @@ func (s *TcpServer) Start() error {
 	if err != nil {
 		return err
 	}
-	go s.serve(l)
-
-	return nil
+	return s.serve(l)
 }
 
 func (s *TcpServer) Stop() {
@@ -83,9 +82,10 @@ func (s *TcpServer) Register(svr *Server) {
 	svr.mods = append(svr.mods, s)
 }
 
-func (s *TcpServer) serve(l net.Listener) {
+func (s *TcpServer) serve(l net.Listener) error {
 
 	defer func() {
+		s.cancel()
 		l.Close()
 	}()
 
@@ -93,15 +93,19 @@ func (s *TcpServer) serve(l net.Listener) {
 		// check whether server closed
 		select {
 		case <-s.ctx.Done():
-			return
+			return errServerCtxDone
 		default:
 		}
-		// accept request
-
+		// accept tcpconn
 		conn, err := l.Accept()
 		if err != nil {
-			// fixme handle error
+			if e, ok := err.(net.Error); ok && e.Temporary() {
+				time.Sleep(time.Millisecond*10)
+				continue
+			}
+			return nil
 		}
+
 		go s.read(conn)
 		go s.write(conn)
 	}

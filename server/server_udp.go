@@ -7,6 +7,7 @@ import (
 	"github.com/hitzhangjie/go-rpc/router"
 	"net"
 	"sync"
+	"time"
 )
 
 // UdpServer
@@ -48,15 +49,28 @@ func NewUdpServer(net, addr string, codecName string, opts ...Option) (ServerMod
 
 func (s *UdpServer) Start() error {
 
+	var (
+		udpconn *net.UDPConn
+		err error
+	)
+
 	addr, err := net.ResolveUDPAddr(s.net, s.addr)
 	if err != nil {
 		return err
 	}
 
-	udpconn, err := net.ListenUDP(s.net, addr)
-	if err != nil {
-		return err
+	for {
+		udpconn, err = net.ListenUDP(s.net, addr)
+		if err != nil {
+			if e, ok := err.(net.Error); ok && e.Temporary() {
+				time.Sleep(time.Millisecond * 10)
+				continue
+			}
+			return err
+		}
+		break
 	}
+
 	go s.read(udpconn)
 	go s.write(udpconn)
 

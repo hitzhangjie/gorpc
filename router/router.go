@@ -2,7 +2,6 @@ package router
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"reflect"
 	"sync"
@@ -22,11 +21,7 @@ func NewRouter() *Router {
 	}
 }
 
-var (
-	sessionKey = "session"
-
-	errSessionNotExisted = errors.New("session not found")
-)
+var sessionKey = "session"
 
 func SessionKey() string {
 	return sessionKey
@@ -61,7 +56,7 @@ func (r *Router) Route(rpc string) (HandleWrapper, error) {
 
 	h, ok := r.mapping[rpc]
 	if !ok {
-		return nil, routeNotFound
+		return nil, errRouteNotFound
 	}
 
 	return h, nil

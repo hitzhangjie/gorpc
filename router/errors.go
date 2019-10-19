@@ -3,5 +3,6 @@ package router
 import "errors"
 
 var (
-	routeNotFound = errors.New("route not found")
+	errRouteNotFound     = errors.New("route not found")
+	errSessionNotExisted = errors.New("session not found")
 )

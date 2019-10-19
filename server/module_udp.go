@@ -77,7 +77,7 @@ func (s *UdpServer) Start() error {
 		s.reader,
 		nil,
 		nil,
-		mempool.Get().([]byte),
+		bufferPool.Get().([]byte),
 	}
 	ep.ctx, ep.cancel = context.WithCancel(s.ctx)
 

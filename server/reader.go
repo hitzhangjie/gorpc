@@ -7,9 +7,11 @@ import (
 	"time"
 )
 
-var mempool = &sync.Pool{
+var bufferPool = &sync.Pool{
 	New: func() interface{} {
-		return make([]byte, 0, 64*1024)
+		// make sure `len` of allocated buffer is not zero,
+		// otherwise conn.Read(...) returns immediately.
+		return make([]byte, 64*1024)
 	},
 }
 
@@ -31,7 +33,7 @@ func (r *TcpMessageReader) Read(ep *TcpEndPoint) error {
 
 	defer func() {
 		ep.Conn.Close()
-		mempool.Put(ep.buf)
+		bufferPool.Put(ep.buf)
 		close(ep.reqCh)
 	}()
 
@@ -50,7 +52,7 @@ func (r *TcpMessageReader) Read(ep *TcpEndPoint) error {
 		}
 
 		// fixme conn read deadline
-		ep.Conn.SetReadDeadline(time.Now().Add(time.Second*30))
+		ep.Conn.SetReadDeadline(time.Now().Add(time.Second * 30))
 		if readsz, err = ep.Conn.Read(ep.buf[buflen:]); err != nil {
 			// fixme check tcpconn idle & release
 			if e, ok := err.(net.Error); ok && e.Temporary() {
@@ -77,7 +79,6 @@ func (r *TcpMessageReader) Read(ep *TcpEndPoint) error {
 	}
 }
 
-
 // UdpMessageReader read req from `net.Conn`, if read successfully, return the req'svr session.
 //
 // if any error occurs, it returns nil session and error, error should be one of the following:
@@ -96,7 +97,7 @@ func (r *UdpMessageReader) Read(ep *UdpEndPoint) error {
 
 	defer func() {
 		ep.Conn.Close()
-		mempool.Put(ep.buf)
+		bufferPool.Put(ep.buf)
 		close(ep.reqCh)
 	}()
 
@@ -114,7 +115,7 @@ func (r *UdpMessageReader) Read(ep *UdpEndPoint) error {
 		}
 
 		// fixme conn read deadline
-		ep.Conn.SetReadDeadline(time.Now().Add(time.Second*30))
+		ep.Conn.SetReadDeadline(time.Now().Add(time.Second * 30))
 		if readsz, err = ep.Conn.Read(ep.buf); err != nil {
 			// fixme check Udpconn idle & release
 			if e, ok := err.(net.Error); ok && e.Temporary() {

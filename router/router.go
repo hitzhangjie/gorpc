@@ -21,11 +21,6 @@ func NewRouter() *Router {
 	}
 }
 
-var sessionKey = "session"
-
-func SessionKey() string {
-	return sessionKey
-}
 
 func (r *Router) RegisterService(serviceDesc *ServiceDesc, serviceImpl interface{}) error {
 

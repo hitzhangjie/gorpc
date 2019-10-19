@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"github.com/hitzhangjie/go-rpc/codec"
-	"github.com/hitzhangjie/go-rpc/router"
 	"net"
 	"sync"
 	"time"
@@ -151,7 +150,7 @@ func (s *TcpServer) proc(reqCh <-chan interface{}, rspCh chan<- interface{}) {
 					return
 				}
 				// pass session+req to handlefunc
-				ctx := context.WithValue(s.ctx, router.SessionKey(), req)
+				ctx := codec.ContextWithSession(s.ctx, session)
 				rsp, err := handle(ctx, req)
 				if err != nil {
 					session.SetErrorResponse(err)

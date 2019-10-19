@@ -1,6 +1,7 @@
 package codec
 
 import (
+	"context"
 	"sync"
 )
 
@@ -41,4 +42,23 @@ func GetSessionBuilder(name string) SessionBuilder {
 	lock.RLock()
 	defer lock.RUnlock()
 	return builders[name]
+}
+
+var sessionKey = "session"
+
+func SessionKey() string {
+	return sessionKey
+}
+
+func SessionFromContext(ctx context.Context) Session {
+	v := ctx.Value(sessionKey)
+	session ,ok := v.(Session)
+	if !ok {
+		return nil
+	}
+	return session
+}
+
+func ContextWithSession(ctx context.Context, session Session) context.Context {
+	return context.WithValue(ctx, sessionKey, session)
 }

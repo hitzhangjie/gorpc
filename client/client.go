@@ -12,7 +12,7 @@ type Client interface {
 	Invoke(ctx context.Context, req interface{}, rsp interface{}, opts ...Option) error
 }
 
-type ClientAdapter struct {
+type client struct {
 	Addr      string              // 必填项
 	Codec     codec.Codec         // 非必填，默认为whisper
 	Selector  selector.Selector   // 非必填，默认为consul
@@ -21,13 +21,13 @@ type ClientAdapter struct {
 	RpcType   RpcType             // 非必填，默认一发一收
 }
 
-func (c *ClientAdapter) Invoke(ctx context.Context, req interface{}, rsp interface{}, opts ...Option) error {
+func (c *client) Invoke(ctx context.Context, req interface{}, rsp interface{}, opts ...Option) error {
 	return nil
 }
 
-func NewClientAdapter(protoType ProtoType, addr, codecName string, rpcType RpcType, opts ...Option) (*ClientAdapter, error) {
+func NewClient(protoType ProtoType, addr, codecName string, rpcType RpcType, opts ...Option) (Client, error) {
 
-	c := &ClientAdapter{
+	c := &client{
 		Selector:  nil,
 		ProtoType: TCP,
 		Addr:      addr,

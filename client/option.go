@@ -1,6 +1,6 @@
 package client
 
-type Option func(adapter *ClientAdapter)
+type Option func(adapter *client)
 
 // ProtoType options
 type ProtoType int
@@ -11,15 +11,15 @@ const (
 	UNIX
 )
 
-func ProtoTypeUDP(c *ClientAdapter) {
+func ProtoTypeUDP(c *client) {
 	c.ProtoType = UDP
 }
 
-func ProtoTypeTCP(c *ClientAdapter) {
+func ProtoTypeTCP(c *client) {
 	c.ProtoType = TCP
 }
 
-func ProtoTypeUNIX(c *ClientAdapter) {
+func ProtoTypeUNIX(c *client) {
 	c.ProtoType = UNIX
 }
 
@@ -36,30 +36,30 @@ const (
 	SendStreamAndRecvStream        // 流式请求
 )
 
-func RpcTypeSendOnly(c *ClientAdapter) {
+func RpcTypeSendOnly(c *client) {
 	c.RpcType = SendOnly
 }
 
-func RpcTypeSendRecv(c *ClientAdapter) {
+func RpcTypeSendRecv(c *client) {
 	c.RpcType = SendRecv
 }
 
-func RpcTypeSendMultiplex(c *ClientAdapter) {
+func RpcTypeSendMultiplex(c *client) {
 	c.RpcType = SendRecvMultiplex
 }
 
-func RpcTypeSendStreamOnly(c *ClientAdapter) {
+func RpcTypeSendStreamOnly(c *client) {
 	c.RpcType = SendStreamOnly
 }
 
-func RpcTypeSendStreamAndRecv(c *ClientAdapter) {
+func RpcTypeSendStreamAndRecv(c *client) {
 	c.RpcType = SendStreamAndRecv
 }
 
-func RpcTypeSendAndRecvStream(c *ClientAdapter) {
+func RpcTypeSendAndRecvStream(c *client) {
 	c.RpcType = SendAndRecvStream
 }
 
-func RpcTypeSendStreamAndRecvStream(c *ClientAdapter) {
+func RpcTypeSendStreamAndRecvStream(c *client) {
 	c.RpcType = SendStreamAndRecvStream
 }

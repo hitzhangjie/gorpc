@@ -1,9 +1,21 @@
 package client
 
-type Option func(adapter *client)
+import (
+	"github.com/hitzhangjie/go-rpc/client/selector"
+	"github.com/hitzhangjie/go-rpc/codec"
+)
 
-// ProtoType options
-type ProtoType int
+type Option func(*client)
+
+// WithAddress specify the address that client requests
+func WithAddress(addr string) Option {
+	return func(c *client) {
+		c.Addr = addr
+	}
+}
+
+// TransportType options
+type TransportType int
 
 const (
 	UDP = iota
@@ -11,16 +23,11 @@ const (
 	UNIX
 )
 
-func ProtoTypeUDP(c *client) {
-	c.ProtoType = UDP
-}
-
-func ProtoTypeTCP(c *client) {
-	c.ProtoType = TCP
-}
-
-func ProtoTypeUNIX(c *client) {
-	c.ProtoType = UNIX
+// WithTransportType specify the transport type, support UDP, TCP, Unix
+func WithTransportType(typ TransportType) Option {
+	return func(c *client) {
+		c.TransType = typ
+	}
 }
 
 // RpcType options
@@ -36,30 +43,23 @@ const (
 	SendStreamAndRecvStream        // 流式请求
 )
 
-func RpcTypeSendOnly(c *client) {
-	c.RpcType = SendOnly
+// WithRpcType specify the rpc type, support SendOnly, SendRecv, SendRecvWithMultiplex, etc.
+func WithRpcType(typ RpcType) Option {
+	return func(c *client) {
+		c.RpcType = typ
+	}
 }
 
-func RpcTypeSendRecv(c *client) {
-	c.RpcType = SendRecv
+// WithSelector specify the selector
+func WithSelector(selector selector.Selector) Option {
+	return func(c *client) {
+		c.Selector = selector
+	}
 }
 
-func RpcTypeSendMultiplex(c *client) {
-	c.RpcType = SendRecvMultiplex
-}
-
-func RpcTypeSendStreamOnly(c *client) {
-	c.RpcType = SendStreamOnly
-}
-
-func RpcTypeSendStreamAndRecv(c *client) {
-	c.RpcType = SendStreamAndRecv
-}
-
-func RpcTypeSendAndRecvStream(c *client) {
-	c.RpcType = SendAndRecvStream
-}
-
-func RpcTypeSendStreamAndRecvStream(c *client) {
-	c.RpcType = SendStreamAndRecvStream
+// WithCodec specify the codec
+func WithCodec(name string) Option {
+	return func(c *client) {
+		c.Codec = codec.ClientCodec(name)
+	}
 }

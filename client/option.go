@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/hitzhangjie/go-rpc/client/selector"
+	"github.com/hitzhangjie/go-rpc/client/transport"
 	"github.com/hitzhangjie/go-rpc/codec"
 )
 
@@ -23,10 +24,38 @@ const (
 	UNIX
 )
 
+func (t TransportType) String() string {
+	switch t {
+	case UDP:
+		return "udp"
+	case TCP:
+		return "tcp"
+	case UNIX:
+		return "unix"
+	default:
+		return ""
+	}
+}
+
+func (t TransportType) Valid() bool {
+	if t == UDP || t == TCP || t == UNIX {
+		return true
+	}
+	return false
+}
+
 // WithTransportType specify the transport type, support UDP, TCP, Unix
 func WithTransportType(typ TransportType) Option {
 	return func(c *client) {
 		c.TransType = typ
+		switch typ {
+		case TCP:
+			c.Transport = &transport.TcpTransport{}
+		case UDP:
+			c.Transport = &transport.UdpTransport{}
+		case UNIX:
+			c.Transport = &transport.UnixTransport{}
+		}
 	}
 }
 

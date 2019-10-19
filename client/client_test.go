@@ -44,18 +44,24 @@ var seqno uint64
 func (c *XXXXClient) Hello(ctx context.Context, req, rsp interface{}) error {
 
 	rpcName := "Hello"
-	sb := codec.GetSessionBuilder(c.client.Codec.Name())
 
 	reqHead := &whisper.Request{
 		Seqno:   proto.Uint64(atomic.AddUint64(&seqno, 1)),
 		Rpcname: proto.String(rpcName),
 	}
+	rspHead := &whisper.Response{}
 
-	session, err := sb.Build(reqHead)
+	data, err := proto.Marshal(req.(proto.Message))
 	if err != nil {
 		return err
 	}
-	session.RPCName()
+
+	reqHead.Body = data
+
+	err := c.Invoke(ctx, reqHead, rspHead)
+	if err != nil {
+		return err
+	}
 
 
 	return nil

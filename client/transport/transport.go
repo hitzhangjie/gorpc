@@ -5,5 +5,6 @@ import (
 )
 
 type Transport interface {
-	Send(ctx context.Context, req interface{}) (rsp interface{}, err error)
+	// fixme add some ...options
+	Send(ctx context.Context, network, addr string, req []byte) (rsp []byte, err error)
 }

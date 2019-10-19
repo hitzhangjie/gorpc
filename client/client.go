@@ -6,11 +6,12 @@ import (
 	"github.com/hitzhangjie/go-rpc/client/transport"
 	"github.com/hitzhangjie/go-rpc/codec"
 	"github.com/hitzhangjie/go-rpc/codec/whisper"
+	"strings"
 )
 
 // Client client
 type Client interface {
-	Invoke(ctx context.Context, req interface{}, rsp interface{}, opts ...Option) error
+	Invoke(ctx context.Context, reqHead interface{}, rspHead interface{}, opts ...Option) error
 }
 
 func NewClient(name string, opts ...Option) Client {
@@ -19,9 +20,9 @@ func NewClient(name string, opts ...Option) Client {
 		//Name:      name,
 		Selector:  nil,
 		TransType: TCP,
-		//Addr:      addr,
+		//Transport: &transport.TcpTransport{},
+		//Address:      addr,
 		Codec:     codec.ClientCodec(whisper.Whisper),
-		Transport: &transport.TcpTransport{},
 		RpcType:   SendRecv,
 	}
 
@@ -41,12 +42,36 @@ type client struct {
 	RpcType   RpcType             // 非必填，默认一发一收
 }
 
-func (c *client) Invoke(ctx context.Context, req interface{}, rsp interface{}, opts ...Option) error {
+func (c *client) Invoke(ctx context.Context, reqHead interface{}, rspHead interface{}, opts ...Option) error {
 
-	session := codec.SessionFromContext(ctx)
+	data, err := c.Codec.Encode(reqHead)
+	if err != nil {
+		return err
+	}
 
-	//data, err := c.Codec.Encode(req)
+	var (
+		network string
+		address string
+	)
+
+	if c.Addr != "" && c.TransType.Valid() {
+		network = c.TransType.String()
+		address = strings.TrimPrefix(c.Addr, "ip://")
+	} else if c.Name != "" && c.Selector != nil {
+		node, err := c.Selector.Select(c.Name)
+		if err != nil {
+			return err
+		}
+		network = node.Network
+		address = node.Address
+	}
+
+	rsp, err := c.Transport.Send(ctx, network, address, data)
+	if err != nil {
+		return err
+	}
+
+	c.Codec.Decode(rsp)
 
 	return nil
 }
-

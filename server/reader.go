@@ -50,6 +50,7 @@ func (r *TcpMessageReader) Read(ep *TcpEndPoint) error {
 		}
 
 		// fixme conn read deadline
+		ep.Conn.SetReadDeadline(time.Now().Add(time.Second*30))
 		if readsz, err = ep.Conn.Read(ep.buf[buflen:]); err != nil {
 			// fixme check tcpconn idle & release
 			if e, ok := err.(net.Error); ok && e.Temporary() {
@@ -113,6 +114,7 @@ func (r *UdpMessageReader) Read(ep *UdpEndPoint) error {
 		}
 
 		// fixme conn read deadline
+		ep.Conn.SetReadDeadline(time.Now().Add(time.Second*30))
 		if readsz, err = ep.Conn.Read(ep.buf); err != nil {
 			// fixme check Udpconn idle & release
 			if e, ok := err.(net.Error); ok && e.Temporary() {

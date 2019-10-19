@@ -103,7 +103,7 @@ func (s *TcpServer) serve(l net.Listener) error {
 				time.Sleep(time.Millisecond * 10)
 				continue
 			}
-			return nil
+			return err
 		}
 
 		ep := TcpEndPoint{

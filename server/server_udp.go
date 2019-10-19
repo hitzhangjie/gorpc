@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"github.com/hitzhangjie/go-rpc/codec"
 	"github.com/hitzhangjie/go-rpc/router"
 	"net"
@@ -71,13 +70,21 @@ func (s *UdpServer) Start() error {
 		break
 	}
 
-	wg := sync.WaitGroup{}
-	wg.Add(2)
-	go s.read(udpconn)
-	go s.write(udpconn)
-	wg.Wait()
+	ep := UdpEndPoint{
+		udpconn,
+		make(chan interface{}, 1024),
+		make(chan interface{}, 1024),
+		s.reader,
+		nil,
+		nil,
+	}
+	ep.ctx, ep.cancel = context.WithCancel(s.ctx)
 
-	return errServerCtxDone
+	go s.proc(ep.reqCh, ep.rspCh)
+	go ep.Read()
+	go ep.Write()
+
+	return nil
 }
 
 func (s *UdpServer) Stop() {
@@ -92,82 +99,48 @@ func (s *UdpServer) Register(svr *Server) {
 	svr.mods = append(svr.mods, s)
 }
 
-func (s *UdpServer) read(conn net.Conn) {
-	defer func() {
-		conn.Close()
-	}()
-
-	for {
-		// check whether server closed
-		select {
-		case <-s.ctx.Done():
-			return
-		default:
-		}
-		// fixme set read deadline
-		// read message
-		req, err := s.reader.Read(conn)
-		if err != nil {
-			// fixme handle error
-			fmt.Println("read error:", err)
-			continue
-		}
-
-		// fixme build session
-		builder := codec.GetSessionBuilder(s.reader.Codec.Name())
-		session, err := builder.Build(req)
-		if err != nil {
-			return
-		}
-
-		// fixme using workerpool instead of goroutine
-		r := s.opts.router
-		go func() {
-			// find route
-			handle, err := r.Route(session.RPC())
-			if err != nil {
-				session.SetErrorResponse(err)
-				return
-			}
-			// pass session+req to handlefunc
-			ctx := context.WithValue(s.ctx, router.SessionKey(), session)
-			rsp, err := handle(ctx, session)
-			if err != nil {
-				session.SetErrorResponse(err)
-			} else {
-				session.SetResponse(rsp)
-			}
-			// ready to response
-			s.rspChan <- session
-		}()
-	}
-}
-
-func (s *UdpServer) write(conn net.Conn) {
-	defer func() {
-		conn.Close()
-	}()
-	for {
-		// check whether server closed
-		select {
-		case <-s.ctx.Done():
-			return
-		default:
-		}
-		// write response
-		select {
-		case session := <-s.rspChan:
-			rsp := session.Response()
-			data, err := s.codec.Encode(rsp)
-			if err != nil {
-				// fixme handle error
-			}
-			// fixme set write deadline
-			conn.Write(data)
-		}
-	}
-}
-
 func (s *UdpServer) Closed() <-chan struct{} {
 	return s.closed
+}
+
+// fixme this method `proc` appears in TcpServer, too. That's unnessary, refactor this
+func (s *UdpServer) proc(reqCh <-chan interface{}, rspCh chan<- interface{}) {
+
+	builder := codec.GetSessionBuilder(s.reader.Codec.Name())
+
+	for {
+		select {
+		case <-s.ctx.Done():
+			s.cancel()
+			return
+		case req := <-reqCh:
+			// build session
+			session, err := builder.Build(req)
+			if err != nil {
+				// fixme error logging & metrics
+				continue
+			}
+			// fixme using workerpool instead of goroutine
+			r := s.opts.router
+
+			go func() {
+				// find route
+				handle, err := r.Route(session.RPC())
+				if err != nil {
+					session.SetErrorResponse(err)
+					return
+				}
+				// pass session+req to handlefunc
+				ctx := context.WithValue(s.ctx, router.SessionKey(), req)
+				rsp, err := handle(ctx, req)
+				if err != nil {
+					session.SetErrorResponse(err)
+				} else {
+					session.SetResponse(rsp)
+				}
+				// ready to response
+				rspCh <- session
+			}()
+		}
+	}
 }

@@ -9,8 +9,8 @@ import (
 	"time"
 )
 
-// UdpServer
-type UdpServer struct {
+// TcpServer
+type TcpServer struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
@@ -18,10 +18,13 @@ type UdpServer struct {
 	addr string
 
 	codec  codec.Codec
-	reader *MessageReader
+	reader *TcpMessageReader
 
+	//reqChan chan interface{}
 	//reqChan chan codec.Session
-	rspChan chan codec.Session
+	//rspChan chan codec.Session
+
+	wg sync.WaitGroup
 
 	once   sync.Once
 	closed chan struct{}
@@ -29,13 +32,22 @@ type UdpServer struct {
 	opts *Options
 }
 
-func NewUdpServer(net, addr string, codecName string, opts ...Option) (ServerModule, error) {
+const (
+	tcpServerRspChanMaxLength = 1024
+)
+
+func NewTcpServer(net, addr string, codecName string, opts ...Option) (ServerModule, error) {
+	ctx, cancel := context.WithCancel(context.TODO())
 	c := codec.ServerCodec(codecName)
-	s := &UdpServer{
+
+	s := &TcpServer{
+		ctx:    ctx,
+		cancel: cancel,
 		net:    net,
 		addr:   addr,
 		codec:  c,
-		reader: NewMessageReader(c),
+		reader: NewTcpMessageReader(c),
+		//rspChan: make(chan codec.Session, tcpServerRspChanMaxLength),
 		once:   sync.Once{},
 		closed: make(chan struct{}, 1),
 		opts:   &Options{},
@@ -46,65 +58,73 @@ func NewUdpServer(net, addr string, codecName string, opts ...Option) (ServerMod
 	return s, nil
 }
 
-func (s *UdpServer) Start() error {
+func (s *TcpServer) Start() error {
 
-	var (
-		udpconn *net.UDPConn
-		err     error
-	)
-
-	addr, err := net.ResolveUDPAddr(s.net, s.addr)
+	l, err := net.Listen(s.net, s.addr)
 	if err != nil {
 		return err
 	}
-
-	for {
-		udpconn, err = net.ListenUDP(s.net, addr)
-		if err != nil {
-			if e, ok := err.(net.Error); ok && e.Temporary() {
-				time.Sleep(time.Millisecond * 10)
-				continue
-			}
-			return err
-		}
-		break
-	}
-
-	ep := UdpEndPoint{
-		udpconn,
-		make(chan interface{}, 1024),
-		make(chan interface{}, 1024),
-		s.reader,
-		nil,
-		nil,
-	}
-	ep.ctx, ep.cancel = context.WithCancel(s.ctx)
-
-	go s.proc(ep.reqCh, ep.rspCh)
-	go ep.Read()
-	go ep.Write()
-
-	return nil
+	return s.serve(l)
 }
 
-func (s *UdpServer) Stop() {
+func (s *TcpServer) Stop() {
+
+	s.cancel()
+
 	s.once.Do(func() {
 		close(s.closed)
 	})
 }
 
-func (s *UdpServer) Register(svr *Server) {
+func (s *TcpServer) Register(svr *Server) {
 	s.ctx, s.cancel = context.WithCancel(svr.ctx)
 	s.opts.router = svr.router
 	svr.mods = append(svr.mods, s)
 }
 
-func (s *UdpServer) Closed() <-chan struct{} {
-	return s.closed
+func (s *TcpServer) serve(l net.Listener) error {
+
+	defer func() {
+		s.cancel()
+		l.Close()
+	}()
+
+	for {
+		// check whether server closed
+		select {
+		case <-s.ctx.Done():
+			return errServerCtxDone
+		default:
+		}
+		// accept tcpconn
+		conn, err := l.Accept()
+		if err != nil {
+			if e, ok := err.(net.Error); ok && e.Temporary() {
+				time.Sleep(time.Millisecond * 10)
+				continue
+			}
+			return nil
+		}
+
+		ep := TcpEndPoint{
+			conn,
+			make(chan interface{}, 1024),
+			make(chan interface{}, 1024),
+			s.reader,
+			nil,
+			nil,
+			mempool.Get().([]byte),
+		}
+		ep.ctx, ep.cancel = context.WithCancel(s.ctx)
+
+		go s.proc(ep.reqCh, ep.rspCh)
+
+		go ep.Read()
+		go ep.Write()
+	}
 }
 
-// fixme this method `proc` appears in TcpServer, too. That's unnessary, refactor this
-func (s *UdpServer) proc(reqCh <-chan interface{}, rspCh chan<- interface{}) {
+func (s *TcpServer) proc(reqCh <-chan interface{}, rspCh chan<- interface{}) {
 
 	builder := codec.GetSessionBuilder(s.reader.Codec.Name())
 
@@ -143,4 +163,8 @@ func (s *UdpServer) proc(reqCh <-chan interface{}, rspCh chan<- interface{}) {
 			}()
 		}
 	}
+}
+
+func (s *TcpServer) Closed() <-chan struct{} {
+	return s.closed
 }

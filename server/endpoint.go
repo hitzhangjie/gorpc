@@ -8,14 +8,23 @@ import (
 	"time"
 )
 
+// EndPoint
+type EndPoint interface {
+	Read()
+	Write()
+}
+
+// TcpEndPoint tcp endpoint
 type TcpEndPoint struct {
 	net.Conn
 	reqCh chan interface{}
 	rspCh chan interface{}
 
-	reader *MessageReader
+	reader *TcpMessageReader
 	ctx    context.Context
 	cancel context.CancelFunc
+
+	buf []byte
 }
 
 func (ep *TcpEndPoint) Read() {
@@ -26,7 +35,7 @@ func (ep *TcpEndPoint) Read() {
 	}()
 
 	// keep reading message until we encounter some non-temporary errors
-	err := ep.reader.Read(ep.ctx, ep.Conn, ep.reqCh)
+	err := ep.reader.Read(ep)
 	if err != nil {
 		// fixme handle error
 		fmt.Println("read error:", err)
@@ -70,14 +79,17 @@ func (ep *TcpEndPoint) Write() {
 	}
 }
 
+// UdpEndPoint udp endpoint
 type UdpEndPoint struct {
 	net.Conn
 	reqCh chan interface{}
 	rspCh chan interface{}
 
-	reader *MessageReader
+	reader *UdpMessageReader
 	ctx    context.Context
 	cancel context.CancelFunc
+
+	buf []byte
 }
 
 func (ep *UdpEndPoint) Read() {
@@ -86,7 +98,7 @@ func (ep *UdpEndPoint) Read() {
 	}()
 
 	// keep reading message, until when we encounter any non-temporary errors
-	err := ep.reader.Read(ep.ctx, ep.Conn, ep.reqCh)
+	err := ep.reader.Read(ep)
 	if err != nil {
 		// fixme handle error
 		fmt.Println("read error:", err)

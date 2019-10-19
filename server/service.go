@@ -3,8 +3,8 @@ package server
 // Service represents a service running somewhere, maybe deployed in multi-hosts or in Cloud.
 //
 // Service vs Server, these terms, as I see, they're two different views of running service.
-// - Server, it's a running process or instance.
-// - Service, it's deployed in public environment and provides service via `naming mechanism`.
+// - Server, it'svr a running process or instance.
+// - Service, it'svr deployed in public environment and provides service via `naming mechanism`.
 //
 // In go-rpc, you can start a `Server` via a `server.NewTcpServer()` or `server.NewUdpServer()`,
 // If you want to register this service to remote naming service, you can use:

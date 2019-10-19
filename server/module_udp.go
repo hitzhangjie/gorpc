@@ -125,7 +125,7 @@ func (s *UdpServer) proc(reqCh <-chan interface{}, rspCh chan<- interface{}) {
 
 			go func() {
 				// find route
-				handle, err := r.Route(session.RPC())
+				handle, err := r.Route(session.RPCName())
 				if err != nil {
 					session.SetErrorResponse(err)
 					return

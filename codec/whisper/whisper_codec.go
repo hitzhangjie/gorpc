@@ -22,7 +22,7 @@ func (s *ServerCodec) Encode(pkg interface{}) ([]byte, error) {
 
 	pb, ok := pkg.(*Response)
 	if !ok {
-		return nil, errors.New("pkg not valid *whisper.Response")
+		return nil, errors.New("pkg not valid *whisper.RspHead")
 	}
 
 	data, err := proto.Marshal(pb)
@@ -112,7 +112,7 @@ func (c *ClientCodec) Encode(pkg interface{}) ([]byte, error) {
 
 	pb, ok := pkg.(*Request)
 	if !ok {
-		return nil, errors.New("pkg not valid *whisper.Response")
+		return nil, errors.New("pkg not valid *whisper.RspHead")
 	}
 
 	data, err := proto.Marshal(pb)

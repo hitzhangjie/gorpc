@@ -20,9 +20,9 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-// Request definition
+// ReqHead definition
 //
-// In Request, tracing `traceContext` is stored in map `meta`.
+// In ReqHead, tracing `traceContext` is stored in map `meta`.
 type Request struct {
 	Seqno                *uint64           `protobuf:"varint,1,opt,name=seqno" json:"seqno,omitempty"`
 	Appid                *string           `protobuf:"bytes,2,opt,name=appid" json:"appid,omitempty"`
@@ -118,7 +118,7 @@ func (m *Request) GetMeta() map[string]string {
 	return nil
 }
 
-// Response definition
+// RspHead definition
 //
 // `err_code` and `err_msg` should indicate errors in framework,
 // rather than business logic error or error description.
@@ -186,9 +186,9 @@ func (m *Response) GetBody() []byte {
 }
 
 func init() {
-	proto.RegisterType((*Request)(nil), "whisper.Request")
-	proto.RegisterMapType((map[string]string)(nil), "whisper.Request.MetaEntry")
-	proto.RegisterType((*Response)(nil), "whisper.Response")
+	proto.RegisterType((*Request)(nil), "whisper.ReqHead")
+	proto.RegisterMapType((map[string]string)(nil), "whisper.ReqHead.MetaEntry")
+	proto.RegisterType((*Response)(nil), "whisper.RspHead")
 }
 
 func init() { proto.RegisterFile("whisper.proto", fileDescriptor_e2186b3ddb7c8c37) }

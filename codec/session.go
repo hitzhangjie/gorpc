@@ -10,16 +10,15 @@ import (
 // Usually, session can be stored in client or server side, we adopt the term `session`
 // instead of `RpcContext` for simplicity.
 type Session interface {
+	// RPCName return rpc name, i.e., the method name defined in pb service.rpc.name
+	RPCName() string
 
-	// RPC return rpc name, i.e., the method name defined in pb service.rpc.name
-	RPC() string
-
-	// Request return the request header
+	// ReqHead return the request header
 	Request() interface{}
 	// SetRequest set the request header
 	SetRequest(req interface{})
 
-	// Response return the response header
+	// RspHead return the response header
 	Response() interface{}
 	// SetResponse set the response header
 	SetResponse(rsp interface{})
@@ -32,8 +31,34 @@ type Session interface {
 
 // BaseSession implements some basic methods defined in `Session`
 type BaseSession struct {
-	Request  interface{}
-	Response interface{}
+	ReqHead interface{}
+	RspHead interface{}
+}
+
+func (s *BaseSession) Request() interface{} {
+	if s != nil {
+		return s.ReqHead
+	}
+	return nil
+}
+
+func (s *BaseSession) SetRequest(req interface{}) {
+	if s != nil {
+		s.ReqHead = req
+	}
+}
+
+func (s *BaseSession) Response() interface{} {
+	if s != nil {
+		return s.RspHead
+	}
+	return nil
+}
+
+func (s *BaseSession) SetResponse(rsp interface{}) {
+	if s != nil {
+		s.RspHead = rsp
+	}
 }
 
 var (
@@ -66,7 +91,7 @@ var sessionKey = "session"
 // SessionFromContext return Session carried by `ctx`
 func SessionFromContext(ctx context.Context) Session {
 	v := ctx.Value(sessionKey)
-	session ,ok := v.(Session)
+	session, ok := v.(Session)
 	if !ok {
 		return nil
 	}

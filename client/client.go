@@ -8,29 +8,18 @@ import (
 	"github.com/hitzhangjie/go-rpc/codec/whisper"
 )
 
+// Client client
 type Client interface {
 	Invoke(ctx context.Context, req interface{}, rsp interface{}, opts ...Option) error
 }
 
-type client struct {
-	Addr      string              // 必填项
-	Codec     codec.Codec         // 非必填，默认为whisper
-	Selector  selector.Selector   // 非必填，默认为consul
-	Transport transport.Transport //
-	ProtoType ProtoType           // 非必填，默认为tcp
-	RpcType   RpcType             // 非必填，默认一发一收
-}
-
-func (c *client) Invoke(ctx context.Context, req interface{}, rsp interface{}, opts ...Option) error {
-	return nil
-}
-
-func NewClient(protoType ProtoType, addr, codecName string, rpcType RpcType, opts ...Option) (Client, error) {
+func NewClient(name string, opts ...Option) Client {
 
 	c := &client{
+		//Name:      name,
 		Selector:  nil,
-		ProtoType: TCP,
-		Addr:      addr,
+		TransType: TCP,
+		//Addr:      addr,
 		Codec:     codec.ClientCodec(whisper.Whisper),
 		Transport: &transport.TcpTransport{},
 		RpcType:   SendRecv,
@@ -39,5 +28,25 @@ func NewClient(protoType ProtoType, addr, codecName string, rpcType RpcType, opt
 	for _, o := range opts {
 		o(c)
 	}
-	return c, nil
+	return c
 }
+
+type client struct {
+	Name      string              // 请求服务名
+	Addr      string              // 必填项
+	Codec     codec.Codec         // 非必填，默认为whisper
+	Selector  selector.Selector   // 非必填，默认为consul
+	Transport transport.Transport //
+	TransType TransportType       // 非必填，默认为tcp
+	RpcType   RpcType             // 非必填，默认一发一收
+}
+
+func (c *client) Invoke(ctx context.Context, req interface{}, rsp interface{}, opts ...Option) error {
+
+	session := codec.SessionFromContext(ctx)
+
+	//data, err := c.Codec.Encode(req)
+
+	return nil
+}
+

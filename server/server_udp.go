@@ -51,7 +51,7 @@ func (s *UdpServer) Start() error {
 
 	var (
 		udpconn *net.UDPConn
-		err error
+		err     error
 	)
 
 	addr, err := net.ResolveUDPAddr(s.net, s.addr)
@@ -71,10 +71,13 @@ func (s *UdpServer) Start() error {
 		break
 	}
 
+	wg := sync.WaitGroup{}
+	wg.Add(2)
 	go s.read(udpconn)
 	go s.write(udpconn)
+	wg.Wait()
 
-	return nil
+	return errServerCtxDone
 }
 
 func (s *UdpServer) Stop() {

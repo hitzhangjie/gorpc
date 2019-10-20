@@ -8,5 +8,4 @@ type Selector interface {
 type Node struct {
 	Network string // tcp, tcp4, tcp6 or udp, udp4, udp6
 	Address string // ip:port
-	RPCName string // /$pkgname.$service/$method
 }

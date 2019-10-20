@@ -26,15 +26,15 @@ func NewConnectionPool(opt ...Option) Pool {
 	}
 
 	return &pool{
-		opts:            opts,
-		connectionPools: new(sync.Map),
+		opts:      opts,
+		connPools: new(sync.Map),
 	}
 }
 
 // pool 连接池厂，维护所有address对应的连接池，及连接池选项信息
 type pool struct {
-	opts            *Options
-	connectionPools *sync.Map
+	opts      *Options
+	connPools *sync.Map
 }
 
 // Get 连接池中获取连接
@@ -48,7 +48,9 @@ func (p *pool) Get(ctx context.Context, network string, address string) (net.Con
 		defer cancel()
 	}
 
-	if v, ok := p.connectionPools.Load(address); ok {
+	key := address + "/" + network
+
+	if v, ok := p.connPools.Load(key); ok {
 		return v.(*ConnPool).Get(ctx)
 	}
 
@@ -77,7 +79,7 @@ func (p *pool) Get(ctx context.Context, network string, address string) (net.Con
 	}
 
 	// 规避初始化连接池map并发写的问题
-	v, ok := p.connectionPools.LoadOrStore(address, newPool)
+	v, ok := p.connPools.LoadOrStore(key, newPool)
 	if !ok {
 		go newPool.Prepare(ctx)
 		newPool.RegisterCheckFunc(time.Second*3, newPool.CheckAlive)

@@ -3,14 +3,14 @@ package transport
 import (
 	"context"
 	"fmt"
-	"github.com/hitzhangjie/go-rpc/client/transport/connpool"
+	"github.com/hitzhangjie/go-rpc/client/pool"
 	"github.com/hitzhangjie/go-rpc/codec"
 	"net"
 	"time"
 )
 
 type TcpTransport struct {
-	ConnPool pool.ConnectionPool
+	ConnPool pool.ConnPool
 	Codec    codec.Codec
 }
 

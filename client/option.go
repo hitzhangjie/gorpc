@@ -20,7 +20,11 @@ type TransportType int
 
 const (
 	UDP = iota
+	UDP4
+	UDP6
 	TCP
+	TCP4
+	TCP6
 	UNIX
 )
 
@@ -28,8 +32,16 @@ func (t TransportType) String() string {
 	switch t {
 	case UDP:
 		return "udp"
+	case UDP4:
+		return "udp4"
+	case UDP6:
+		return "udp6"
 	case TCP:
 		return "tcp"
+	case TCP4:
+		return "tcp4"
+	case TCP6:
+		return "tcp6"
 	case UNIX:
 		return "unix"
 	default:
@@ -38,7 +50,9 @@ func (t TransportType) String() string {
 }
 
 func (t TransportType) Valid() bool {
-	if t == UDP || t == TCP || t == UNIX {
+	if t == UDP || t == UDP4 || t == UDP6 ||
+		t == TCP || t == TCP4 || t == TCP6 ||
+		t == UNIX {
 		return true
 	}
 	return false
@@ -49,12 +63,12 @@ func WithTransportType(typ TransportType) Option {
 	return func(c *client) {
 		c.TransType = typ
 		switch typ {
-		case TCP:
+		case TCP, TCP4, TCP6:
 			c.Transport = &transport.TcpTransport{
 				Pool:  defaultPoolFactory,
-				Codec: nil,
+				Codec: codec.ClientCodec("whisper"),
 			}
-		case UDP:
+		case UDP, UDP4, UDP6:
 			c.Transport = &transport.UdpTransport{} //fixme
 		case UNIX:
 			c.Transport = &transport.UnixTransport{} //fixme

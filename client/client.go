@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 	"github.com/hitzhangjie/go-rpc/client/pool"
 	"github.com/hitzhangjie/go-rpc/client/selector"
 	"github.com/hitzhangjie/go-rpc/client/transport"
@@ -63,6 +64,7 @@ func (c *client) Invoke(ctx context.Context, reqHead interface{}, opts ...Option
 
 	if c.Addr != "" && c.TransType.Valid() {
 		network = c.TransType.String()
+		fmt.Println(network)
 		address = strings.TrimPrefix(c.Addr, "ip://")
 	} else if c.Name != "" && c.Selector != nil {
 		node, err := c.Selector.Select(c.Name)

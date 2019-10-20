@@ -49,7 +49,9 @@ func NewTcpServer(net, addr string, codecName string, opts ...Option) (ServerMod
 		//rspChan: make(chan codec.Session, tcpServerRspChanMaxLength),
 		once:   sync.Once{},
 		closed: make(chan struct{}, 1),
-		opts:   &Options{},
+		opts: &Options{
+			router: nil,
+		},
 	}
 	for _, o := range opts {
 		o(s.opts)

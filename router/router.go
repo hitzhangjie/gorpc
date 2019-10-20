@@ -47,6 +47,10 @@ func (r *Router) RegisterService(serviceDesc *ServiceDesc, serviceImpl interface
 	return nil
 }
 
+func (r *Router) Forward(rpcName string, handlefunc HandleWrapper) {
+	r.mapping[rpcName] = handlefunc
+}
+
 func (r *Router) Route(rpc string) (HandleWrapper, error) {
 
 	h, ok := r.mapping[rpc]

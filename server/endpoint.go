@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/hitzhangjie/go-rpc/codec"
+	"io"
+	"log"
 	"net"
 	"time"
 )
@@ -38,7 +40,11 @@ func (ep *TcpEndPoint) Read() {
 	err := ep.reader.Read(ep)
 	if err != nil {
 		// fixme handle error
-		fmt.Println("read error:", err)
+		if err == io.EOF {
+			log.Printf("peer connection closed now, local:%s->remote:%s", ep.Conn.LocalAddr().String(), ep.Conn.RemoteAddr().String())
+			return
+		}
+		log.Fatalf("tcp read request error:%v", err)
 	}
 }
 
@@ -49,21 +55,19 @@ func (ep *TcpEndPoint) Write() {
 	}()
 
 	for {
-		// check whether server closed
+
 		select {
+		// check whether server closed
 		case <-ep.ctx.Done():
 			return
-		default:
-		}
-
 		// write response
-		select {
 		case v := <-ep.rspCh:
+			fmt.Println("handle response")
 			session := v.(codec.Session)
 			rsp := session.Response()
 			data, err := ep.reader.Codec.Encode(rsp)
 			if err != nil {
-				// fixme handle error
+				log.Fatalf("tcp encode respone error:%v", err)
 				continue
 			}
 
@@ -73,6 +77,7 @@ func (ep *TcpEndPoint) Write() {
 			n, err := ep.Conn.Write(data)
 			if err != nil || len(data) != n {
 				// fixme handle error
+				log.Fatalf("tcp send response error:%v, bytes written got:%d, want:%d", err, n, len(data))
 				continue
 			}
 		}

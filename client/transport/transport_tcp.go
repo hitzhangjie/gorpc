@@ -28,6 +28,8 @@ func (t *TcpTransport) Send(ctx context.Context, network, address string, reqHea
 	if err != nil {
 		return nil, err
 	}
+	defer conn.Close()
+
 	conn.SetDeadline(time.Now().Add(time.Millisecond * 200))
 
 	// conn write

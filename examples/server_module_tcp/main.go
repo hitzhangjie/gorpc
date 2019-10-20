@@ -65,7 +65,7 @@ func main() {
 		}
 
 		rspHead := v.(*whisper.Response)
-		fmt.Println(rspHead)
+		fmt.Println("client recv response:", rspHead)
 	}()
 
 	select {}

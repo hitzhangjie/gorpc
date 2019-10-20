@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"github.com/hitzhangjie/go-rpc/codec"
+	"log"
 	"net"
 	"sync"
 	"time"
@@ -134,21 +135,29 @@ func (s *TcpServer) proc(reqCh <-chan interface{}, rspCh chan<- interface{}) {
 		case <-s.ctx.Done():
 			s.cancel()
 			return
-		case req := <-reqCh:
+		case req, ok := <-reqCh:
+			if !ok {
+				log.Printf("one endpoint.reqCh is closed")
+				return
+			}
 			// build session
 			session, err := builder.Build(req)
 			if err != nil {
-				// fixme error logging & metrics
+				log.Fatalf("tcp build session error:%v", err)
 				continue
 			}
 			// fixme using workerpool instead of goroutine
 			r := s.opts.router
+			if r == nil {
+				log.Fatalf("tcp router not initialized")
+			}
 
 			go func() {
 				// find route
 				handle, err := r.Route(session.RPCName())
 				if err != nil {
 					session.SetErrorResponse(err)
+					log.Fatalf("tcp router route error:%v", err)
 					return
 				}
 				// pass session+req to handlefunc
@@ -156,6 +165,7 @@ func (s *TcpServer) proc(reqCh <-chan interface{}, rspCh chan<- interface{}) {
 				rsp, err := handle(ctx, req)
 				if err != nil {
 					session.SetErrorResponse(err)
+					log.Fatalf("tcp handle func error:%v, rsp:%v", err, rsp)
 				} else {
 					session.SetResponse(rsp)
 				}

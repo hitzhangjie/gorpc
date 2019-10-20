@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"github.com/hitzhangjie/go-rpc/client/transport/connpool"
+	"github.com/hitzhangjie/go-rpc/codec"
 	"net"
 	"time"
 )
 
 type TcpTransport struct {
-	ConnPool connpool.ConnectionPool
+	ConnPool pool.ConnectionPool
+	Codec    codec.Codec
 }
 
 func (t *TcpTransport) Send(ctx context.Context, network, address string, req []byte) (rsp []byte, err error) {

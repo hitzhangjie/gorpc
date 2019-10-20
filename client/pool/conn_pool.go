@@ -10,9 +10,7 @@ import (
 	"time"
 )
 
-var DefaultConnectionPool = NewConnectionPool()
-
-// ConnPool connection pool
+// Pool connection poolFactory
 type ConnPool struct {
 	dialFunc        func(context.Context) (net.Conn, error) // 初始化连接函数
 	MinIdle         int                                     // 最小空闲连接数，也即初始连接数
@@ -29,7 +27,7 @@ type ConnPool struct {
 	idle            deque.Deque                             // 空闲连接链表(双端队列模拟栈操作)，栈相比于队列的好处是，在请求量比较小但是请求分布仍比较均匀的情况下，队列方式会导致占用的连接迟迟得不到释放
 }
 
-// Get get a connection from ConnPool
+// Get get a connection from Pool
 func (p *ConnPool) Get(ctx context.Context) (it *ConnItem, err error) {
 	for {
 		if it, err = p.get(ctx); err != nil {
@@ -44,7 +42,7 @@ func (p *ConnPool) Get(ctx context.Context) (it *ConnItem, err error) {
 	}
 }
 
-// Close close the ConnPool
+// Close close the Pool
 func (p *ConnPool) Close() error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -102,7 +100,7 @@ func (p *ConnPool) Prepare(ctx context.Context) {
 		}
 	}
 
-	// put the created connections into pool
+	// put the created connections into poolFactory
 	for _, poolConn := range conns {
 		p.put(poolConn, poolConn.readClosed())
 	}
@@ -130,7 +128,7 @@ func (p *ConnPool) initializeCh() {
 	p.mu.Unlock()
 }
 
-// get return a connection from the ones cached in pool or a new one by dialFunc
+// get return a connection from the ones cached in poolFactory or a new one by dialFunc
 func (p *ConnPool) get(ctx context.Context) (*ConnItem, error) {
 
 	// if `wait`, here should initialize a `chan` to sync
@@ -252,10 +250,10 @@ func (p *ConnPool) dial(ctx context.Context) (net.Conn, error) {
 	if p.dialFunc != nil {
 		return p.dialFunc(ctx)
 	}
-	return nil, errors.New("must pass dialFunc to pool")
+	return nil, errors.New("must pass dialFunc to poolFactory")
 }
 
-// put try put the connection back into pool
+// put try put the connection back into poolFactory
 func (p *ConnPool) put(it *ConnItem, forceClose bool) error {
 
 	p.mu.Lock()
@@ -278,7 +276,7 @@ func (p *ConnPool) put(it *ConnItem, forceClose bool) error {
 	return nil
 }
 
-// ConnItem connection in ConnPool
+// ConnItem connection in Pool
 type ConnItem struct {
 	net.Conn
 	recycled time.Time
@@ -320,7 +318,7 @@ func (it *ConnItem) Read(b []byte) (int, error) {
 	return n, err
 }
 
-// Close close ConnItem, here ConnItem.Close() will put ConnItem back into ConnPool,
+// Close close ConnItem, here ConnItem.Close() will put ConnItem back into Pool,
 // rather than close it, because ConnItem.Close() will hide ConnItem.Conn.Close().
 func (it *ConnItem) Close() error {
 	if it.closed {

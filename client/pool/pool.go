@@ -8,13 +8,14 @@ import (
 	"time"
 )
 
-type Pool interface {
+type PoolFactory interface {
 	Get(ctx context.Context, network string, address string) (net.Conn, error)
 }
 
-// NewConnectionPool 创建一个连接池
-func NewConnectionPool(opt ...Option) Pool {
-	// 默认值, 暂定，需要调试确定具体数值
+
+// NewConnPoolFactory create a connection poolFactory manager
+func NewConnPoolFactory(opt ...Option) PoolFactory {
+
 	opts := &Options{
 		MaxIdle:     5,
 		IdleTimeout: 60 * time.Second,
@@ -25,20 +26,20 @@ func NewConnectionPool(opt ...Option) Pool {
 		o(opts)
 	}
 
-	return &pool{
+	return &poolFactory{
 		opts:      opts,
 		connPools: new(sync.Map),
 	}
 }
 
-// pool 连接池厂，维护所有address对应的连接池，及连接池选项信息
-type pool struct {
+// poolFactory poolFactory manager, it maintains many <address,Pool> pairs
+type poolFactory struct {
 	opts      *Options
 	connPools *sync.Map
 }
 
-// Get 连接池中获取连接
-func (p *pool) Get(ctx context.Context, network string, address string) (net.Conn, error) {
+// Get return a connection from poolFactory manager
+func (p *poolFactory) Get(ctx context.Context, network string, address string) (net.Conn, error) {
 
 	var cancel context.CancelFunc
 

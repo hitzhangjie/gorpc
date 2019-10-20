@@ -2,16 +2,28 @@ package client
 
 import (
 	"context"
+	"github.com/hitzhangjie/go-rpc/client/pool"
 	"github.com/hitzhangjie/go-rpc/client/selector"
 	"github.com/hitzhangjie/go-rpc/client/transport"
 	"github.com/hitzhangjie/go-rpc/codec"
 	"github.com/hitzhangjie/go-rpc/codec/whisper"
 	"strings"
+	"time"
+)
+
+var defaultPoolFactory = pool.NewConnPoolFactory(
+	pool.WithMinIdle(2),
+	pool.WithMaxIdle(4),
+	pool.WithMaxActive(8),
+	pool.WithDialTimeout(time.Second*2),
+	pool.WithIdleTimeout(time.Minute*5),
+	pool.WithMaxConnLifetime(time.Minute*30),
+	pool.WithWait(true),
 )
 
 // Client client
 type Client interface {
-	Invoke(ctx context.Context, reqHead interface{}, rspHead interface{}, opts ...Option) error
+	Invoke(ctx context.Context, reqHead interface{}, opts ...Option) (rspHead interface{}, err error)
 }
 
 func NewClient(name string, opts ...Option) Client {
@@ -42,7 +54,7 @@ type client struct {
 	RpcType   RpcType             // 非必填，默认一发一收
 }
 
-func (c *client) Invoke(ctx context.Context, reqHead interface{}, rspHead interface{}, opts ...Option) error {
+func (c *client) Invoke(ctx context.Context, reqHead interface{}, opts ...Option) (rspHead interface{}, err error) {
 
 	var (
 		network string
@@ -55,7 +67,7 @@ func (c *client) Invoke(ctx context.Context, reqHead interface{}, rspHead interf
 	} else if c.Name != "" && c.Selector != nil {
 		node, err := c.Selector.Select(c.Name)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		network = node.Network
 		address = node.Address
@@ -63,10 +75,8 @@ func (c *client) Invoke(ctx context.Context, reqHead interface{}, rspHead interf
 
 	rsp, err := c.Transport.Send(ctx, network, address, reqHead)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	c.Codec.Decode(rsp)
-
-	return nil
+	return rsp, nil
 }

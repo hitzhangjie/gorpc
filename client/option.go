@@ -1,11 +1,9 @@
 package client
 
 import (
-	"github.com/hitzhangjie/go-rpc/client/pool"
 	"github.com/hitzhangjie/go-rpc/client/selector"
 	"github.com/hitzhangjie/go-rpc/client/transport"
 	"github.com/hitzhangjie/go-rpc/codec"
-	"time"
 )
 
 type Option func(*client)
@@ -53,14 +51,7 @@ func WithTransportType(typ TransportType) Option {
 		switch typ {
 		case TCP:
 			c.Transport = &transport.TcpTransport{
-				ConnPool: pool.ConnPool{
-					MinIdle:         2,
-					MaxIdle:         4,
-					MaxActive:       8,
-					Wait:            true,
-					IdleTimeout:     time.Minute * 5,
-					MaxConnLifetime: time.Hour * 1,
-				},
+				Pool:  defaultPoolFactory,
 				Codec: nil,
 			}
 		case UDP:

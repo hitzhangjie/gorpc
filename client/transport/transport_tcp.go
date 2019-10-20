@@ -10,8 +10,8 @@ import (
 
 // TcpTransport tcp transport
 type TcpTransport struct {
-	ConnPool pool.ConnPool
-	Codec    codec.Codec
+	Pool  pool.PoolFactory
+	Codec codec.Codec
 }
 
 // Send send reqHead and return rspHead, return an error if encountered
@@ -24,7 +24,7 @@ func (t *TcpTransport) Send(ctx context.Context, network, address string, reqHea
 	}
 
 	// get conn
-	conn, err := t.ConnPool.Get(ctx)
+	conn, err := t.Pool.Get(ctx, network, address)
 	if err != nil {
 		return nil, err
 	}

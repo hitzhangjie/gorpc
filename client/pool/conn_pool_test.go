@@ -489,7 +489,7 @@ func TestConnPoolConnectionGet(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	pool := NewConnectionPool()
+	pool := NewConnPoolFactory()
 	conn, err := pool.Get(ctx, network, listenAddr1)
 	assert.Nil(t, err)
 	assert.Nil(t, conn.Close())

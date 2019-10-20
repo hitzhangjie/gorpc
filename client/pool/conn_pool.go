@@ -14,7 +14,7 @@ var DefaultConnectionPool = NewConnectionPool()
 
 // ConnPool connection pool
 type ConnPool struct {
-	Dial            func(context.Context) (net.Conn, error) // 初始化连接函数
+	dialFunc        func(context.Context) (net.Conn, error) // 初始化连接函数
 	MinIdle         int                                     // 最小空闲连接数，也即初始连接数
 	MaxIdle         int                                     // 最大空闲连接数量，0 代表不做限制
 	MaxActive       int                                     // 最大活跃连接数量，0 代表不做限制
@@ -30,17 +30,17 @@ type ConnPool struct {
 }
 
 // Get get a connection from ConnPool
-func (p *ConnPool) Get(ctx context.Context) (pc *ConnItem, err error) {
+func (p *ConnPool) Get(ctx context.Context) (it *ConnItem, err error) {
 	for {
-		if pc, err = p.get(ctx); err != nil {
+		if it, err = p.get(ctx); err != nil {
 			return nil, err
 		}
 
-		if pc.readClosed() {
-			p.put(pc, true)
+		if it.readClosed() {
+			p.put(it, true)
 			continue
 		}
-		return pc, nil
+		return it, nil
 	}
 }
 
@@ -130,7 +130,7 @@ func (p *ConnPool) initializeCh() {
 	p.mu.Unlock()
 }
 
-// get return a connection from the ones cached in pool or a new one by Dial
+// get return a connection from the ones cached in pool or a new one by dialFunc
 func (p *ConnPool) get(ctx context.Context) (*ConnItem, error) {
 
 	// if `wait`, here should initialize a `chan` to sync
@@ -249,10 +249,10 @@ func (p *ConnPool) exceedLimit() bool {
 
 // dial create a new connection
 func (p *ConnPool) dial(ctx context.Context) (net.Conn, error) {
-	if p.Dial != nil {
-		return p.Dial(ctx)
+	if p.dialFunc != nil {
+		return p.dialFunc(ctx)
 	}
-	return nil, errors.New("must pass Dial to pool")
+	return nil, errors.New("must pass dialFunc to pool")
 }
 
 // put try put the connection back into pool

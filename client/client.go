@@ -22,8 +22,8 @@ func NewClient(name string, opts ...Option) Client {
 		TransType: TCP,
 		//Transport: &transport.TcpTransport{},
 		//Address:      addr,
-		Codec:     codec.ClientCodec(whisper.Whisper),
-		RpcType:   SendRecv,
+		Codec:   codec.ClientCodec(whisper.Whisper),
+		RpcType: SendRecv,
 	}
 
 	for _, o := range opts {
@@ -44,11 +44,6 @@ type client struct {
 
 func (c *client) Invoke(ctx context.Context, reqHead interface{}, rspHead interface{}, opts ...Option) error {
 
-	data, err := c.Codec.Encode(reqHead)
-	if err != nil {
-		return err
-	}
-
 	var (
 		network string
 		address string
@@ -66,7 +61,7 @@ func (c *client) Invoke(ctx context.Context, reqHead interface{}, rspHead interf
 		address = node.Address
 	}
 
-	rsp, err := c.Transport.Send(ctx, network, address, data)
+	rsp, err := c.Transport.Send(ctx, network, address, reqHead)
 	if err != nil {
 		return err
 	}

@@ -5,36 +5,65 @@ import (
 	"fmt"
 	"github.com/hitzhangjie/go-rpc/client/pool"
 	"github.com/hitzhangjie/go-rpc/codec"
-	"net"
 	"time"
 )
 
+// TcpTransport tcp transport
 type TcpTransport struct {
 	ConnPool pool.ConnPool
 	Codec    codec.Codec
 }
 
-func (t *TcpTransport) Send(ctx context.Context, network, address string, req []byte) (rsp []byte, err error) {
-	conn, err := net.Dial(network, address)
+// Send send reqHead and return rspHead, return an error if encountered
+func (t *TcpTransport) Send(ctx context.Context, network, address string, reqHead interface{}) (rspHead interface{}, err error) {
+
+	// encode
+	data, err := t.Codec.Encode(reqHead)
 	if err != nil {
 		return nil, err
 	}
 
+	// get conn
+	conn, err := t.ConnPool.Get(ctx)
+	if err != nil {
+		return nil, err
+	}
 	conn.SetDeadline(time.Now().Add(time.Millisecond * 200))
 
-	n, err := conn.Write(req)
+	// conn write
+	n, err := conn.Write(data)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(req) != n {
-		return nil, fmt.Errorf("write error, write only %d bytes, want write %d bytes", n, req)
+	if len(data) != n {
+		return nil, fmt.Errorf("write error, write only %d bytes, want write %d bytes", n, data)
 	}
 
-	buf := make([]byte, 64*1024)
-	conn.Read(buf)
+	// alloc buffer
+	buf := bufferPool.Get().([]byte)
+	defer bufferPool.Put(buf)
 
-	// fixme who is reponsible for decode, absolutely we need passing decoder & encoder to transport
+	// conn read
+	var sz int
+	for {
+		n, err := conn.Read(buf[sz:])
+		if err != nil {
+			return nil, err
+		}
+		sz += n
 
-	return nil, nil
+		// decode
+		rsp, _, err := t.Codec.Decode(buf[:sz])
+		if err != nil {
+			if err == codec.CodecReadIncomplete {
+				continue
+			}
+			return nil, err
+		}
+
+		// fixme for now, we only support one-req-one-response transport mode
+		// so, here we can return now
+		return rsp, nil
+	}
 }

@@ -74,7 +74,7 @@ func buildSimpleTCPServerClose(ch chan struct{}) {
 
 func newConnPool(maxIdle, maxActive int) *ConnPool {
 	pool := &ConnPool{
-		Dial: func(context.Context) (net.Conn, error) {
+		dialFunc: func(context.Context) (net.Conn, error) {
 			return net.Dial(network, listenAddr1)
 		},
 		MaxIdle:   maxIdle,
@@ -381,7 +381,7 @@ func TestConnPoolDialErr(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, pool.active, 1)
 	assert.Equal(t, pool.idle.Len(), 0)
-	pool.Dial = func(context.Context) (net.Conn, error) {
+	pool.dialFunc = func(context.Context) (net.Conn, error) {
 		return nil, errors.New("dial error")
 	}
 	_, err = pool.Get(ctx)
@@ -403,12 +403,12 @@ func TestConnPoolWaitDialErr(t *testing.T) {
 
 	assert.Equal(t, pool.active, 9)
 	assert.Equal(t, pool.idle.Len(), 0)
-	pool.Dial = func(context.Context) (net.Conn, error) {
+	pool.dialFunc = func(context.Context) (net.Conn, error) {
 		return nil, errors.New("dial error")
 	}
 	_, err := pool.Get(ctx)
 	assert.NotNil(t, err)
-	pool.Dial = func(context.Context) (net.Conn, error) {
+	pool.dialFunc = func(context.Context) (net.Conn, error) {
 		return net.Dial(network, listenAddr1)
 	}
 	timeout := time.After(1 * time.Second)
@@ -469,7 +469,7 @@ func TestConnPoolConnWrite(t *testing.T) {
 
 func TestConnPoolPrepare(t *testing.T) {
 	pool := &ConnPool{
-		Dial: func(context.Context) (net.Conn, error) {
+		dialFunc: func(context.Context) (net.Conn, error) {
 			return net.Dial(network, listenAddr1)
 		},
 		MinIdle:   2,

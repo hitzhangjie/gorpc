@@ -9,6 +9,6 @@ type UnixTransport struct {
 	ConnPool pool.ConnPool
 }
 
-func (t *UnixTransport) Send(ctx context.Context, network, address string, req []byte) (rsp []byte, err error) {
+func (t *UnixTransport) Send(ctx context.Context, network, address string, reqHead interface{}) (rsp interface{}, err error) {
 	return nil, nil
 }

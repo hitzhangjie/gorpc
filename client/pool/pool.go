@@ -53,7 +53,7 @@ func (p *pool) Get(ctx context.Context, network string, address string) (net.Con
 	}
 
 	newPool := &ConnPool{
-		Dial: func(ctx context.Context) (net.Conn, error) {
+		dialFunc: func(ctx context.Context) (net.Conn, error) {
 			select {
 			case <-ctx.Done():
 				return nil, ctx.Err()

@@ -11,6 +11,6 @@ type UdpTransport struct {
 	Codec    codec.Codec
 }
 
-func (t *UdpTransport) Send(ctx context.Context, network, address string, req []byte) (rsp []byte, err error) {
+func (t *UdpTransport) Send(ctx context.Context, network, address string, reqHead interface{}) (rspHead interface{}, err error) {
 	return nil, nil
 }

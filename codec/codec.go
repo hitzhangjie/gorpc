@@ -15,8 +15,8 @@ type Codec interface {
 	Name() string
 	// Encode encode pkg into []byte
 	Encode(pkg interface{}) (dat []byte, err error)
-	// Decode decode []byte into interface{}
-	Decode(dat []byte) (req interface{}, err error)
+	// Decode decode []byte, return decoded interface{} and number of bytes
+	Decode(dat []byte) (req interface{}, n int, err error)
 }
 
 var (

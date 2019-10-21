@@ -1,4 +1,4 @@
-package main
+package server_module_tcp
 
 import (
 	"github.com/hitzhangjie/go-rpc/codec/whisper"

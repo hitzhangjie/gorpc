@@ -1,26 +1,79 @@
 package client
 
-type Option func(adapter *ClientAdapter)
+import (
+	"github.com/hitzhangjie/go-rpc/client/selector"
+	"github.com/hitzhangjie/go-rpc/client/transport"
+	"github.com/hitzhangjie/go-rpc/codec"
+)
 
-// ProtoType options
-type ProtoType int
+type Option func(*client)
+
+// WithAddress specify the address that client requests
+func WithAddress(addr string) Option {
+	return func(c *client) {
+		c.Addr = addr
+	}
+}
+
+// TransportType options
+type TransportType int
 
 const (
 	UDP = iota
+	UDP4
+	UDP6
 	TCP
+	TCP4
+	TCP6
 	UNIX
 )
 
-func ProtoTypeUDP(c *ClientAdapter) {
-	c.ProtoType = UDP
+func (t TransportType) String() string {
+	switch t {
+	case UDP:
+		return "udp"
+	case UDP4:
+		return "udp4"
+	case UDP6:
+		return "udp6"
+	case TCP:
+		return "tcp"
+	case TCP4:
+		return "tcp4"
+	case TCP6:
+		return "tcp6"
+	case UNIX:
+		return "unix"
+	default:
+		return ""
+	}
 }
 
-func ProtoTypeTCP(c *ClientAdapter) {
-	c.ProtoType = TCP
+func (t TransportType) Valid() bool {
+	if t == UDP || t == UDP4 || t == UDP6 ||
+		t == TCP || t == TCP4 || t == TCP6 ||
+		t == UNIX {
+		return true
+	}
+	return false
 }
 
-func ProtoTypeUNIX(c *ClientAdapter) {
-	c.ProtoType = UNIX
+// WithTransportType specify the transport type, support UDP, TCP, Unix
+func WithTransportType(typ TransportType) Option {
+	return func(c *client) {
+		c.TransType = typ
+		switch typ {
+		case TCP, TCP4, TCP6:
+			c.Transport = &transport.TcpTransport{
+				Pool:  defaultPoolFactory,
+				Codec: codec.ClientCodec("whisper"),
+			}
+		case UDP, UDP4, UDP6:
+			c.Transport = &transport.UdpTransport{} //fixme
+		case UNIX:
+			c.Transport = &transport.UnixTransport{} //fixme
+		}
+	}
 }
 
 // RpcType options
@@ -36,30 +89,23 @@ const (
 	SendStreamAndRecvStream        // 流式请求
 )
 
-func RpcTypeSendOnly(c *ClientAdapter) {
-	c.RpcType = SendOnly
+// WithRpcType specify the rpc type, support SendOnly, SendRecv, SendRecvWithMultiplex, etc.
+func WithRpcType(typ RpcType) Option {
+	return func(c *client) {
+		c.RpcType = typ
+	}
 }
 
-func RpcTypeSendRecv(c *ClientAdapter) {
-	c.RpcType = SendRecv
+// WithSelector specify the selector
+func WithSelector(selector selector.Selector) Option {
+	return func(c *client) {
+		c.Selector = selector
+	}
 }
 
-func RpcTypeSendMultiplex(c *ClientAdapter) {
-	c.RpcType = SendRecvMultiplex
-}
-
-func RpcTypeSendStreamOnly(c *ClientAdapter) {
-	c.RpcType = SendStreamOnly
-}
-
-func RpcTypeSendStreamAndRecv(c *ClientAdapter) {
-	c.RpcType = SendStreamAndRecv
-}
-
-func RpcTypeSendAndRecvStream(c *ClientAdapter) {
-	c.RpcType = SendAndRecvStream
-}
-
-func RpcTypeSendStreamAndRecvStream(c *ClientAdapter) {
-	c.RpcType = SendStreamAndRecvStream
+// WithCodec specify the codec
+func WithCodec(name string) Option {
+	return func(c *client) {
+		c.Codec = codec.ClientCodec(name)
+	}
 }

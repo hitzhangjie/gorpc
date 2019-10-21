@@ -16,11 +16,12 @@ package whisper;
 message Request {
     optional uint64 seqno = 1; // 包序号
     optional string appid = 2; // 业务分配ID
-    optional string userid = 3; // 用户ID
-    optional string userkey = 4; // 用户key，鉴权用
-    optional uint32 version = 5; // 协议版本
-    optional bytes body = 6; // 业务包体
-    map<string, string> meta = 7; // 元信息
+    optional string rpcname = 3; // rpc名称
+    optional string userid = 4; // 用户ID
+    optional string userkey = 5; // 用户key，鉴权用
+    optional uint32 version = 6; // 协议版本
+    optional bytes body = 7; // 业务包体
+    map<string, string> meta = 8; // 元信息
 }
 
 // Response definition

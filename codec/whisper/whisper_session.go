@@ -2,6 +2,7 @@ package whisper
 
 import (
 	"fmt"
+	"github.com/golang/protobuf/proto"
 	"github.com/hitzhangjie/go-rpc/codec"
 )
 
@@ -9,32 +10,22 @@ type WhisperSession struct {
 	codec.BaseSession
 }
 
-func (w *WhisperSession) RPC() string {
-	panic("implement me")
+func (s *WhisperSession) RPCName() string {
+	return s.Request().(*Request).GetRpcname()
 }
 
-func (w *WhisperSession) Request() interface{} {
-	panic("implement me")
+func (s *WhisperSession) SetErrorResponse(err error) {
+	rsp := s.Response().(*Response)
+	rsp.ErrCode = proto.Uint32(10000)
+	rsp.ErrMsg = proto.String(err.Error())
 }
 
-func (w *WhisperSession) SetRequest(req interface{}) {
-	panic("implement me")
-}
-
-func (w *WhisperSession) Response() interface{} {
-	panic("implement me")
-}
-
-func (w *WhisperSession) SetResponse(rsp interface{}) {
-	panic("implement me")
-}
-
-func (w *WhisperSession) SetErrorResponse(err error) {
-	panic("implement me")
-}
-
-func (w *WhisperSession) TraceContext() interface{} {
-	panic("implement me")
+func (s *WhisperSession) TraceContext() interface{} {
+	req := s.Request().(*Request)
+	if req.Meta != nil {
+		return []byte(req.Meta["traceContext"])
+	}
+	return nil
 }
 
 // WhisperSessionBuilder builder for WhisperSession
@@ -49,7 +40,7 @@ func newSession(req interface{}) (codec.Session, error) {
 
 	reqHead, ok := req.(*Request)
 	if !ok {
-		return nil, fmt.Errorf("req:%v not *whisper.Request", req)
+		return nil, fmt.Errorf("req:%v not *whisper.ReqHead", req)
 	}
 
 	rspHead := &Response{}
@@ -57,8 +48,8 @@ func newSession(req interface{}) (codec.Session, error) {
 
 	session := &WhisperSession{
 		codec.BaseSession{
-			Request:  reqHead,
-			Response: rspHead,
+			ReqHead: reqHead,
+			RspHead: rspHead,
 		},
 	}
 

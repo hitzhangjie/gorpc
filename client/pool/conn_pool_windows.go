@@ -26,6 +26,8 @@ func readClosed(conn net.Conn) bool {
 		return true
 	}
 
+	conn.SetReadDeadline(time.Time{})
+
 	var rawConn syscall.RawConn
 	switch conn.(type) {
 	case *net.TCPConn:

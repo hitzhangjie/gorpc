@@ -5,6 +5,7 @@ package pool
 import (
 	"net"
 	"syscall"
+	"time"
 )
 
 // readClosed 取出连接时非阻塞read检查连接是否对端写关闭
@@ -25,6 +26,8 @@ func readClosed(conn net.Conn) bool {
 		// only detect whether peer half-close connection, don'recycled block to wait read-ready.
 		return true
 	}
+
+	conn.SetReadDeadline(time.Time{})
 
 	var rawConn syscall.RawConn
 	switch conn.(type) {

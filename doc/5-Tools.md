@@ -5,9 +5,7 @@
 1. 使用 Google Protobuf 作为 IDL (Interface Descriptor Language);
 2. gorpc <create>, 指定pb文件，快速生成对应的服务模板、rpc相关client stub、*.pb.go等等;
 3. gorpc <update>, 指定pb文件，更新生成的服务模板、rpc相关client stub、*.pb.go等等(开发中)；
-4. gorpc <mock>，指定pb文件，快速生成对应的mock代码(开发中)；
-5. gorpc <monitor>, 在指定工程目录下，批量申请monitor打点信息并替换到源码中(开发中)；
-6. 其他能力，欢迎提issue，鼓励大家共建。
+4. 其他能力，欢迎提issue，鼓励大家共建。
     - 模板文件，可以在模板目录下任意添加，gorpc会遍历、处理每一个模板文件；
     - 生成服务目录结构与模板中目录结构保持一致；
     - 可以自定义 `gorpc <subcmd>` 实现更多能力， 参考 `gorpc create`, ***file:cmds/create.go***
@@ -37,7 +35,7 @@ pb自身具备的一些特性，使他非常适合用作 IDL (Interface Descript
 
 这就是 `protoc` 及其插件 `protoc-gen-go` 二者的协作方式.
 
-### 我们选择的是哪种代码生成方式
+### 选择哪种代码生成方式
 
 本次框架治理，涉及到多语言，包含Go、Java、CC++、NodeJS等，主要有如下考虑：
 - 多语言都各自实现一个插件 `protoc-gen-$lang` 涉及到大量重复工作，没有必要，该方案不可取；

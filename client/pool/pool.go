@@ -12,7 +12,6 @@ type PoolFactory interface {
 	Get(ctx context.Context, network string, address string) (net.Conn, error)
 }
 
-
 // NewConnPoolFactory create a connection poolFactory manager
 func NewConnPoolFactory(opt ...Option) PoolFactory {
 

@@ -21,7 +21,6 @@ func NewRouter() *Router {
 	}
 }
 
-
 func (r *Router) RegisterService(serviceDesc *ServiceDesc, serviceImpl interface{}) error {
 
 	// check whether serviceImpl implements serviceDesc.ServiceType

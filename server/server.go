@@ -29,7 +29,7 @@ type Server struct {
 }
 
 // NewServer create new server with option
-func NewServer(opts ...Option) (*Server, error) {
+func NewServer(opts ...Option) *Server {
 
 	ctx, cancel := context.WithCancel(context.TODO())
 
@@ -46,7 +46,7 @@ func NewServer(opts ...Option) (*Server, error) {
 	for _, o := range opts {
 		o(s.opts)
 	}
-	return s, nil
+	return s
 }
 
 // Start starts every ServerModule, after this, Service may be registered to remote naming service

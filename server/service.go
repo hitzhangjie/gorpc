@@ -75,6 +75,10 @@ func (s *Service) RegisterServer(svr *Server) {
 	panic("implement me")
 }
 
+func (s *Service) RegisterModule(mod *ServerModule) {
+	panic("implement me")
+}
+
 func (s *Service) RegisterNaming() error {
 	panic("implement me")
 }

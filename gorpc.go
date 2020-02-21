@@ -11,24 +11,40 @@ import (
 	"github.com/hitzhangjie/go-rpc/server"
 )
 
-// ListenAndServe quickly initialize Server and ServerModules and serve
-func ListenAndServe(opts ...server.Option) {
+const (
+	unKnownServiceName = "unknown"
+)
 
-	d, err := os.Getwd()
-	if err != nil {
-		panic(err)
+// ListenAndServe quickly initialize Server and ServerModules and serve
+func ListenAndServe(opts ...Option) {
+
+	// 处理选项
+	options := options{
+		configfile: "conf/service.ini",
+	}
+	for _, o := range opts {
+		o(&options)
 	}
 
-	fp := filepath.Join(d, "service.ini")
+	// 解析配置路径
+	fp := options.configfile
+	if !filepath.IsAbs(options.configfile) {
+
+		self, err := os.Executable()
+		if err != nil {
+			panic(err)
+		}
+		dir, _ := filepath.Split(self)
+		fp = filepath.Join(dir, options.configfile)
+	}
+
+	// 加载配置
 	cfg, err := config.LoadIniConfig(fp)
 	if err != nil {
 		panic(err)
 	}
 
-	svr, err := server.NewServer(opts...)
-	if err != nil {
-		panic(err)
-	}
+	svr := server.NewServer()
 
 	for _, section := range cfg.Sections() {
 		// enable support for protocols
@@ -41,21 +57,29 @@ func ListenAndServe(opts ...server.Option) {
 		// initialize tcp ServerModule
 		tcpport := cfg.Int(section, "tcp.port", 0)
 		if tcpport > 0 {
-			mod, err := server.NewTcpServerModule("tcp4", fmt.Sprintf(":%d", tcpport), codec)
+			mod, err := server.NewTcpServerModule("tcp4", fmt.Sprintf(":%self", tcpport), codec)
 			if err != nil {
 				panic(err)
 			}
 			mod.Register(svr)
+
+			if name := cfg.String(section, "name", ""); len(name) != 0 {
+				server.NewService(name).RegisterModule(&mod)
+			}
 		}
 
 		// initialize udp ServerModule
 		udpport := cfg.Int(section, "udp.port", 0)
 		if udpport > 0 {
-			mod, err := server.NewTcpServerModule("udp4", fmt.Sprintf(":%d", udpport), codec)
+			mod, err := server.NewTcpServerModule("udp4", fmt.Sprintf(":%self", udpport), codec)
 			if err != nil {
 				panic(err)
 			}
 			mod.Register(svr)
+
+			if name := cfg.String(section, "name", ""); len(name) != 0 {
+				server.NewService(name).RegisterModule(&mod)
+			}
 		}
 	}
 

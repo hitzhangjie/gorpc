@@ -3,20 +3,24 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/hitzhangjie/go-rpc/codec"
 	"io"
 	"log"
 	"net"
 	"time"
+
+	"github.com/hitzhangjie/go-rpc/codec"
 )
 
-// EndPoint
+// EndPoint endpoint represents one side of net.Conn
+//
+// Read read data from net.Conn
+// Write write data to net.Conn
 type EndPoint interface {
 	Read()
 	Write()
 }
 
-// TcpEndPoint tcp endpoint
+// TcpEndPoint endpoint of tcp connection
 type TcpEndPoint struct {
 	net.Conn
 	reqCh chan interface{}

@@ -3,13 +3,13 @@ package gorpc
 
 import (
 	"fmt"
-	"github.com/hitzhangjie/go-rpc/config"
-	"github.com/hitzhangjie/go-rpc/server"
 	"os"
 	"path/filepath"
 	"strings"
-)
 
+	"github.com/hitzhangjie/go-rpc/config"
+	"github.com/hitzhangjie/go-rpc/server"
+)
 
 // ListenAndServe quickly initialize Server and ServerModules and serve
 func ListenAndServe(opts ...server.Option) {

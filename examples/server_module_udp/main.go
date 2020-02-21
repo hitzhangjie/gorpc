@@ -6,10 +6,7 @@ import (
 )
 
 func main() {
-	svr, err := server.NewServer()
-	if err != nil {
-		panic(err)
-	}
+	svr := server.NewServer()
 
 	tcpSvr, err := server.NewTcpServerModule("tcp4", "127.0.0.1:8888", whisper.Whisper)
 	if err != nil {

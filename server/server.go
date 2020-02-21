@@ -12,45 +12,82 @@ import (
 	"github.com/hitzhangjie/go-rpc/router"
 )
 
-// Server represents a server instance (a server process),
+// Service represents a server instance (a server process),
 //
 // Any server can include more than one service, i.e, any server can be
 // plugged into multile modules, like TcpServerModule, UdpServerModule, Broker, etc.
 // By this way, we can implement more modules to extend server's abilities.
-type Server struct {
-	ctx       context.Context
-	cancel    context.CancelFunc
-	opts      *options
-	mods      []ServerModule
+type Service struct {
+	name   string
+	ctx    context.Context
+	cancel context.CancelFunc
+	opts   *options
+
+	mods []ServerModule
+	lock *sync.Mutex
+
 	router    *router.Router
 	startOnce sync.Once
 	stopOnce  sync.Once
 	closed    chan (struct{})
 }
 
-// NewServer create new server with option
-func NewServer(opts ...Option) *Server {
+// NewService create new server with option
+func NewService(name string, opts ...Option) *Service {
 
-	ctx, cancel := context.WithCancel(context.TODO())
-
-	s := &Server{
-		ctx:       ctx,
-		cancel:    cancel,
+	s := &Service{
+		name:      name,
 		opts:      &options{},
 		mods:      []ServerModule{},
+		lock:      &sync.Mutex{},
 		router:    router.NewRouter(),
 		startOnce: sync.Once{},
 		stopOnce:  sync.Once{},
 		closed:    make(chan struct{}, 1),
 	}
+	s.ctx, s.cancel = context.WithCancel(context.TODO())
+
 	for _, o := range opts {
 		o(s.opts)
 	}
 	return s
 }
 
+func (s *Service) AddServerModule(net, addr, codec string, opts ...Option) error {
+
+	var (
+		mod ServerModule
+		err error
+	)
+
+	if net == "tcp" || net == "tcp4" || net == "tcp6" {
+		mod, err = NewTcpServerModule(net, addr, codec, opts...)
+		if err != nil {
+			return err
+		}
+
+	}
+
+	if net == "udp" || net == "udp4" || net == "udp6" {
+		mod, err = NewUdpServerModule(net, addr, codec, opts...)
+		if err != nil {
+			return err
+		}
+	}
+
+	s.lock.Lock()
+	s.mods = append(s.mods, mod)
+	s.lock.Unlock()
+
+	return nil
+}
+
+func (s *Service) ServerModules() []ServerModule {
+	return s.mods
+}
+
 // Start starts every ServerModule, after this, Service may be registered to remote naming service
-func (s *Server) Start() error {
+func (s *Service) Start() error {
 
 	if len(s.mods) == 0 {
 		return errors.New("server: no modules registered")
@@ -105,7 +142,7 @@ func (s *Server) Start() error {
 }
 
 // stop stop all server modules, server exit.
-func (s *Server) stop() {
+func (s *Service) stop() {
 
 	s.stopOnce.Do(func() {
 
@@ -123,9 +160,4 @@ func (s *Server) stop() {
 
 		close(s.closed)
 	})
-}
-
-// Closed return whether server is Closed or not
-func (s *Server) Closed() chan struct{} {
-	return s.closed
 }

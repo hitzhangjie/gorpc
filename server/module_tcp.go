@@ -37,7 +37,7 @@ const (
 	tcpServerRspChanMaxLength = 1024
 )
 
-func NewTcpServerModule(net, addr string, codecName string, opts ...Option) (ServerModule, error) {
+func NewTcpServerModule(net, addr, codecName string, opts ...Option) (ServerModule, error) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	c := codec.ServerCodec(codecName)
 
@@ -79,7 +79,7 @@ func (s *TcpServerModule) Stop() {
 	})
 }
 
-func (s *TcpServerModule) Register(svr *Server) {
+func (s *TcpServerModule) Register(svr *Service) {
 	s.ctx, s.cancel = context.WithCancel(svr.ctx)
 	s.opts.router = svr.router
 	svr.mods = append(svr.mods, s)

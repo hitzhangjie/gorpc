@@ -15,10 +15,9 @@ const (
 	unKnownServiceName = "unknown"
 )
 
-// ListenAndServe quickly initialize Server and ServerModules and serve
+// AddServerModule quickly initialize Service and ServerModules and serve
 func ListenAndServe(opts ...Option) {
 
-	// 处理选项
 	options := options{
 		configfile: "conf/service.ini",
 	}
@@ -26,7 +25,7 @@ func ListenAndServe(opts ...Option) {
 		o(&options)
 	}
 
-	// 解析配置路径
+	// parse config
 	fp := options.configfile
 	if !filepath.IsAbs(options.configfile) {
 
@@ -38,15 +37,18 @@ func ListenAndServe(opts ...Option) {
 		fp = filepath.Join(dir, options.configfile)
 	}
 
-	// 加载配置
+	// load config
 	cfg, err := config.LoadIniConfig(fp)
 	if err != nil {
 		panic(err)
 	}
 
-	svr := server.NewServer()
+	self, _ := os.Executable()
+
+	service := server.NewService(self)
 
 	for _, section := range cfg.Sections() {
+
 		// enable support for protocols
 		ok := strings.HasSuffix(section, "-service")
 		if !ok {
@@ -57,31 +59,29 @@ func ListenAndServe(opts ...Option) {
 		// initialize tcp ServerModule
 		tcpport := cfg.Int(section, "tcp.port", 0)
 		if tcpport > 0 {
-			mod, err := server.NewTcpServerModule("tcp4", fmt.Sprintf(":%self", tcpport), codec)
+			err := service.AddServerModule("tcp4", fmt.Sprintf(":%s", tcpport), codec)
 			if err != nil {
 				panic(err)
-			}
-			mod.Register(svr)
-
-			if name := cfg.String(section, "name", ""); len(name) != 0 {
-				server.NewService(name).RegisterModule(&mod)
 			}
 		}
 
 		// initialize udp ServerModule
 		udpport := cfg.Int(section, "udp.port", 0)
 		if udpport > 0 {
-			mod, err := server.NewTcpServerModule("udp4", fmt.Sprintf(":%self", udpport), codec)
+			err := service.AddServerModule("udp4", fmt.Sprintf(":%self", udpport), codec)
 			if err != nil {
 				panic(err)
-			}
-			mod.Register(svr)
-
-			if name := cfg.String(section, "name", ""); len(name) != 0 {
-				server.NewService(name).RegisterModule(&mod)
 			}
 		}
 	}
 
-	svr.Start()
+	// register to naming service
+	for _, mod := range service.ServerModules() {
+		section := mod.Codec() + "-service"
+		if name := cfg.String(section, "name", ""); len(name) != 0 {
+			// fixme nameing service register this mod.Net+mod.Address+mod.Codec
+		}
+	}
+
+	service.Start()
 }

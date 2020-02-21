@@ -93,7 +93,7 @@ func (s *UdpServerModule) Stop() {
 	})
 }
 
-func (s *UdpServerModule) Register(svr *Server) {
+func (s *UdpServerModule) Register(svr *Service) {
 	s.ctx, s.cancel = context.WithCancel(svr.ctx)
 	s.opts.router = svr.router
 	svr.mods = append(svr.mods, s)

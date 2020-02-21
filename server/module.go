@@ -4,6 +4,9 @@ package server
 type ServerModule interface {
 	Start() error
 	Stop()
-	Register(*Server)
+	Register(*Service)
 	Closed() <-chan struct{}
+	Network() string
+	Address() string
+	Codec() string
 }

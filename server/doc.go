@@ -1,7 +1,7 @@
 // Package server provides ability to function as a server.
 //
 // In gorpc framework, terms `server` and `service` are used:
-// - Server, a server instance is actually a server process.
+// - Service, a server instance is actually a server process.
 // - Servicce, a service is a provides a kind of ability.
 //	 Some relevant APIs are grouped together to form a service.
 //

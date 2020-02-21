@@ -67,16 +67,13 @@ func (s *TcpServerModule) Start() error {
 	if err != nil {
 		return err
 	}
-	return s.serve(l)
-}
-
-func (s *TcpServerModule) Stop() {
-
-	s.cancel()
+	err = s.serve(l)
 
 	s.once.Do(func() {
 		close(s.closed)
 	})
+
+	return err
 }
 
 func (s *TcpServerModule) Register(svr *Service) {

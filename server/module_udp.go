@@ -84,13 +84,10 @@ func (s *UdpServerModule) Start() error {
 	go ep.Read()
 	go ep.Write()
 
-	return nil
-}
-
-func (s *UdpServerModule) Stop() {
 	s.once.Do(func() {
 		close(s.closed)
 	})
+	return nil
 }
 
 func (s *UdpServerModule) Register(svr *Service) {

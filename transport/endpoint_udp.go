@@ -1,4 +1,4 @@
-package server
+package transport
 
 import (
 	"context"
@@ -6,19 +6,20 @@ import (
 	"net"
 
 	"github.com/hitzhangjie/go-rpc/codec"
+	"github.com/hitzhangjie/go-rpc/server"
 )
 
 // UdpEndPoint udp endpoint
 type UdpEndPoint struct {
 	net.Conn
-	reqCh chan interface{}
+	ReqCh chan interface{}
 	rspCh chan interface{}
 
-	reader *UdpMessageReader
-	ctx    context.Context
+	reader *server.UdpMessageReader
+	Ctx    context.Context
 	cancel context.CancelFunc
 
-	buf []byte
+	Buf []byte
 }
 
 func (ep *UdpEndPoint) Read() {

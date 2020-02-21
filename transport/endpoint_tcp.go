@@ -1,4 +1,4 @@
-package server
+package transport
 
 import (
 	"context"
@@ -9,28 +9,20 @@ import (
 	"time"
 
 	"github.com/hitzhangjie/go-rpc/codec"
+	"github.com/hitzhangjie/go-rpc/server"
 )
-
-// EndPoint endpoint represents one side of net.Conn
-//
-// Read read data from net.Conn
-// Write write data to net.Conn
-type EndPoint interface {
-	Read()
-	Write()
-}
 
 // TcpEndPoint endpoint of tcp connection
 type TcpEndPoint struct {
 	net.Conn
-	reqCh chan interface{}
+	ReqCh chan interface{}
 	rspCh chan interface{}
 
-	reader *TcpMessageReader
-	ctx    context.Context
+	reader *server.TcpMessageReader
+	Ctx    context.Context
 	cancel context.CancelFunc
 
-	buf []byte
+	Buf []byte
 }
 
 func (ep *TcpEndPoint) Read() {
@@ -87,5 +79,3 @@ func (ep *TcpEndPoint) Write() {
 		}
 	}
 }
-
-

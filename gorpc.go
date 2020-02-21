@@ -83,5 +83,5 @@ func ListenAndServe(opts ...Option) {
 		}
 	}
 
-	service.Start()
+	//service.Start()
 }

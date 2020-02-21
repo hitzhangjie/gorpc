@@ -1,4 +1,4 @@
-package server
+package transport
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hitzhangjie/go-rpc/codec"
+	"github.com/hitzhangjie/go-rpc/server"
 )
 
 // UdpServerTransport
@@ -18,7 +19,7 @@ type UdpServerTransport struct {
 	addr string
 
 	codec  codec.Codec
-	reader *UdpMessageReader
+	reader *server.UdpMessageReader
 
 	//reqChan chan codec.Session
 	rspChan chan codec.Session
@@ -26,20 +27,21 @@ type UdpServerTransport struct {
 	once   sync.Once
 	closed chan struct{}
 
-	opts *options
+	opts *server.Options
 }
 
-func NewUdpServerTransport(net, addr string, codecName string, opts ...Option) (Transport, error) {
+func NewUdpServerTransport(ctx context.Context, net, addr string, codecName string, opts ...server.Option) (Transport, error) {
 	c := codec.ServerCodec(codecName)
 	s := &UdpServerTransport{
 		net:    net,
 		addr:   addr,
 		codec:  c,
-		reader: NewUdpMessageReader(c),
+		reader: server.NewUdpMessageReader(c),
 		once:   sync.Once{},
 		closed: make(chan struct{}, 1),
-		opts:   &options{},
+		opts:   &server.Options{},
 	}
+	s.ctx, s.cancel = context.WithCancel(ctx)
 	for _, o := range opts {
 		o(s.opts)
 	}
@@ -77,7 +79,7 @@ func (s *UdpServerTransport) ListenAndServe() error {
 		s.reader,
 		nil,
 		nil,
-		bufferPool.Get().([]byte),
+		server.DefaultBufferPool.Get().([]byte),
 	}
 	ep.ctx, ep.cancel = context.WithCancel(s.ctx)
 
@@ -91,10 +93,10 @@ func (s *UdpServerTransport) ListenAndServe() error {
 	return nil
 }
 
-func (s *UdpServerTransport) Register(svr *Service) {
-	s.ctx, s.cancel = context.WithCancel(svr.ctx)
-	s.opts.router = svr.router
-	svr.mods = append(svr.mods, s)
+func (s *UdpServerTransport) Register(svr *server.Service) {
+	s.ctx, s.cancel = context.WithCancel(svr.Ctx)
+	s.opts.Router = svr.Router
+	svr.Mods = append(svr.Mods, s)
 }
 
 func (s *UdpServerTransport) Closed() <-chan struct{} {
@@ -119,7 +121,7 @@ func (s *UdpServerTransport) proc(reqCh <-chan interface{}, rspCh chan<- interfa
 				continue
 			}
 			// fixme using workerpool instead of goroutine
-			r := s.opts.router
+			r := s.opts.Router
 
 			go func() {
 				// find route

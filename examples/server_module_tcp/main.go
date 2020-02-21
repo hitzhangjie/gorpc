@@ -3,13 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/hitzhangjie/go-rpc/client"
 	"github.com/hitzhangjie/go-rpc/client/selector"
 	"github.com/hitzhangjie/go-rpc/codec/whisper"
 	"github.com/hitzhangjie/go-rpc/router"
 	"github.com/hitzhangjie/go-rpc/server"
-	"time"
+	"github.com/hitzhangjie/go-rpc/transport"
 )
 
 func main() {
@@ -28,7 +30,7 @@ func main() {
 			return pbrsp, nil
 		})
 
-		tcpSvr, err := server.NewTcpServerTransport("tcp4", "127.0.0.1:8888", whisper.Whisper, server.WithRouter(r))
+		tcpSvr, err := transport.NewTcpServerTransport("tcp4", "127.0.0.1:8888", whisper.Whisper, server.WithRouter(r))
 		if err != nil {
 			panic(err)
 		}

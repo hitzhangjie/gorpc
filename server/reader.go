@@ -2,12 +2,15 @@ package server
 
 import (
 	"github.com/hitzhangjie/go-rpc/codec"
+	"github.com/hitzhangjie/go-rpc/errs"
+	"github.com/hitzhangjie/go-rpc/transport"
+
 	"net"
 	"sync"
 	"time"
 )
 
-var bufferPool = &sync.Pool{
+var DefaultBufferPool = &sync.Pool{
 	New: func() interface{} {
 		// make sure `len` of allocated buffer is not zero,
 		// otherwise conn.Read(...) returns immediately.
@@ -29,12 +32,12 @@ func NewTcpMessageReader(codec codec.Codec) *TcpMessageReader {
 	return r
 }
 
-func (r *TcpMessageReader) Read(ep *TcpEndPoint) error {
+func (r *TcpMessageReader) Read(ep *transport.TcpEndPoint) error {
 
 	defer func() {
 		ep.Conn.Close()
-		bufferPool.Put(ep.buf)
-		close(ep.reqCh)
+		DefaultBufferPool.Put(ep.Buf)
+		close(ep.ReqCh)
 	}()
 
 	var (
@@ -46,14 +49,14 @@ func (r *TcpMessageReader) Read(ep *TcpEndPoint) error {
 	for {
 		// check if server to be Closed
 		select {
-		case <-ep.ctx.Done():
-			return errServerCtxDone
+		case <-ep.Ctx.Done():
+			return errs.ErrServerCtxDone
 		default:
 		}
 
 		// fixme conn read deadline
 		ep.Conn.SetReadDeadline(time.Now().Add(time.Second * 30))
-		if readsz, err = ep.Conn.Read(ep.buf[buflen:]); err != nil {
+		if readsz, err = ep.Conn.Read(ep.Buf[buflen:]); err != nil {
 			// fixme check tcpconn idle & release
 			if e, ok := err.(net.Error); ok && e.Temporary() {
 				time.Sleep(time.Millisecond * 10)
@@ -64,7 +67,7 @@ func (r *TcpMessageReader) Read(ep *TcpEndPoint) error {
 		buflen += readsz
 
 		// decode请求
-		req, sz, err := r.Codec.Decode(ep.buf[0:buflen])
+		req, sz, err := r.Codec.Decode(ep.Buf[0:buflen])
 		if err != nil {
 			if err == codec.CodecReadIncomplete {
 				continue
@@ -73,8 +76,8 @@ func (r *TcpMessageReader) Read(ep *TcpEndPoint) error {
 			return err
 		}
 
-		ep.reqCh <- req
-		ep.buf = ep.buf[sz:]
+		ep.ReqCh <- req
+		ep.Buf = ep.Buf[sz:]
 		buflen -= sz
 	}
 }
@@ -93,12 +96,12 @@ func NewUdpMessageReader(codec codec.Codec) *UdpMessageReader {
 	return r
 }
 
-func (r *UdpMessageReader) Read(ep *UdpEndPoint) error {
+func (r *UdpMessageReader) Read(ep *transport.UdpEndPoint) error {
 
 	defer func() {
 		ep.Conn.Close()
-		bufferPool.Put(ep.buf)
-		close(ep.reqCh)
+		DefaultBufferPool.Put(ep.Buf)
+		close(ep.ReqCh)
 	}()
 
 	var (
@@ -109,14 +112,14 @@ func (r *UdpMessageReader) Read(ep *UdpEndPoint) error {
 	for {
 		// check if server to be Closed
 		select {
-		case <-ep.ctx.Done():
-			return errServerCtxDone
+		case <-ep.Ctx.Done():
+			return errs.ErrServerCtxDone
 		default:
 		}
 
 		// fixme conn read deadline
 		ep.Conn.SetReadDeadline(time.Now().Add(time.Second * 30))
-		if readsz, err = ep.Conn.Read(ep.buf); err != nil {
+		if readsz, err = ep.Conn.Read(ep.Buf); err != nil {
 			// fixme check Udpconn idle & release
 			if e, ok := err.(net.Error); ok && e.Temporary() {
 				time.Sleep(time.Millisecond * 10)
@@ -125,11 +128,11 @@ func (r *UdpMessageReader) Read(ep *UdpEndPoint) error {
 			return err
 		}
 		// decode请求
-		req, _, err := r.Codec.Decode(ep.buf[0:readsz])
+		req, _, err := r.Codec.Decode(ep.Buf[0:readsz])
 		if err != nil {
 			return err
 		}
 
-		ep.reqCh <- req
+		ep.ReqCh <- req
 	}
 }

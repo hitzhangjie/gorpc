@@ -4,14 +4,14 @@ import (
 	"github.com/hitzhangjie/go-rpc/router"
 )
 
-type options struct {
-	router *router.Router
+type Options struct {
+	Router *router.Router
 }
 
-type Option func(*options)
+type Option func(*Options)
 
 func WithRouter(r *router.Router) Option {
-	return func(opts *options) {
-		opts.router = r
+	return func(opts *Options) {
+		opts.Router = r
 	}
 }

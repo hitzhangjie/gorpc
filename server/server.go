@@ -2,14 +2,10 @@ package server
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"os"
-	"os/signal"
 	"sync"
-	"syscall"
 
 	"github.com/hitzhangjie/go-rpc/router"
+	"github.com/hitzhangjie/go-rpc/transport"
 )
 
 // Service represents a server instance (a server process),
@@ -19,14 +15,14 @@ import (
 // By this way, we can implement more modules to extend server's abilities.
 type Service struct {
 	name   string
-	ctx    context.Context
+	Ctx    context.Context
 	cancel context.CancelFunc
-	opts   *options
+	opts   *Options
 
-	mods []Transport
-	lock *sync.Mutex
+	Mods []transport.Transport
+	Lock *sync.Mutex
 
-	router    *router.Router
+	Router    *router.Router
 	startOnce sync.Once
 	stopOnce  sync.Once
 	closed    chan (struct{})
@@ -37,15 +33,15 @@ func NewService(name string, opts ...Option) *Service {
 
 	s := &Service{
 		name:      name,
-		opts:      &options{},
-		mods:      []Transport{},
-		lock:      &sync.Mutex{},
-		router:    router.NewRouter(),
+		opts:      &Options{},
+		Mods:      []transport.Transport{},
+		Lock:      &sync.Mutex{},
+		Router:    router.NewRouter(),
 		startOnce: sync.Once{},
 		stopOnce:  sync.Once{},
 		closed:    make(chan struct{}, 1),
 	}
-	s.ctx, s.cancel = context.WithCancel(context.TODO())
+	s.Ctx, s.cancel = context.WithCancel(context.TODO())
 
 	for _, o := range opts {
 		o(s.opts)
@@ -53,15 +49,15 @@ func NewService(name string, opts ...Option) *Service {
 	return s
 }
 
-func (s *Service) ListenAndServe(net, addr, codec string, opts ...Option) error {
+func (s *Service) ListenAndServe(ctx context.Context, net, addr, codec string, opts ...Option) error {
 
 	var (
-		mod Transport
+		mod transport.Transport
 		err error
 	)
 
 	if net == "tcp" || net == "tcp4" || net == "tcp6" {
-		mod, err = NewTcpServerTransport(net, addr, codec, opts...)
+		mod, err = transport.NewTcpServerTransport(ctx, net, addr, codec, opts...)
 		if err != nil {
 			return err
 		}
@@ -69,77 +65,79 @@ func (s *Service) ListenAndServe(net, addr, codec string, opts ...Option) error 
 	}
 
 	if net == "udp" || net == "udp4" || net == "udp6" {
-		mod, err = NewUdpServerTransport(net, addr, codec, opts...)
+		mod, err = transport.NewUdpServerTransport(ctx, net, addr, codec, opts...)
 		if err != nil {
 			return err
 		}
 	}
 
-	s.lock.Lock()
-	s.mods = append(s.mods, mod)
-	s.lock.Unlock()
+	s.Lock.Lock()
+	s.Mods = append(s.Mods, mod)
+	s.Lock.Unlock()
+
+	go mod.ListenAndServe()
 
 	return nil
 }
 
-func (s *Service) ServerModules() []Transport {
-	return s.mods
+func (s *Service) ServerModules() []transport.Transport {
+	return s.Mods
 }
 
 // ListenAndServe starts every Transport, after this, Service may be registered to remote naming service
-func (s *Service) Start() error {
-
-	if len(s.mods) == 0 {
-		return errors.New("server: no modules registered")
-	}
-
-	var err error
-
-	s.startOnce.Do(func() {
-		cherr := make(chan error, len(s.mods))
-		chok := make(chan struct{}, len(s.mods))
-
-		wg := sync.WaitGroup{}
-
-		// start all server mods
-		for _, m := range s.mods {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				if err := m.ListenAndServe(); err != nil && err != errServerCtxDone {
-					cherr <- err
-				} else {
-					chok <- struct{}{}
-				}
-			}()
-		}
-
-		// process stop signals to exit
-		go func() {
-			chexit := make(chan os.Signal)
-			signal.Notify(chexit, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL)
-			<-chexit
-
-			println("server: got stop signal")
-			s.stop()
-			println("server: server stopped")
-		}()
-
-		// wait all server mods exit
-		wg.Wait()
-
-		select {
-		case err = <-cherr:
-			err = fmt.Errorf("server: inner module error: %v", err)
-		default:
-			println("server: ready to stop")
-		}
-		println("server: stopped")
-
-	})
-
-	return err
-}
+//func (s *Service) Start() error {
+//
+//	if len(s.Mods) == 0 {
+//		return errors.New("server: no modules registered")
+//	}
+//
+//	var err error
+//
+//	s.startOnce.Do(func() {
+//		cherr := make(chan error, len(s.Mods))
+//		chok := make(chan struct{}, len(s.Mods))
+//
+//		wg := sync.WaitGroup{}
+//
+//		// start all server Mods
+//		for _, m := range s.Mods {
+//			wg.Add(1)
+//			go func() {
+//				defer wg.Done()
+//				if err := m.ListenAndServe(); err != nil && err != errServerCtxDone {
+//					cherr <- err
+//				} else {
+//					chok <- struct{}{}
+//				}
+//			}()
+//		}
+//
+//		// process stop signals to exit
+//		go func() {
+//			chexit := make(chan os.Signal)
+//			signal.Notify(chexit, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL)
+//			<-chexit
+//
+//			println("server: got stop signal")
+//			s.stop()
+//			println("server: server stopped")
+//		}()
+//
+//		// wait all server Mods exit
+//		wg.Wait()
+//
+//		select {
+//		case err = <-cherr:
+//			err = fmt.Errorf("server: inner module error: %v", err)
+//		default:
+//			println("server: ready to stop")
+//		}
+//		println("server: stopped")
+//
+//	})
+//
+//	return err
+//}
 
 // stop stop all server modules, server exit.
 func (s *Service) stop() {
@@ -149,7 +147,7 @@ func (s *Service) stop() {
 		s.cancel()
 
 		wg := sync.WaitGroup{}
-		for _, m := range s.mods {
+		for _, m := range s.Mods {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()

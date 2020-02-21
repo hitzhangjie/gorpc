@@ -1,4 +1,4 @@
-package server
+package transport
 
 import (
 	"context"
@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/hitzhangjie/go-rpc/codec"
+	"github.com/hitzhangjie/go-rpc/errs"
+	"github.com/hitzhangjie/go-rpc/server"
 )
 
 // TcpServerTransport
@@ -19,7 +21,7 @@ type TcpServerTransport struct {
 	addr string
 
 	codec  codec.Codec
-	reader *TcpMessageReader
+	reader *server.TcpMessageReader
 
 	//reqChan chan interface{}
 	//reqChan chan codec.Session
@@ -30,15 +32,16 @@ type TcpServerTransport struct {
 	once   sync.Once
 	closed chan struct{}
 
-	opts *options
+	opts *server.Options
 }
 
 const (
 	tcpServerRspChanMaxLength = 1024
 )
 
-func NewTcpServerTransport(net, addr, codecName string, opts ...Option) (Transport, error) {
-	ctx, cancel := context.WithCancel(context.TODO())
+func NewTcpServerTransport(ctx context.Context, net, addr, codecName string, opts ...server.Option) (Transport, error) {
+
+	ctx, cancel := context.WithCancel(ctx)
 	c := codec.ServerCodec(codecName)
 
 	s := &TcpServerTransport{
@@ -47,13 +50,11 @@ func NewTcpServerTransport(net, addr, codecName string, opts ...Option) (Transpo
 		net:    net,
 		addr:   addr,
 		codec:  c,
-		reader: NewTcpMessageReader(c),
+		reader: server.NewTcpMessageReader(c),
 		//rspChan: make(chan codec.Session, tcpServerRspChanMaxLength),
 		once:   sync.Once{},
 		closed: make(chan struct{}, 1),
-		opts: &options{
-			router: nil,
-		},
+		opts:   &server.Options{},
 	}
 	for _, o := range opts {
 		o(s.opts)
@@ -76,10 +77,10 @@ func (s *TcpServerTransport) ListenAndServe() error {
 	return err
 }
 
-func (s *TcpServerTransport) Register(svr *Service) {
-	s.ctx, s.cancel = context.WithCancel(svr.ctx)
-	s.opts.router = svr.router
-	svr.mods = append(svr.mods, s)
+func (s *TcpServerTransport) Register(svr *server.Service) {
+	s.ctx, s.cancel = context.WithCancel(svr.Ctx)
+	s.opts.Router = svr.Router
+	svr.Mods = append(svr.Mods, s)
 }
 
 func (s *TcpServerTransport) serve(l net.Listener) error {
@@ -93,7 +94,7 @@ func (s *TcpServerTransport) serve(l net.Listener) error {
 		// check whether server Closed
 		select {
 		case <-s.ctx.Done():
-			return errServerCtxDone
+			return errs.ErrServerCtxDone
 		default:
 		}
 		// accept tcpconn
@@ -113,7 +114,7 @@ func (s *TcpServerTransport) serve(l net.Listener) error {
 			s.reader,
 			nil,
 			nil,
-			bufferPool.Get().([]byte),
+			server.DefaultBufferPool.Get().([]byte),
 		}
 		ep.ctx, ep.cancel = context.WithCancel(s.ctx)
 

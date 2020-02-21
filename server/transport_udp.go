@@ -2,14 +2,15 @@ package server
 
 import (
 	"context"
-	"github.com/hitzhangjie/go-rpc/codec"
 	"net"
 	"sync"
 	"time"
+
+	"github.com/hitzhangjie/go-rpc/codec"
 )
 
-// UdpServerModule
-type UdpServerModule struct {
+// UdpServerTransport
+type UdpServerTransport struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
@@ -28,9 +29,9 @@ type UdpServerModule struct {
 	opts *options
 }
 
-func NewUdpServerModule(net, addr string, codecName string, opts ...Option) (ServerModule, error) {
+func NewUdpServerTransport(net, addr string, codecName string, opts ...Option) (Transport, error) {
 	c := codec.ServerCodec(codecName)
-	s := &UdpServerModule{
+	s := &UdpServerTransport{
 		net:    net,
 		addr:   addr,
 		codec:  c,
@@ -45,7 +46,7 @@ func NewUdpServerModule(net, addr string, codecName string, opts ...Option) (Ser
 	return s, nil
 }
 
-func (s *UdpServerModule) Start() error {
+func (s *UdpServerTransport) ListenAndServe() error {
 
 	var (
 		udpconn *net.UDPConn
@@ -90,18 +91,18 @@ func (s *UdpServerModule) Start() error {
 	return nil
 }
 
-func (s *UdpServerModule) Register(svr *Service) {
+func (s *UdpServerTransport) Register(svr *Service) {
 	s.ctx, s.cancel = context.WithCancel(svr.ctx)
 	s.opts.router = svr.router
 	svr.mods = append(svr.mods, s)
 }
 
-func (s *UdpServerModule) Closed() <-chan struct{} {
+func (s *UdpServerTransport) Closed() <-chan struct{} {
 	return s.closed
 }
 
-// fixme this method `proc` appears in TcpServerModule, too. That's unnessary, refactor this
-func (s *UdpServerModule) proc(reqCh <-chan interface{}, rspCh chan<- interface{}) {
+// fixme this method `proc` appears in TcpServerTransport, too. That's unnessary, refactor this
+func (s *UdpServerTransport) proc(reqCh <-chan interface{}, rspCh chan<- interface{}) {
 
 	builder := codec.GetSessionBuilder(s.reader.Codec.Name())
 
@@ -140,4 +141,16 @@ func (s *UdpServerModule) proc(reqCh <-chan interface{}, rspCh chan<- interface{
 			}()
 		}
 	}
+}
+
+func (s *UdpServerTransport) Network() string {
+	return s.net
+}
+
+func (s *UdpServerTransport) Address() string {
+	return s.addr
+}
+
+func (s *UdpServerTransport) Codec() string {
+	return s.codec.Name()
 }

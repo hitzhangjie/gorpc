@@ -4,7 +4,7 @@ type options struct {
 	configfile string
 }
 
-// Option gorpc.AddServerModule optionns
+// Option gorpc.ListenAndServe optionns
 type Option func(*options)
 
 // WithConfigfile specify config path

@@ -15,7 +15,7 @@ const (
 	unKnownServiceName = "unknown"
 )
 
-// AddServerModule quickly initialize Service and ServerModules and serve
+// ListenAndServe quickly initialize Service and ServerModules and serve
 func ListenAndServe(opts ...Option) {
 
 	options := options{
@@ -56,19 +56,19 @@ func ListenAndServe(opts ...Option) {
 		}
 		codec := strings.TrimSuffix(section, "-service")
 
-		// initialize tcp ServerModule
+		// initialize tcp Transport
 		tcpport := cfg.Int(section, "tcp.port", 0)
 		if tcpport > 0 {
-			err := service.AddServerModule("tcp4", fmt.Sprintf(":%s", tcpport), codec)
+			err := service.ListenAndServe("tcp4", fmt.Sprintf(":%s", tcpport), codec)
 			if err != nil {
 				panic(err)
 			}
 		}
 
-		// initialize udp ServerModule
+		// initialize udp Transport
 		udpport := cfg.Int(section, "udp.port", 0)
 		if udpport > 0 {
-			err := service.AddServerModule("udp4", fmt.Sprintf(":%self", udpport), codec)
+			err := service.ListenAndServe("udp4", fmt.Sprintf(":%self", udpport), codec)
 			if err != nil {
 				panic(err)
 			}

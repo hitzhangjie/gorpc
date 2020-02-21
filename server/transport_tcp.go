@@ -10,8 +10,8 @@ import (
 	"github.com/hitzhangjie/go-rpc/codec"
 )
 
-// TcpServerModule
-type TcpServerModule struct {
+// TcpServerTransport
+type TcpServerTransport struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
@@ -37,11 +37,11 @@ const (
 	tcpServerRspChanMaxLength = 1024
 )
 
-func NewTcpServerModule(net, addr, codecName string, opts ...Option) (ServerModule, error) {
+func NewTcpServerTransport(net, addr, codecName string, opts ...Option) (Transport, error) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	c := codec.ServerCodec(codecName)
 
-	s := &TcpServerModule{
+	s := &TcpServerTransport{
 		ctx:    ctx,
 		cancel: cancel,
 		net:    net,
@@ -61,7 +61,7 @@ func NewTcpServerModule(net, addr, codecName string, opts ...Option) (ServerModu
 	return s, nil
 }
 
-func (s *TcpServerModule) Start() error {
+func (s *TcpServerTransport) ListenAndServe() error {
 
 	l, err := net.Listen(s.net, s.addr)
 	if err != nil {
@@ -76,13 +76,13 @@ func (s *TcpServerModule) Start() error {
 	return err
 }
 
-func (s *TcpServerModule) Register(svr *Service) {
+func (s *TcpServerTransport) Register(svr *Service) {
 	s.ctx, s.cancel = context.WithCancel(svr.ctx)
 	s.opts.router = svr.router
 	svr.mods = append(svr.mods, s)
 }
 
-func (s *TcpServerModule) serve(l net.Listener) error {
+func (s *TcpServerTransport) serve(l net.Listener) error {
 
 	defer func() {
 		s.cancel()
@@ -124,7 +124,7 @@ func (s *TcpServerModule) serve(l net.Listener) error {
 	}
 }
 
-func (s *TcpServerModule) proc(reqCh <-chan interface{}, rspCh chan<- interface{}) {
+func (s *TcpServerTransport) proc(reqCh <-chan interface{}, rspCh chan<- interface{}) {
 
 	builder := codec.GetSessionBuilder(s.reader.Codec.Name())
 
@@ -174,6 +174,18 @@ func (s *TcpServerModule) proc(reqCh <-chan interface{}, rspCh chan<- interface{
 	}
 }
 
-func (s *TcpServerModule) Closed() <-chan struct{} {
+func (s *TcpServerTransport) Closed() <-chan struct{} {
 	return s.closed
+}
+
+func (s *TcpServerTransport) Network() string {
+	return s.net
+}
+
+func (s *TcpServerTransport) Address() string {
+	return s.addr
+}
+
+func (s *TcpServerTransport) Codec() string {
+	return s.codec.Name()
 }

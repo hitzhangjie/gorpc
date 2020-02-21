@@ -28,11 +28,11 @@ func main() {
 			return pbrsp, nil
 		})
 
-		tcpSvr, err := server.NewTcpServerModule("tcp4", "127.0.0.1:8888", whisper.Whisper, server.WithRouter(r))
+		tcpSvr, err := server.NewTcpServerTransport("tcp4", "127.0.0.1:8888", whisper.Whisper, server.WithRouter(r))
 		if err != nil {
 			panic(err)
 		}
-		tcpSvr.Start()
+		tcpSvr.ListenAndServe()
 	}()
 
 	// client

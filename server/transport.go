@@ -1,8 +1,8 @@
 package server
 
-// ServerModule
-type ServerModule interface {
-	Start() error
+// Transport
+type Transport interface {
+	ListenAndServe() error
 	Register(*Service)
 	Closed() <-chan struct{}
 	Network() string

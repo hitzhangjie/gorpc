@@ -15,7 +15,7 @@ import (
 // Service represents a server instance (a server process),
 //
 // Any server can include more than one service, i.e, any server can be
-// plugged into multile modules, like TcpServerModule, UdpServerModule, Broker, etc.
+// plugged into multile modules, like TcpServerTransport, UdpServerTransport, Broker, etc.
 // By this way, we can implement more modules to extend server's abilities.
 type Service struct {
 	name   string
@@ -23,7 +23,7 @@ type Service struct {
 	cancel context.CancelFunc
 	opts   *options
 
-	mods []ServerModule
+	mods []Transport
 	lock *sync.Mutex
 
 	router    *router.Router
@@ -38,7 +38,7 @@ func NewService(name string, opts ...Option) *Service {
 	s := &Service{
 		name:      name,
 		opts:      &options{},
-		mods:      []ServerModule{},
+		mods:      []Transport{},
 		lock:      &sync.Mutex{},
 		router:    router.NewRouter(),
 		startOnce: sync.Once{},
@@ -53,15 +53,15 @@ func NewService(name string, opts ...Option) *Service {
 	return s
 }
 
-func (s *Service) AddServerModule(net, addr, codec string, opts ...Option) error {
+func (s *Service) ListenAndServe(net, addr, codec string, opts ...Option) error {
 
 	var (
-		mod ServerModule
+		mod Transport
 		err error
 	)
 
 	if net == "tcp" || net == "tcp4" || net == "tcp6" {
-		mod, err = NewTcpServerModule(net, addr, codec, opts...)
+		mod, err = NewTcpServerTransport(net, addr, codec, opts...)
 		if err != nil {
 			return err
 		}
@@ -69,7 +69,7 @@ func (s *Service) AddServerModule(net, addr, codec string, opts ...Option) error
 	}
 
 	if net == "udp" || net == "udp4" || net == "udp6" {
-		mod, err = NewUdpServerModule(net, addr, codec, opts...)
+		mod, err = NewUdpServerTransport(net, addr, codec, opts...)
 		if err != nil {
 			return err
 		}
@@ -82,11 +82,11 @@ func (s *Service) AddServerModule(net, addr, codec string, opts ...Option) error
 	return nil
 }
 
-func (s *Service) ServerModules() []ServerModule {
+func (s *Service) ServerModules() []Transport {
 	return s.mods
 }
 
-// Start starts every ServerModule, after this, Service may be registered to remote naming service
+// ListenAndServe starts every Transport, after this, Service may be registered to remote naming service
 func (s *Service) Start() error {
 
 	if len(s.mods) == 0 {
@@ -106,7 +106,7 @@ func (s *Service) Start() error {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				if err := m.Start(); err != nil && err != errServerCtxDone {
+				if err := m.ListenAndServe(); err != nil && err != errServerCtxDone {
 					cherr <- err
 				} else {
 					chok <- struct{}{}

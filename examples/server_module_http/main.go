@@ -11,13 +11,13 @@ func main() {
 		panic(err)
 	}
 
-	tcpSvr, err := server.NewTcpServer("tcp4", "127.0.0.1:8888", whisper.Whisper)
+	tcpSvr, err := server.NewTcpServerModule("tcp4", "127.0.0.1:8888", whisper.Whisper)
 	if err != nil {
 		panic(err)
 	}
 	tcpSvr.Register(svr)
 
-	udpSvr, err := server.NewUdpServer("udp4", "127.0.0.1:8888", whisper.Whisper)
+	udpSvr, err := server.NewUdpServerModule("udp4", "127.0.0.1:8888", whisper.Whisper)
 	if err != nil {
 		panic(err)
 	}

@@ -10,8 +10,8 @@ import (
 	"github.com/hitzhangjie/go-rpc/codec"
 )
 
-// TcpServer
-type TcpServer struct {
+// TcpServerModule
+type TcpServerModule struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
@@ -30,18 +30,18 @@ type TcpServer struct {
 	once   sync.Once
 	closed chan struct{}
 
-	opts *Options
+	opts *options
 }
 
 const (
 	tcpServerRspChanMaxLength = 1024
 )
 
-func NewTcpServer(net, addr string, codecName string, opts ...Option) (ServerModule, error) {
+func NewTcpServerModule(net, addr string, codecName string, opts ...Option) (ServerModule, error) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	c := codec.ServerCodec(codecName)
 
-	s := &TcpServer{
+	s := &TcpServerModule{
 		ctx:    ctx,
 		cancel: cancel,
 		net:    net,
@@ -51,7 +51,7 @@ func NewTcpServer(net, addr string, codecName string, opts ...Option) (ServerMod
 		//rspChan: make(chan codec.Session, tcpServerRspChanMaxLength),
 		once:   sync.Once{},
 		closed: make(chan struct{}, 1),
-		opts: &Options{
+		opts: &options{
 			router: nil,
 		},
 	}
@@ -61,7 +61,7 @@ func NewTcpServer(net, addr string, codecName string, opts ...Option) (ServerMod
 	return s, nil
 }
 
-func (s *TcpServer) Start() error {
+func (s *TcpServerModule) Start() error {
 
 	l, err := net.Listen(s.net, s.addr)
 	if err != nil {
@@ -70,7 +70,7 @@ func (s *TcpServer) Start() error {
 	return s.serve(l)
 }
 
-func (s *TcpServer) Stop() {
+func (s *TcpServerModule) Stop() {
 
 	s.cancel()
 
@@ -79,13 +79,13 @@ func (s *TcpServer) Stop() {
 	})
 }
 
-func (s *TcpServer) Register(svr *Server) {
+func (s *TcpServerModule) Register(svr *Server) {
 	s.ctx, s.cancel = context.WithCancel(svr.ctx)
 	s.opts.router = svr.router
 	svr.mods = append(svr.mods, s)
 }
 
-func (s *TcpServer) serve(l net.Listener) error {
+func (s *TcpServerModule) serve(l net.Listener) error {
 
 	defer func() {
 		s.cancel()
@@ -93,7 +93,7 @@ func (s *TcpServer) serve(l net.Listener) error {
 	}()
 
 	for {
-		// check whether server closed
+		// check whether server Closed
 		select {
 		case <-s.ctx.Done():
 			return errServerCtxDone
@@ -127,7 +127,7 @@ func (s *TcpServer) serve(l net.Listener) error {
 	}
 }
 
-func (s *TcpServer) proc(reqCh <-chan interface{}, rspCh chan<- interface{}) {
+func (s *TcpServerModule) proc(reqCh <-chan interface{}, rspCh chan<- interface{}) {
 
 	builder := codec.GetSessionBuilder(s.reader.Codec.Name())
 
@@ -138,7 +138,7 @@ func (s *TcpServer) proc(reqCh <-chan interface{}, rspCh chan<- interface{}) {
 			return
 		case req, ok := <-reqCh:
 			if !ok {
-				log.Printf("one endpoint.reqCh is closed")
+				log.Printf("one endpoint.reqCh is Closed")
 				return
 			}
 			// build session
@@ -177,6 +177,6 @@ func (s *TcpServer) proc(reqCh <-chan interface{}, rspCh chan<- interface{}) {
 	}
 }
 
-func (s *TcpServer) Closed() <-chan struct{} {
+func (s *TcpServerModule) Closed() <-chan struct{} {
 	return s.closed
 }

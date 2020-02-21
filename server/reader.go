@@ -44,7 +44,7 @@ func (r *TcpMessageReader) Read(ep *TcpEndPoint) error {
 	)
 
 	for {
-		// check if server to be closed
+		// check if server to be Closed
 		select {
 		case <-ep.ctx.Done():
 			return errServerCtxDone
@@ -107,7 +107,7 @@ func (r *UdpMessageReader) Read(ep *UdpEndPoint) error {
 	)
 
 	for {
-		// check if server to be closed
+		// check if server to be Closed
 		select {
 		case <-ep.ctx.Done():
 			return errServerCtxDone

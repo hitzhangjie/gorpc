@@ -41,7 +41,7 @@ func ListenAndServe(opts ...server.Option) {
 		// initialize tcp ServerModule
 		tcpport := cfg.Int(section, "tcp.port", 0)
 		if tcpport > 0 {
-			mod, err := server.NewTcpServer("tcp4", fmt.Sprintf(":%d", tcpport), codec)
+			mod, err := server.NewTcpServerModule("tcp4", fmt.Sprintf(":%d", tcpport), codec)
 			if err != nil {
 				panic(err)
 			}
@@ -51,7 +51,7 @@ func ListenAndServe(opts ...server.Option) {
 		// initialize udp ServerModule
 		udpport := cfg.Int(section, "udp.port", 0)
 		if udpport > 0 {
-			mod, err := server.NewTcpServer("udp4", fmt.Sprintf(":%d", udpport), codec)
+			mod, err := server.NewTcpServerModule("udp4", fmt.Sprintf(":%d", udpport), codec)
 			if err != nil {
 				panic(err)
 			}

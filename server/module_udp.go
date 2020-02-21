@@ -8,8 +8,8 @@ import (
 	"time"
 )
 
-// UdpServer
-type UdpServer struct {
+// UdpServerModule
+type UdpServerModule struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
@@ -25,19 +25,19 @@ type UdpServer struct {
 	once   sync.Once
 	closed chan struct{}
 
-	opts *Options
+	opts *options
 }
 
-func NewUdpServer(net, addr string, codecName string, opts ...Option) (ServerModule, error) {
+func NewUdpServerModule(net, addr string, codecName string, opts ...Option) (ServerModule, error) {
 	c := codec.ServerCodec(codecName)
-	s := &UdpServer{
+	s := &UdpServerModule{
 		net:    net,
 		addr:   addr,
 		codec:  c,
 		reader: NewUdpMessageReader(c),
 		once:   sync.Once{},
 		closed: make(chan struct{}, 1),
-		opts:   &Options{},
+		opts:   &options{},
 	}
 	for _, o := range opts {
 		o(s.opts)
@@ -45,7 +45,7 @@ func NewUdpServer(net, addr string, codecName string, opts ...Option) (ServerMod
 	return s, nil
 }
 
-func (s *UdpServer) Start() error {
+func (s *UdpServerModule) Start() error {
 
 	var (
 		udpconn *net.UDPConn
@@ -87,24 +87,24 @@ func (s *UdpServer) Start() error {
 	return nil
 }
 
-func (s *UdpServer) Stop() {
+func (s *UdpServerModule) Stop() {
 	s.once.Do(func() {
 		close(s.closed)
 	})
 }
 
-func (s *UdpServer) Register(svr *Server) {
+func (s *UdpServerModule) Register(svr *Server) {
 	s.ctx, s.cancel = context.WithCancel(svr.ctx)
 	s.opts.router = svr.router
 	svr.mods = append(svr.mods, s)
 }
 
-func (s *UdpServer) Closed() <-chan struct{} {
+func (s *UdpServerModule) Closed() <-chan struct{} {
 	return s.closed
 }
 
-// fixme this method `proc` appears in TcpServer, too. That's unnessary, refactor this
-func (s *UdpServer) proc(reqCh <-chan interface{}, rspCh chan<- interface{}) {
+// fixme this method `proc` appears in TcpServerModule, too. That's unnessary, refactor this
+func (s *UdpServerModule) proc(reqCh <-chan interface{}, rspCh chan<- interface{}) {
 
 	builder := codec.GetSessionBuilder(s.reader.Codec.Name())
 

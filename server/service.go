@@ -1,30 +1,21 @@
 package server
 
-// Service represents a service running somewhere, maybe deployed in multi-hosts or in Cloud.
+// In gorpc framework, you have more than one method to quickly start a server.
 //
-// Service vs Server, these terms, as I see, they're two different views of running service.
-// - Server, it'svr a running process or instance.
-// - Service, it'svr deployed in public environment and provides service via `naming mechanism`.
+// 	Method1: use `gorpc.ListenAndServe()`
+//	This method read conf/service.ini and start `ServerModules` defined in `service.ini`.
+//  Also, it'll register to remote naming service if information of naming service provided.
 //
-// In go-rpc, you can start a `Server` via a `server.NewTcpServer()` or `server.NewUdpServer()`,
-// If you want to register this service to remote naming service, you can use:
-//
-// 	method1:
-//		```go
-// 		gorpc.NewService()
-//		```
-//		`gorpc.NewService()` read configuration file service.ini and start `ServerModules` defined in `service.ini`.
-//
-// 	method2:
-//		```go
-// 		service := gorpc.NewService(name)
-// 		service.RegisterServer(&server)
-//		```
+// 	method2: explicity create a `server` and
+//	```go
+// 	service := gorpc.NewService(name)
+// 	service.RegisterServer(&server)
+//	```
 //
 // method3:
 //		```go
-//		tcpSvr := NewTcpServer(...)
-//		udpSvr := NewUdpServer(...)
+//		tcpSvr := NewTcpServerModule(...)
+//		udpSvr := NewUdpServerModule(...)
 //		service := gorpc.NewService(name)
 //		service.RegisterModule(tcpSvr)
 //		```
@@ -81,10 +72,6 @@ func (s *Service) Start() error {
 }
 
 func (s *Service) RegisterServer(svr *Server) {
-	panic("implement me")
-}
-
-func (s *Service) RegisterSModule(mod *ServerModule) {
 	panic("implement me")
 }
 

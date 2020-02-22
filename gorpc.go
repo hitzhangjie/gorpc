@@ -23,19 +23,7 @@ func ListenAndServe(opts ...Option) {
 	}
 
 	// parse config
-	fp := options.configfile
-	if !filepath.IsAbs(options.configfile) {
-
-		self, err := os.Executable()
-		if err != nil {
-			panic(err)
-		}
-		dir, _ := filepath.Split(self)
-		fp = filepath.Join(dir, options.configfile)
-	}
-
-	// load config
-	cfg, err := config.LoadIniConfig(fp)
+	cfg, err := loadConfig(options.configfile)
 	if err != nil {
 		panic(err)
 	}
@@ -83,4 +71,24 @@ func ListenAndServe(opts ...Option) {
 			// fixme nameing service register this mod.Net+mod.Address+mod.Codec
 		}
 	}
+}
+
+func loadConfig(fp string) (*config.IniConfig, error) {
+
+	if !filepath.IsAbs(fp) {
+		self, err := os.Executable()
+		if err != nil {
+			return nil, err
+		}
+		dir, _ := filepath.Split(self)
+		fp = filepath.Join(dir, fp)
+	}
+
+	// load config
+	cfg, err := config.LoadIniConfig(fp)
+	if err != nil {
+		return nil, err
+	}
+
+	return cfg, nil
 }

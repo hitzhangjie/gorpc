@@ -10,7 +10,6 @@ import (
 	"github.com/hitzhangjie/go-rpc/codec"
 	"github.com/hitzhangjie/go-rpc/errs"
 	"github.com/hitzhangjie/go-rpc/router"
-	"github.com/hitzhangjie/go-rpc/server"
 )
 
 // TcpServerTransport
@@ -90,11 +89,11 @@ func (s *TcpServerTransport) ListenAndServe() error {
 	return err
 }
 
-func (s *TcpServerTransport) Register(svr *server.Service) {
-	s.ctx, s.cancel = context.WithCancel(svr.Ctx)
-	s.opts.Router = svr.Router
-	svr.Mods = append(svr.Mods, s)
-}
+//func (s *TcpServerTransport) Register(svr *server.Service) {
+//	s.ctx, s.cancel = context.WithCancel(svr.Ctx)
+//	s.opts.Router = svr.Router
+//	svr.Mods = append(svr.Mods, s)
+//}
 
 func (s *TcpServerTransport) serve(l net.Listener) error {
 

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/hitzhangjie/go-rpc/codec"
-	"github.com/hitzhangjie/go-rpc/server"
 )
 
 // UdpServerTransport
@@ -93,11 +92,11 @@ func (s *UdpServerTransport) ListenAndServe() error {
 	return nil
 }
 
-func (s *UdpServerTransport) Register(svr *server.Service) {
-	s.ctx, s.cancel = context.WithCancel(svr.Ctx)
-	s.opts.Router = svr.Router
-	svr.Mods = append(svr.Mods, s)
-}
+//func (s *UdpServerTransport) Register(svr *server.Service) {
+//	s.ctx, s.cancel = context.WithCancel(svr.Ctx)
+//	s.opts.Router = svr.Router
+//	svr.Mods = append(svr.Mods, s)
+//}
 
 func (s *UdpServerTransport) Closed() <-chan struct{} {
 	return s.closed

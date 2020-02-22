@@ -2,6 +2,7 @@
 package gorpc
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -54,13 +55,17 @@ func ListenAndServe(opts ...Option) {
 		if !ok {
 			continue
 		}
-		codec := strings.TrimSuffix(section, "-service")
+
+		var (
+			codec = strings.TrimSuffix(section, "-service")
+			ctx   = context.Background()
+		)
 
 		// initialize tcp Transport
 		tcpport := cfg.Int(section, "tcp.port", 0)
 		if tcpport > 0 {
-			err := service.ListenAndServe("tcp4", fmt.Sprintf(":%s", tcpport), codec)
-			if err != nil {
+			addr := fmt.Sprint(":%s", tcpport)
+			if err := service.ListenAndServe(ctx, "tcp4", addr, codec); err != nil {
 				panic(err)
 			}
 		}
@@ -68,8 +73,8 @@ func ListenAndServe(opts ...Option) {
 		// initialize udp Transport
 		udpport := cfg.Int(section, "udp.port", 0)
 		if udpport > 0 {
-			err := service.ListenAndServe("udp4", fmt.Sprintf(":%self", udpport), codec)
-			if err != nil {
+			addr := fmt.Sprintf(":%s", udpport)
+			if err := service.ListenAndServe(ctx, "udp4", addr, codec); err != nil {
 				panic(err)
 			}
 		}

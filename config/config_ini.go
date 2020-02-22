@@ -1,8 +1,9 @@
 package config
 
 import (
-	"gopkg.in/ini.v1"
 	"strings"
+
+	"gopkg.in/ini.v1"
 )
 
 type IniConfig struct {
@@ -18,11 +19,11 @@ func LoadIniConfig(filepath string) (*IniConfig, error) {
 	return &IniConfig{cfg}, nil
 }
 
-func (c *IniConfig) Sections() []string {
+func (c *IniConfig) Sections() []*ini.Section {
 	if c.cfg == nil {
 		return nil
 	}
-	return c.Sections()
+	return c.cfg.Sections()
 }
 
 func (c *IniConfig) String(section, property string, dftValue string) string {

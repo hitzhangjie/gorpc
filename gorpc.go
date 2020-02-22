@@ -47,29 +47,29 @@ func ListenAndServe(opts ...Option) {
 	for _, section := range cfg.Sections() {
 
 		// enable support for protocols
-		ok := strings.HasSuffix(section, "-service")
+		ok := strings.HasSuffix(section.Name(), "-service")
 		if !ok {
 			continue
 		}
 
 		var (
-			codec = strings.TrimSuffix(section, "-service")
+			codec = strings.TrimSuffix(section.Name(), "-service")
 			ctx   = context.Background()
 		)
 
 		// initialize tcp Transport
-		tcpport := cfg.Int(section, "tcp.port", 0)
+		tcpport := cfg.Int(section.Name(), "tcp.port", 0)
 		if tcpport > 0 {
-			addr := fmt.Sprint(":%s", tcpport)
+			addr := fmt.Sprintf(":%d", tcpport)
 			if err := service.ListenAndServe(ctx, "tcp4", addr, codec); err != nil {
 				panic(err)
 			}
 		}
 
 		// initialize udp Transport
-		udpport := cfg.Int(section, "udp.port", 0)
+		udpport := cfg.Int(section.Name(), "udp.port", 0)
 		if udpport > 0 {
-			addr := fmt.Sprintf(":%s", udpport)
+			addr := fmt.Sprintf(":%d", udpport)
 			if err := service.ListenAndServe(ctx, "udp4", addr, codec); err != nil {
 				panic(err)
 			}
@@ -83,6 +83,4 @@ func ListenAndServe(opts ...Option) {
 			// fixme nameing service register this mod.Net+mod.Address+mod.Codec
 		}
 	}
-
-	//service.Start()
 }

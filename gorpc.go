@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/hitzhangjie/go-rpc/config"
+	"github.com/hitzhangjie/go-rpc/registry"
 	"github.com/hitzhangjie/go-rpc/server"
 )
 
@@ -22,54 +23,38 @@ func ListenAndServe(opts ...Option) {
 		o(&options)
 	}
 
-	// parse config
+	// load config
 	cfg, err := loadConfig(options.configfile)
 	if err != nil {
 		panic(err)
 	}
 
-	self, _ := os.Executable()
+	proc := cfg.String("service", "name", "gorpcapp")
+	service := server.NewService(proc)
 
-	service := server.NewService(self)
-
+	// initialize transports, defined in [$codecname-service]
 	for _, section := range cfg.Sections() {
 
-		// enable support for protocols
-		ok := strings.HasSuffix(section.Name(), "-service")
-		if !ok {
+		if ok := strings.HasSuffix(section.Name(), "-service"); !ok {
 			continue
 		}
-
-		var (
-			codec = strings.TrimSuffix(section.Name(), "-service")
-			ctx   = context.Background()
-		)
-
-		// initialize tcp Transport
+		codec := strings.TrimSuffix(section.Name(), "-service")
 		tcpport := cfg.Int(section.Name(), "tcp.port", 0)
-		if tcpport > 0 {
-			addr := fmt.Sprintf(":%d", tcpport)
-			if err := service.ListenAndServe(ctx, "tcp4", addr, codec); err != nil {
-				panic(err)
-			}
-		}
-
-		// initialize udp Transport
 		udpport := cfg.Int(section.Name(), "udp.port", 0)
-		if udpport > 0 {
-			addr := fmt.Sprintf(":%d", udpport)
-			if err := service.ListenAndServe(ctx, "udp4", addr, codec); err != nil {
-				panic(err)
-			}
+
+		if err := initTransport(service, "tcp4", tcpport, codec); err != nil {
+			panic(err)
+		}
+		if err := initTransport(service, "udp4", udpport, codec); err != nil {
+			panic(err)
 		}
 	}
 
 	// register to naming service
-	for _, mod := range service.ServerModules() {
-		section := mod.Codec() + "-service"
-		if name := cfg.String(section, "name", ""); len(name) != 0 {
-			// fixme nameing service register this mod.Net+mod.Address+mod.Codec
-		}
+	registryName := cfg.String("service", "name", "noop")
+	registry := registry.GetRegistry(registryName)
+	if err := registry.Register(service); err != nil {
+		panic(err)
 	}
 }
 
@@ -91,4 +76,25 @@ func loadConfig(fp string) (*config.IniConfig, error) {
 	}
 
 	return cfg, nil
+}
+
+func initTransport(service *server.Service, network string, port int, codec string) error {
+
+	if !(len(network) != 0 &&
+		(network == "tcp" || network == "tcp4" || network == "tcp6") ||
+		(network == "udp" || network == "udp4" || network == "udp6")) {
+		return fmt.Errorf("invalid network: %s", network)
+	}
+
+	if port <= 0 {
+		return fmt.Errorf("invalid port: %d", port)
+	}
+
+	addr := fmt.Sprintf(":%d", port)
+
+	err := service.ListenAndServe(context.Background(), network, addr, codec)
+	if err != nil {
+		return err
+	}
+	return nil
 }

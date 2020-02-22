@@ -1,7 +1,14 @@
 package registry
 
 import (
+	"sync"
+
 	"github.com/hitzhangjie/go-rpc/server"
+)
+
+var (
+	registries = map[string]Registry{}
+	lock       = sync.RWMutex{}
 )
 
 // Registry registry interacts with the remote Nameing Service
@@ -44,3 +51,20 @@ const (
 	ActionTypeUpdate
 	ActionTypeDelete
 )
+
+func RegisterRegistry(name string, registry Registry) {
+	lock.Lock()
+	registries[name] = registry
+	lock.Unlock()
+}
+
+func GetRegistry(name string) Registry {
+	lock.RLock()
+	defer lock.RUnlock()
+
+	v, ok := registries[name]
+	if !ok {
+		return nil
+	}
+	return v
+}

@@ -9,6 +9,7 @@ import (
 
 	"github.com/hitzhangjie/go-rpc/codec"
 	"github.com/hitzhangjie/go-rpc/errs"
+	"github.com/hitzhangjie/go-rpc/router"
 	"github.com/hitzhangjie/go-rpc/server"
 )
 
@@ -32,14 +33,26 @@ type TcpServerTransport struct {
 	once   sync.Once
 	closed chan struct{}
 
-	opts *server.Options
+	opts *options
 }
 
 const (
 	tcpServerRspChanMaxLength = 1024
 )
 
-func NewTcpServerTransport(ctx context.Context, net, addr, codecName string, opts ...server.Option) (Transport, error) {
+type options struct {
+	Router *router.Router
+}
+
+type Option func(*options)
+
+func WithRouter(router *router.Router) Option {
+	return func(opts *options) {
+		opts.Router = router
+	}
+}
+
+func NewTcpServerTransport(ctx context.Context, net, addr, codecName string, opts ...Option) (Transport, error) {
 
 	ctx, cancel := context.WithCancel(ctx)
 	c := codec.ServerCodec(codecName)
@@ -54,7 +67,7 @@ func NewTcpServerTransport(ctx context.Context, net, addr, codecName string, opt
 		//rspChan: make(chan codec.Session, tcpServerRspChanMaxLength),
 		once:   sync.Once{},
 		closed: make(chan struct{}, 1),
-		opts:   &server.Options{},
+		opts:   &options{},
 	}
 	for _, o := range opts {
 		o(s.opts)

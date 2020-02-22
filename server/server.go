@@ -56,8 +56,19 @@ func (s *Service) ListenAndServe(ctx context.Context, net, addr, codec string, o
 		err error
 	)
 
+	options := Options{}
+	for _, o := range opts {
+		o(&options)
+	}
+
+	// transport options
+	toptions := []transport.Option{}
+	if options.Router != nil {
+		toptions = append(toptions, transport.WithRouter(options.Router))
+	}
+
 	if net == "tcp" || net == "tcp4" || net == "tcp6" {
-		mod, err = transport.NewTcpServerTransport(ctx, net, addr, codec, opts...)
+		mod, err = transport.NewTcpServerTransport(ctx, net, addr, codec, toptions...)
 		if err != nil {
 			return err
 		}
@@ -65,7 +76,7 @@ func (s *Service) ListenAndServe(ctx context.Context, net, addr, codec string, o
 	}
 
 	if net == "udp" || net == "udp4" || net == "udp6" {
-		mod, err = transport.NewUdpServerTransport(ctx, net, addr, codec, opts...)
+		mod, err = transport.NewUdpServerTransport(ctx, net, addr, codec, toptions...)
 		if err != nil {
 			return err
 		}

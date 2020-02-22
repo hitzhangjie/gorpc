@@ -10,6 +10,7 @@ type Options struct {
 
 type Option func(*Options)
 
+// WithRouter 指定router
 func WithRouter(r *router.Router) Option {
 	return func(opts *Options) {
 		opts.Router = r

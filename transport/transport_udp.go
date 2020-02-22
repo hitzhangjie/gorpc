@@ -27,10 +27,10 @@ type UdpServerTransport struct {
 	once   sync.Once
 	closed chan struct{}
 
-	opts *server.Options
+	opts *options
 }
 
-func NewUdpServerTransport(ctx context.Context, net, addr string, codecName string, opts ...server.Option) (Transport, error) {
+func NewUdpServerTransport(ctx context.Context, net, addr string, codecName string, opts ...Option) (Transport, error) {
 	c := codec.ServerCodec(codecName)
 	s := &UdpServerTransport{
 		net:    net,
@@ -39,7 +39,7 @@ func NewUdpServerTransport(ctx context.Context, net, addr string, codecName stri
 		reader: NewUdpMessageReader(c),
 		once:   sync.Once{},
 		closed: make(chan struct{}, 1),
-		opts:   &server.Options{},
+		opts:   &options{},
 	}
 	s.ctx, s.cancel = context.WithCancel(ctx)
 	for _, o := range opts {

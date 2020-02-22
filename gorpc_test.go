@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	gorpc "github.com/hitzhangjie/go-rpc"
+	_ "github.com/hitzhangjie/go-rpc/codec/whisper"
 )
 
 func TestListenAndServe(t *testing.T) {

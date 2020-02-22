@@ -92,7 +92,7 @@ func (s *TcpServerTransport) ListenAndServe() error {
 //func (s *TcpServerTransport) Register(svr *server.Service) {
 //	s.ctx, s.cancel = context.WithCancel(svr.Ctx)
 //	s.opts.Router = svr.Router
-//	svr.Mods = append(svr.Mods, s)
+//	svr.Trans = append(svr.Trans, s)
 //}
 
 func (s *TcpServerTransport) serve(l net.Listener) error {

@@ -95,7 +95,7 @@ func (s *UdpServerTransport) ListenAndServe() error {
 //func (s *UdpServerTransport) Register(svr *server.Service) {
 //	s.ctx, s.cancel = context.WithCancel(svr.Ctx)
 //	s.opts.Router = svr.Router
-//	svr.Mods = append(svr.Mods, s)
+//	svr.Trans = append(svr.Trans, s)
 //}
 
 func (s *UdpServerTransport) Closed() <-chan struct{} {

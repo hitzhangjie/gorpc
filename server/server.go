@@ -19,8 +19,8 @@ type Service struct {
 	cancel context.CancelFunc
 	opts   *Options
 
-	Mods []transport.Transport
-	Lock *sync.Mutex
+	Trans []transport.Transport
+	Lock  *sync.Mutex
 
 	Router    *router.Router
 	startOnce sync.Once
@@ -34,7 +34,7 @@ func NewService(name string, opts ...Option) *Service {
 	s := &Service{
 		name:      name,
 		opts:      &Options{},
-		Mods:      []transport.Transport{},
+		Trans:     []transport.Transport{},
 		Lock:      &sync.Mutex{},
 		Router:    router.NewRouter(),
 		startOnce: sync.Once{},
@@ -52,8 +52,8 @@ func NewService(name string, opts ...Option) *Service {
 func (s *Service) ListenAndServe(ctx context.Context, net, addr, codec string, opts ...Option) error {
 
 	var (
-		mod transport.Transport
-		err error
+		trans transport.Transport
+		err   error
 	)
 
 	options := Options{}
@@ -68,7 +68,7 @@ func (s *Service) ListenAndServe(ctx context.Context, net, addr, codec string, o
 	}
 
 	if net == "tcp" || net == "tcp4" || net == "tcp6" {
-		mod, err = transport.NewTcpServerTransport(ctx, net, addr, codec, toptions...)
+		trans, err = transport.NewTcpServerTransport(ctx, net, addr, codec, toptions...)
 		if err != nil {
 			return err
 		}
@@ -76,42 +76,42 @@ func (s *Service) ListenAndServe(ctx context.Context, net, addr, codec string, o
 	}
 
 	if net == "udp" || net == "udp4" || net == "udp6" {
-		mod, err = transport.NewUdpServerTransport(ctx, net, addr, codec, toptions...)
+		trans, err = transport.NewUdpServerTransport(ctx, net, addr, codec, toptions...)
 		if err != nil {
 			return err
 		}
 	}
 
 	s.Lock.Lock()
-	s.Mods = append(s.Mods, mod)
+	s.Trans = append(s.Trans, trans)
 	s.Lock.Unlock()
 
-	go mod.ListenAndServe()
+	go trans.ListenAndServe()
 
 	return nil
 }
 
 func (s *Service) ServerModules() []transport.Transport {
-	return s.Mods
+	return s.Trans
 }
 
 // ListenAndServe starts every Transport, after this, Service may be registered to remote naming service
 //func (s *Service) Start() error {
 //
-//	if len(s.Mods) == 0 {
+//	if len(s.Trans) == 0 {
 //		return errors.New("server: no modules registered")
 //	}
 //
 //	var err error
 //
 //	s.startOnce.Do(func() {
-//		cherr := make(chan error, len(s.Mods))
-//		chok := make(chan struct{}, len(s.Mods))
+//		cherr := make(chan error, len(s.Trans))
+//		chok := make(chan struct{}, len(s.Trans))
 //
 //		wg := sync.WaitGroup{}
 //
-//		// start all server Mods
-//		for _, m := range s.Mods {
+//		// start all server Trans
+//		for _, m := range s.Trans {
 //			wg.Add(1)
 //			go func() {
 //				defer wg.Done()
@@ -134,7 +134,7 @@ func (s *Service) ServerModules() []transport.Transport {
 //			println("server: server stopped")
 //		}()
 //
-//		// wait all server Mods exit
+//		// wait all server Trans exit
 //		wg.Wait()
 //
 //		select {
@@ -158,7 +158,7 @@ func (s *Service) stop() {
 		s.cancel()
 
 		wg := sync.WaitGroup{}
-		for _, m := range s.Mods {
+		for _, m := range s.Trans {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()

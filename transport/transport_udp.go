@@ -79,11 +79,11 @@ func (s *UdpServerTransport) ListenAndServe() error {
 		s.reader,
 		nil,
 		nil,
-		server.DefaultBufferPool.Get().([]byte),
+		udpBufferPool.Get().([]byte),
 	}
-	ep.ctx, ep.cancel = context.WithCancel(s.ctx)
+	ep.Ctx, ep.cancel = context.WithCancel(s.ctx)
 
-	go s.proc(ep.reqCh, ep.rspCh)
+	go s.proc(ep.ReqCh, ep.rspCh)
 	go ep.Read()
 	go ep.Write()
 

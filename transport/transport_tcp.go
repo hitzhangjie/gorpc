@@ -21,7 +21,7 @@ type TcpServerTransport struct {
 	addr string
 
 	codec  codec.Codec
-	reader *server.TcpMessageReader
+	reader *TcpMessageReader
 
 	//reqChan chan interface{}
 	//reqChan chan codec.Session
@@ -114,7 +114,7 @@ func (s *TcpServerTransport) serve(l net.Listener) error {
 			s.reader,
 			nil,
 			nil,
-			server.DefaultBufferPool.Get().([]byte),
+			tcpBufferPool.Get().([]byte),
 		}
 		ep.Ctx, ep.cancel = context.WithCancel(s.ctx)
 
@@ -146,7 +146,7 @@ func (s *TcpServerTransport) proc(reqCh <-chan interface{}, rspCh chan<- interfa
 				continue
 			}
 			// fixme using workerpool instead of goroutine
-			r := s.opts.router
+			r := s.opts.Router
 			if r == nil {
 				log.Fatalf("tcp router not initialized")
 			}

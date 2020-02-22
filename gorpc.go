@@ -12,10 +12,6 @@ import (
 	"github.com/hitzhangjie/go-rpc/server"
 )
 
-const (
-	unKnownServiceName = "unknown"
-)
-
 // ListenAndServe quickly initialize Service and ServerModules and serve
 func ListenAndServe(opts ...Option) {
 

@@ -4,29 +4,35 @@ import (
 	"github.com/hitzhangjie/go-rpc/server"
 )
 
+// Registry registry interacts with the remote Nameing Service
+//
+// Register, register service
+// UnRegister, unregister service
+// GetService, get services by name, which may have more than one version
+// ListServices, list all registered services
+// Watcher, returns a watcher, which watches events on NamingService backend
 type Registry interface {
-	// Register register service
-	Register(service *server.Service, opts ...RegisterOption) error
-	// UnRegister unregister service
-	UnRegister(service *server.Service) error
-	// GetService get services by name, which may have more than one version
+	Register(service *server.Service, opts ...Option) error
+	DeRegister(service *server.Service) error
+
 	GetService(name string) ([]*server.Service, error)
-	// ListServices list all registered services
 	ListServices() ([]*server.Service, error)
-	// Watcher returns a watcher, which watches events on NamingService backend
+
 	Watcher() (Watcher, error)
 }
 
-// RegisterOption
-type RegisterOption func(options *RegisterOptions)
+// Option registry option
+type Option func(options *options)
 
-type RegisterOptions struct{}
+type options struct{}
 
+// Watcher watch event from remote Naming Service
 type Watcher interface {
 	Next() (*Result, error)
 	Stop()
 }
 
+// Result watch result of event
 type Result struct {
 	Action ActionType
 }
@@ -34,7 +40,7 @@ type Result struct {
 type ActionType = int
 
 const (
-	actionTypeCreate = iota
-	actionTypeUpdate
-	actionTypeDelete
+	ActionTypeCreate = iota
+	ActionTypeUpdate
+	ActionTypeDelete
 )

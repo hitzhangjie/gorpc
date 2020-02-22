@@ -6,16 +6,15 @@ import (
 	"net"
 
 	"github.com/hitzhangjie/go-rpc/codec"
-	"github.com/hitzhangjie/go-rpc/server"
 )
 
 // UdpEndPoint udp endpoint
 type UdpEndPoint struct {
-	net.Conn
+	Conn  net.Conn
 	ReqCh chan interface{}
 	rspCh chan interface{}
 
-	reader *server.UdpMessageReader
+	reader *UdpMessageReader
 	Ctx    context.Context
 	cancel context.CancelFunc
 
@@ -24,7 +23,7 @@ type UdpEndPoint struct {
 
 func (ep *UdpEndPoint) Read() {
 	defer func() {
-		ep.Close()
+		ep.Conn.Close()
 	}()
 
 	// keep reading message, until when we encounter any non-temporary errors
@@ -37,12 +36,12 @@ func (ep *UdpEndPoint) Read() {
 
 func (ep *UdpEndPoint) Write() {
 	defer func() {
-		ep.Close()
+		ep.Conn.Close()
 	}()
 	for {
 		// check whether server Closed
 		select {
-		case <-ep.ctx.Done():
+		case <-ep.Ctx.Done():
 			ep.cancel()
 			return
 		default:

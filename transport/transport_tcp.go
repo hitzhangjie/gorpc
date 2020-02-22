@@ -50,7 +50,7 @@ func NewTcpServerTransport(ctx context.Context, net, addr, codecName string, opt
 		net:    net,
 		addr:   addr,
 		codec:  c,
-		reader: server.NewTcpMessageReader(c),
+		reader: NewTcpMessageReader(c),
 		//rspChan: make(chan codec.Session, tcpServerRspChanMaxLength),
 		once:   sync.Once{},
 		closed: make(chan struct{}, 1),
@@ -116,9 +116,9 @@ func (s *TcpServerTransport) serve(l net.Listener) error {
 			nil,
 			server.DefaultBufferPool.Get().([]byte),
 		}
-		ep.ctx, ep.cancel = context.WithCancel(s.ctx)
+		ep.Ctx, ep.cancel = context.WithCancel(s.ctx)
 
-		go s.proc(ep.reqCh, ep.rspCh)
+		go s.proc(ep.ReqCh, ep.rspCh)
 
 		go ep.Read()
 		go ep.Write()

@@ -19,7 +19,7 @@ type UdpServerTransport struct {
 	addr string
 
 	codec  codec.Codec
-	reader *server.UdpMessageReader
+	reader *UdpMessageReader
 
 	//reqChan chan codec.Session
 	rspChan chan codec.Session
@@ -36,7 +36,7 @@ func NewUdpServerTransport(ctx context.Context, net, addr string, codecName stri
 		net:    net,
 		addr:   addr,
 		codec:  c,
-		reader: server.NewUdpMessageReader(c),
+		reader: NewUdpMessageReader(c),
 		once:   sync.Once{},
 		closed: make(chan struct{}, 1),
 		opts:   &server.Options{},

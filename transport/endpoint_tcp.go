@@ -9,16 +9,15 @@ import (
 	"time"
 
 	"github.com/hitzhangjie/go-rpc/codec"
-	"github.com/hitzhangjie/go-rpc/server"
 )
 
 // TcpEndPoint endpoint of tcp connection
 type TcpEndPoint struct {
-	net.Conn
+	Conn  net.Conn
 	ReqCh chan interface{}
 	rspCh chan interface{}
 
-	reader *server.TcpMessageReader
+	reader *TcpMessageReader
 	Ctx    context.Context
 	cancel context.CancelFunc
 
@@ -28,7 +27,7 @@ type TcpEndPoint struct {
 func (ep *TcpEndPoint) Read() {
 
 	defer func() {
-		ep.Close()
+		ep.Conn.Close()
 		ep.cancel()
 	}()
 
@@ -47,14 +46,14 @@ func (ep *TcpEndPoint) Read() {
 func (ep *TcpEndPoint) Write() {
 
 	defer func() {
-		ep.Close()
+		ep.Conn.Close()
 	}()
 
 	for {
 
 		select {
 		// check whether server Closed
-		case <-ep.ctx.Done():
+		case <-ep.Ctx.Done():
 			return
 		// write response
 		case v := <-ep.rspCh:
@@ -68,7 +67,7 @@ func (ep *TcpEndPoint) Write() {
 			}
 
 			// fixme set write deadline, make the value configurable
-			ep.SetWriteDeadline(time.Now().Add(time.Millisecond * 2000))
+			ep.Conn.SetWriteDeadline(time.Now().Add(time.Millisecond * 2000))
 
 			n, err := ep.Conn.Write(data)
 			if err != nil || len(data) != n {

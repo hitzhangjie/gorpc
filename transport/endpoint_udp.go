@@ -10,20 +10,20 @@ import (
 
 // UdpEndPoint udp endpoint
 type UdpEndPoint struct {
-	Conn  net.Conn
-	ReqCh chan interface{}
+	conn  net.Conn
+	reqCh chan interface{}
 	rspCh chan interface{}
 
 	reader *UdpMessageReader
-	Ctx    context.Context
+	ctx    context.Context
 	cancel context.CancelFunc
 
-	Buf []byte
+	buf []byte
 }
 
 func (ep *UdpEndPoint) Read() {
 	defer func() {
-		ep.Conn.Close()
+		ep.conn.Close()
 	}()
 
 	// keep reading message, until when we encounter any non-temporary errors
@@ -36,12 +36,12 @@ func (ep *UdpEndPoint) Read() {
 
 func (ep *UdpEndPoint) Write() {
 	defer func() {
-		ep.Conn.Close()
+		ep.conn.Close()
 	}()
 	for {
 		// check whether server Closed
 		select {
-		case <-ep.Ctx.Done():
+		case <-ep.ctx.Done():
 			ep.cancel()
 			return
 		default:
@@ -51,12 +51,12 @@ func (ep *UdpEndPoint) Write() {
 		case v := <-ep.rspCh:
 			session := v.(codec.Session)
 			rsp := session.Response()
-			data, err := ep.reader.Codec.Encode(rsp)
+			data, err := ep.reader.codec.Encode(rsp)
 			if err != nil {
 				// fixme handle error
 			}
 			// fixme set write deadline
-			ep.Conn.Write(data)
+			ep.conn.Write(data)
 		}
 	}
 }

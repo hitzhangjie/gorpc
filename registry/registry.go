@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	registries = map[string]Registry{}
-	lock       = sync.RWMutex{}
+	registries    = map[string]Registry{}
+	registriesLck = sync.RWMutex{}
 )
 
 // Registry registry interacts with the remote Nameing Service
@@ -53,14 +53,14 @@ const (
 )
 
 func RegisterRegistry(name string, registry Registry) {
-	lock.Lock()
+	registriesLck.Lock()
 	registries[name] = registry
-	lock.Unlock()
+	registriesLck.Unlock()
 }
 
 func GetRegistry(name string) Registry {
-	lock.RLock()
-	defer lock.RUnlock()
+	registriesLck.RLock()
+	defer registriesLck.RUnlock()
 
 	v, ok := registries[name]
 	if !ok {

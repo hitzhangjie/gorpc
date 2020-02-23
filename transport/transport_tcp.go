@@ -90,9 +90,9 @@ func (s *TcpServerTransport) ListenAndServe() error {
 }
 
 //func (s *TcpServerTransport) Register(svr *server.Service) {
-//	s.ctx, s.cancel = context.WithCancel(svr.Ctx)
-//	s.opts.Router = svr.Router
-//	svr.Trans = append(svr.Trans, s)
+//	s.ctx, s.cancel = context.WithCancel(svr.ctx)
+//	s.opts.router = svr.router
+//	svr.trans = append(svr.trans, s)
 //}
 
 func (s *TcpServerTransport) serve(l net.Listener) error {
@@ -128,9 +128,9 @@ func (s *TcpServerTransport) serve(l net.Listener) error {
 			nil,
 			tcpBufferPool.Get().([]byte),
 		}
-		ep.Ctx, ep.cancel = context.WithCancel(s.ctx)
+		ep.ctx, ep.cancel = context.WithCancel(s.ctx)
 
-		go s.proc(ep.ReqCh, ep.rspCh)
+		go s.proc(ep.reqCh, ep.rspCh)
 
 		go ep.Read()
 		go ep.Write()
@@ -139,7 +139,7 @@ func (s *TcpServerTransport) serve(l net.Listener) error {
 
 func (s *TcpServerTransport) proc(reqCh <-chan interface{}, rspCh chan<- interface{}) {
 
-	builder := codec.GetSessionBuilder(s.reader.Codec.Name())
+	builder := codec.GetSessionBuilder(s.reader.codec.Name())
 
 	for {
 		select {

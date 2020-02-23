@@ -17,26 +17,26 @@ var udpBufferPool = &sync.Pool{
 	},
 }
 
-// UdpMessageReader read req from `net.Conn`, if read successfully, return the req'svr session.
+// UdpMessageReader read req from `net.conn`, if read successfully, return the req'svr session.
 //
 // if any error occurs, it returns nil session and error, error should be one of the following:
 // - io.Timeout
 // - ...
 type UdpMessageReader struct {
-	Codec codec.Codec
+	codec codec.Codec
 }
 
 func NewUdpMessageReader(codec codec.Codec) *UdpMessageReader {
-	r := &UdpMessageReader{Codec: codec}
+	r := &UdpMessageReader{codec: codec}
 	return r
 }
 
 func (r *UdpMessageReader) Read(ep *UdpEndPoint) error {
 
 	defer func() {
-		ep.Conn.Close()
-		udpBufferPool.Put(ep.Buf)
-		close(ep.ReqCh)
+		ep.conn.Close()
+		udpBufferPool.Put(ep.buf)
+		close(ep.reqCh)
 	}()
 
 	var (
@@ -47,14 +47,14 @@ func (r *UdpMessageReader) Read(ep *UdpEndPoint) error {
 	for {
 		// check if server to be Closed
 		select {
-		case <-ep.Ctx.Done():
+		case <-ep.ctx.Done():
 			return errs.ErrServerCtxDone
 		default:
 		}
 
 		// fixme conn read deadline
-		ep.Conn.SetReadDeadline(time.Now().Add(time.Second * 30))
-		if readsz, err = ep.Conn.Read(ep.Buf); err != nil {
+		ep.conn.SetReadDeadline(time.Now().Add(time.Second * 30))
+		if readsz, err = ep.conn.Read(ep.buf); err != nil {
 			// fixme check Udpconn idle & release
 			if e, ok := err.(net.Error); ok && e.Temporary() {
 				time.Sleep(time.Millisecond * 10)
@@ -63,11 +63,11 @@ func (r *UdpMessageReader) Read(ep *UdpEndPoint) error {
 			return err
 		}
 		// decode请求
-		req, _, err := r.Codec.Decode(ep.Buf[0:readsz])
+		req, _, err := r.codec.Decode(ep.buf[0:readsz])
 		if err != nil {
 			return err
 		}
 
-		ep.ReqCh <- req
+		ep.reqCh <- req
 	}
 }

@@ -13,21 +13,21 @@ import (
 
 // TcpEndPoint endpoint of tcp connection
 type TcpEndPoint struct {
-	Conn  net.Conn
-	ReqCh chan interface{}
+	conn  net.Conn
+	reqCh chan interface{}
 	rspCh chan interface{}
 
 	reader *TcpMessageReader
-	Ctx    context.Context
+	ctx    context.Context
 	cancel context.CancelFunc
 
-	Buf []byte
+	buf []byte
 }
 
 func (ep *TcpEndPoint) Read() {
 
 	defer func() {
-		ep.Conn.Close()
+		ep.conn.Close()
 		ep.cancel()
 	}()
 
@@ -36,7 +36,7 @@ func (ep *TcpEndPoint) Read() {
 	if err != nil {
 		// fixme handle error
 		if err == io.EOF {
-			log.Printf("peer connection Closed now, local:%s->remote:%s", ep.Conn.LocalAddr().String(), ep.Conn.RemoteAddr().String())
+			log.Printf("peer connection Closed now, local:%s->remote:%s", ep.conn.LocalAddr().String(), ep.conn.RemoteAddr().String())
 			return
 		}
 		log.Fatalf("tcp read request error:%v", err)
@@ -46,30 +46,30 @@ func (ep *TcpEndPoint) Read() {
 func (ep *TcpEndPoint) Write() {
 
 	defer func() {
-		ep.Conn.Close()
+		ep.conn.Close()
 	}()
 
 	for {
 
 		select {
 		// check whether server Closed
-		case <-ep.Ctx.Done():
+		case <-ep.ctx.Done():
 			return
 		// write response
 		case v := <-ep.rspCh:
 			fmt.Println("handle response")
 			session := v.(codec.Session)
 			rsp := session.Response()
-			data, err := ep.reader.Codec.Encode(rsp)
+			data, err := ep.reader.codec.Encode(rsp)
 			if err != nil {
 				log.Fatalf("tcp encode respone error:%v", err)
 				continue
 			}
 
 			// fixme set write deadline, make the value configurable
-			ep.Conn.SetWriteDeadline(time.Now().Add(time.Millisecond * 2000))
+			ep.conn.SetWriteDeadline(time.Now().Add(time.Millisecond * 2000))
 
-			n, err := ep.Conn.Write(data)
+			n, err := ep.conn.Write(data)
 			if err != nil || len(data) != n {
 				// fixme handle error
 				log.Fatalf("tcp send response error:%v, bytes written got:%d, want:%d", err, n, len(data))

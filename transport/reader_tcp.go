@@ -68,7 +68,7 @@ func (r *TcpMessageReader) Read(ep *TcpEndPoint) error {
 		// decode请求
 		req, sz, err := r.Codec.Decode(ep.Buf[0:buflen])
 		if err != nil {
-			if err == codec.CodecReadIncomplete {
+			if err == errs.CodecReadIncomplete {
 				continue
 			}
 			//return nil, err

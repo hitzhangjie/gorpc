@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
+
+	"github.com/hitzhangjie/go-rpc/errs"
 )
 
 type HandleWrapper func(ctx context.Context, req interface{}) (rsp interface{}, err error)
@@ -54,7 +56,7 @@ func (r *Router) Route(rpc string) (HandleWrapper, error) {
 
 	h, ok := r.mapping[rpc]
 	if !ok {
-		return nil, errRouteNotFound
+		return nil, errs.ErrRouteNotFound
 	}
 
 	return h, nil

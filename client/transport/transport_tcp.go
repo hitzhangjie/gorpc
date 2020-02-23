@@ -3,9 +3,11 @@ package transport
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/hitzhangjie/go-rpc/client/pool"
 	"github.com/hitzhangjie/go-rpc/codec"
-	"time"
+	"github.com/hitzhangjie/go-rpc/errs"
 )
 
 // TcpTransport tcp transport
@@ -58,7 +60,7 @@ func (t *TcpTransport) Send(ctx context.Context, network, address string, reqHea
 		// decode
 		rsp, _, err := t.Codec.Decode(buf[:sz])
 		if err != nil {
-			if err == codec.CodecReadIncomplete {
+			if err == errs.CodecReadIncomplete {
 				continue
 			}
 			return nil, err

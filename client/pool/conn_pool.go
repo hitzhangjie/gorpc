@@ -3,11 +3,13 @@ package pool
 import (
 	"context"
 	"errors"
-	deque "github.com/edwingeng/deque"
 	"net"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	deque "github.com/edwingeng/deque"
+	"github.com/hitzhangjie/go-rpc/errs"
 )
 
 // Pool connection poolFactory
@@ -147,11 +149,11 @@ func (p *ConnPool) get(ctx context.Context) (*ConnItem, error) {
 	defer p.mu.Unlock()
 
 	if p.closed {
-		return nil, errPoolClosed
+		return nil, errs.ErrPoolClosed
 	}
 
 	if p.exceedLimit() {
-		return nil, errExceedPoolLimit
+		return nil, errs.ErrExceedPoolLimit
 	}
 
 	v := p.idle.PopFront()
@@ -297,7 +299,7 @@ func (it *ConnItem) reset() {
 // Write write data, wrapper of conn.Write
 func (it *ConnItem) Write(b []byte) (int, error) {
 	if it.closed {
-		return 0, errConnClosed
+		return 0, errs.ErrConnClosed
 	}
 	n, err := it.Conn.Write(b)
 	if err != nil {
@@ -309,7 +311,7 @@ func (it *ConnItem) Write(b []byte) (int, error) {
 // Read read data, wrapper of conn.Read
 func (it *ConnItem) Read(b []byte) (int, error) {
 	if it.closed {
-		return 0, errConnClosed
+		return 0, errs.ErrConnClosed
 	}
 	n, err := it.Conn.Read(b)
 	if err != nil {
@@ -322,7 +324,7 @@ func (it *ConnItem) Read(b []byte) (int, error) {
 // rather than close it, because ConnItem.Close() will hide ConnItem.Conn.Close().
 func (it *ConnItem) Close() error {
 	if it.closed {
-		return errConnClosed
+		return errs.ErrConnClosed
 	}
 
 	it.reset()

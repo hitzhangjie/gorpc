@@ -80,9 +80,9 @@ func (s *UdpServerTransport) ListenAndServe() error {
 		nil,
 		udpBufferPool.Get().([]byte),
 	}
-	ep.Ctx, ep.cancel = context.WithCancel(s.ctx)
+	ep.ctx, ep.cancel = context.WithCancel(s.ctx)
 
-	go s.proc(ep.ReqCh, ep.rspCh)
+	go s.proc(ep.reqCh, ep.rspCh)
 	go ep.Read()
 	go ep.Write()
 
@@ -93,9 +93,9 @@ func (s *UdpServerTransport) ListenAndServe() error {
 }
 
 //func (s *UdpServerTransport) Register(svr *server.Service) {
-//	s.ctx, s.cancel = context.WithCancel(svr.Ctx)
-//	s.opts.Router = svr.Router
-//	svr.Trans = append(svr.Trans, s)
+//	s.ctx, s.cancel = context.WithCancel(svr.ctx)
+//	s.opts.router = svr.router
+//	svr.trans = append(svr.trans, s)
 //}
 
 func (s *UdpServerTransport) Closed() <-chan struct{} {
@@ -105,7 +105,7 @@ func (s *UdpServerTransport) Closed() <-chan struct{} {
 // fixme this method `proc` appears in TcpServerTransport, too. That's unnessary, refactor this
 func (s *UdpServerTransport) proc(reqCh <-chan interface{}, rspCh chan<- interface{}) {
 
-	builder := codec.GetSessionBuilder(s.reader.Codec.Name())
+	builder := codec.GetSessionBuilder(s.reader.codec.Name())
 
 	for {
 		select {

@@ -17,26 +17,26 @@ var tcpBufferPool = &sync.Pool{
 	},
 }
 
-// TcpMessageReader read req from `net.Conn`, if read successfully, return the req'svr session.
+// TcpMessageReader read req from `net.conn`, if read successfully, return the req'svr session.
 //
 // if any error occurs, it returns nil session and error, error should be one of the following:
 // - io.Timeout
 // - ...
 type TcpMessageReader struct {
-	Codec codec.Codec
+	codec codec.Codec
 }
 
 func NewTcpMessageReader(codec codec.Codec) *TcpMessageReader {
-	r := &TcpMessageReader{Codec: codec}
+	r := &TcpMessageReader{codec: codec}
 	return r
 }
 
 func (r *TcpMessageReader) Read(ep *TcpEndPoint) error {
 
 	defer func() {
-		ep.Conn.Close()
-		tcpBufferPool.Put(ep.Buf)
-		close(ep.ReqCh)
+		ep.conn.Close()
+		tcpBufferPool.Put(ep.buf)
+		close(ep.reqCh)
 	}()
 
 	var (
@@ -48,14 +48,14 @@ func (r *TcpMessageReader) Read(ep *TcpEndPoint) error {
 	for {
 		// check if server to be Closed
 		select {
-		case <-ep.Ctx.Done():
+		case <-ep.ctx.Done():
 			return errs.ErrServerCtxDone
 		default:
 		}
 
 		// fixme conn read deadline
-		ep.Conn.SetReadDeadline(time.Now().Add(time.Second * 30))
-		if readsz, err = ep.Conn.Read(ep.Buf[buflen:]); err != nil {
+		ep.conn.SetReadDeadline(time.Now().Add(time.Second * 30))
+		if readsz, err = ep.conn.Read(ep.buf[buflen:]); err != nil {
 			// fixme check tcpconn idle & release
 			if e, ok := err.(net.Error); ok && e.Temporary() {
 				time.Sleep(time.Millisecond * 10)
@@ -66,7 +66,7 @@ func (r *TcpMessageReader) Read(ep *TcpEndPoint) error {
 		buflen += readsz
 
 		// decode请求
-		req, sz, err := r.Codec.Decode(ep.Buf[0:buflen])
+		req, sz, err := r.codec.Decode(ep.buf[0:buflen])
 		if err != nil {
 			if err == errs.CodecReadIncomplete {
 				continue
@@ -75,8 +75,8 @@ func (r *TcpMessageReader) Read(ep *TcpEndPoint) error {
 			return err
 		}
 
-		ep.ReqCh <- req
-		ep.Buf = ep.Buf[sz:]
+		ep.reqCh <- req
+		ep.buf = ep.buf[sz:]
 		buflen -= sz
 	}
 }

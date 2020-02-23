@@ -4,22 +4,22 @@ import "errors"
 
 var (
 	// server errors
-	ErrServerCtxDone     = errors.New("server Ctx done")
+	ErrServerCtxDone     = errors.New("server ctx done")
 	ErrServerNotInit     = errors.New("server not initialized")
 	ErrSessionNotExisted = errors.New("session not found")
 	ErrRouteNotFound     = errors.New("route not found")
 
-	// Codec error
+	// codec error
 	CodecDecodeError = errors.New("decode error")
 	CodecEncodeError = errors.New("encode error")
 
-	// MsgReader error
+	// message reader error
 	CodecReadError      = errors.New("read error")
 	CodecReadIncomplete = errors.New("read incomplete package")
 	CodecReadInvalid    = errors.New("read invalid package")
 	CodecReadTooBig     = errors.New("read too big package")
 
-	// conn pool error
+	// connection pool error
 	ErrExceedPoolLimit     = errors.New("connection poolFactory limit")  // ErrExceedPoolLimit 连接数量超过限制错误
 	ErrPoolClosed          = errors.New("connection poolFactory closed") // ErrPoolClosed 连接池关闭错误
 	ErrConnClosed          = errors.New("conn closed")                   // ErrConnClosed 连接关闭

@@ -321,7 +321,7 @@ func (it *ConnItem) Read(b []byte) (int, error) {
 }
 
 // Close close ConnItem, here ConnItem.Close() will put ConnItem back into Pool,
-// rather than close it, because ConnItem.Close() will hide ConnItem.Conn.Close().
+// rather than close it, because ConnItem.Close() will hide ConnItem.conn.Close().
 func (it *ConnItem) Close() error {
 	if it.closed {
 		return errs.ErrConnClosed

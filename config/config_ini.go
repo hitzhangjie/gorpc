@@ -6,13 +6,19 @@ import (
 	"gopkg.in/ini.v1"
 )
 
+func init() {
+	Register(ConfTypeIni, &IniConfigLoader{})
+}
+
+// IniConfig ini config
 type IniConfig struct {
 	cfg *ini.File
 }
 
-func LoadIniConfig(filepath string) (*IniConfig, error) {
+// NewIniConfig create a new config from ini configfile `fp`
+func NewIniConfig(fp string) (*IniConfig, error) {
 
-	cfg, err := ini.Load(filepath)
+	cfg, err := ini.Load(fp)
 	if err != nil {
 		return nil, err
 	}
@@ -80,4 +86,12 @@ func (c *IniConfig) split(key string) (string, string) {
 	default:
 		return "", ""
 	}
+}
+
+// IniConfigLoader ini config loader
+type IniConfigLoader struct {
+}
+
+func (c *IniConfigLoader) Load(fp string) (Config, error) {
+	return NewIniConfig(fp)
 }

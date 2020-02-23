@@ -1,7 +1,7 @@
 package gorpc
 
 type options struct {
-	configfile string
+	conf string
 }
 
 // Option gorpc.ListenAndServe optionns
@@ -11,6 +11,6 @@ type Option func(*options)
 func WithConfig(fpath string) Option {
 
 	return func(opts *options) {
-		opts.configfile = fpath
+		opts.conf = fpath
 	}
 }

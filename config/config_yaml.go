@@ -1,18 +1,25 @@
 package config
 
 import (
-	"github.com/smallfish/simpleyaml"
 	"io/ioutil"
 	"os"
 	"strings"
+
+	"github.com/smallfish/simpleyaml"
 )
 
+func init() {
+	Register(ConfTypeYaml, &YamlConfigLoader{})
+}
+
+// YamlConfig yaml config
 type YamlConfig struct {
 	yml *simpleyaml.Yaml
 }
 
-func LoadYamlConfig(filepath string) (*YamlConfig, error) {
-	fin, err := os.Open(filepath)
+// NewYamlConfig create a new config from yaml configfile `fp`
+func NewYamlConfig(fp string) (*YamlConfig, error) {
+	fin, err := os.Open(fp)
 	if err != nil {
 		return nil, err
 	}
@@ -81,4 +88,12 @@ func (c *YamlConfig) path(key string) []interface{} {
 		paths[idx] = p
 	}
 	return paths
+}
+
+// YamlConfigLoader yaml config loader
+type YamlConfigLoader struct {
+}
+
+func (c *YamlConfigLoader) Load(fp string) (Config, error) {
+	return NewYamlConfig(fp)
 }

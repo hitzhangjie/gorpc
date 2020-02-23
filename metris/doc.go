@@ -1,8 +1,9 @@
-// Package metrics 定义了常见粒度的监控指标，如Counter、MetricsGauge、MetricsTimer、MetricsHistogram，
-// 并在此基础上定义了与具体的外部监控系统对接的接口MetricsSink，对接具体的监控如公司
-// Monitor或者外部开源的Prometheus等，只需是吸纳对应的MetricsSink接口即可.
+// Package metrics defines common metrics, like counter, gauge, timer, histogram.
+// Also, it provides `Sinker` interface to integrate with other monitor systems,
+// like Prometheus, etc.
 //
-// 为了使用方便，提供了两套常用方法：
+// metrics  provides following operations:
+//
 // 1. counter
 // - reqNumCounter := metrics.Counter("req.num")
 //   reqNumCounter.Incr()

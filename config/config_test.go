@@ -1,11 +1,12 @@
 package config_test
 
 import (
-	"github.com/hitzhangjie/go-rpc/config"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
+
+	"github.com/hitzhangjie/go-rpc/config"
 )
 
 var (
@@ -35,46 +36,6 @@ func TestMain(m *testing.M) {
 	yamlCfg = yml
 
 	m.Run()
-}
-
-func TestIniConfig(t *testing.T) {
-	type args struct {
-		section  string
-		property string
-		dftValue interface{}
-	}
-	tests := []struct {
-		name string
-		args args
-		want interface{}
-	}{
-		{"load-[]-app_mode", args{"", "app_mode", ""}, "development"},
-		{"load-[]-not_existed", args{"", "not_existed", "xxx"}, "xxx"},
-		{"load-[]=not_existed_again", args{"", "not_existed", "yyy"}, "yyy"},
-		{"load-[paths]-data", args{"paths", "data", ""}, "/home/git/grafana"},
-		{"load-[server]-protocol", args{"server", "protocol", ""}, "http"},
-		{"load-[server]-http_port", args{"server", "http_port", 0}, 9999},
-		{"load-[server]-enforce_domain", args{"server", "enforce_domain", false}, true},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			var got interface{}
-			switch tt.args.dftValue.(type) {
-			case string:
-				v := iniCfg.String(tt.args.section, tt.args.property, tt.args.dftValue.(string))
-				got = v
-			case int:
-				v := iniCfg.Int(tt.args.section, tt.args.property, tt.args.dftValue.(int))
-				got = v
-			case bool:
-				v := iniCfg.Bool(tt.args.section, tt.args.property, tt.args.dftValue.(bool))
-				got = v
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("case:%s, got = %v, want = %v", tt.name, got, tt.want)
-			}
-		})
-	}
 }
 
 func TestConfig_IniConfig(t *testing.T) {

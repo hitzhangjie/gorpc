@@ -50,7 +50,7 @@ func (h *histogram) AddSample(value float64) {
 	h.Buckets[idx].samples += value
 	h.Buckets[idx].lock.Unlock()
 
-	for _, sink := range metricsSinks {
+	for _, sink := range sinks {
 		sink.AddSample(h.Name, value)
 	}
 }

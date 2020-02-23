@@ -17,16 +17,16 @@ func TestNewCounter(t *testing.T) {
 	tests := []struct {
 		name  string
 		args  args
-		comp  metrics.MetricsCounter
+		comp  metrics.Counter
 		match bool
 	}{
-		{"same-Name-same-counter", args{"req.total.num"}, metrics.Counter("req.total.num"), true},
-		{"diff-Name-diff-counter", args{"req.total.num"}, metrics.Counter("req.total.fail"), false},
+		{"same-Name-same-counter", args{"req.total.num"}, metrics.GetCounter("req.total.num"), true},
+		{"diff-Name-diff-counter", args{"req.total.num"}, metrics.GetCounter("req.total.fail"), false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := metrics.Counter(tt.args.name); reflect.DeepEqual(got, tt.comp) != tt.match {
-				t.Errorf("Counter() = %v, comp %v, match should be %v", got, tt.comp, tt.match)
+			if got := metrics.GetCounter(tt.args.name); reflect.DeepEqual(got, tt.comp) != tt.match {
+				t.Errorf("GetCounter() = %v, comp %v, match should be %v", got, tt.comp, tt.match)
 			}
 		})
 	}
@@ -39,16 +39,16 @@ func TestNewGauge(t *testing.T) {
 	tests := []struct {
 		name  string
 		args  args
-		comp  metrics.MetricsGauge
+		comp  metrics.Gauge
 		match bool
 	}{
-		{"same-Name-same-gauge", args{"cpu.load.average"}, metrics.Gauge("cpu.load.average"), true},
-		{"diff-Name-diff-gauge", args{"cpu.load.average"}, metrics.Gauge("cpu.load.max"), false},
+		{"same-Name-same-gauge", args{"cpu.load.average"}, metrics.GetGauge("cpu.load.average"), true},
+		{"diff-Name-diff-gauge", args{"cpu.load.average"}, metrics.GetGauge("cpu.load.max"), false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := metrics.Gauge(tt.args.name); reflect.DeepEqual(got, tt.comp) != tt.match {
-				t.Errorf("Gauge() = %v, comp %v, match should be %v", got, tt.comp, tt.match)
+			if got := metrics.GetGauge(tt.args.name); reflect.DeepEqual(got, tt.comp) != tt.match {
+				t.Errorf("GetGauge() = %v, comp %v, match should be %v", got, tt.comp, tt.match)
 			}
 		})
 	}
@@ -61,16 +61,16 @@ func TestNewTimer(t *testing.T) {
 	tests := []struct {
 		name  string
 		args  args
-		comp  metrics.MetricsTimer
+		comp  metrics.Timer
 		match bool
 	}{
-		{"same-Name-same-timer", args{"req.1.timecost"}, metrics.Timer("req.1.timecost"), true},
-		{"diff-Name-diff-timer", args{"req.1.timecost"}, metrics.Timer("req.2.timecost"), false},
+		{"same-Name-same-timer", args{"req.1.timecost"}, metrics.GetTimer("req.1.timecost"), true},
+		{"diff-Name-diff-timer", args{"req.1.timecost"}, metrics.GetTimer("req.2.timecost"), false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := metrics.Timer(tt.args.name); reflect.DeepEqual(got, tt.comp) != tt.match {
-				t.Errorf("Timer() = %v, compared with %v, match should be %v", got, tt.comp, tt.match)
+			if got := metrics.GetTimer(tt.args.name); reflect.DeepEqual(got, tt.comp) != tt.match {
+				t.Errorf("GetTimer() = %v, compared with %v, match should be %v", got, tt.comp, tt.match)
 			}
 		})
 	}
@@ -86,17 +86,17 @@ func TestNewHistogram(t *testing.T) {
 	tests := []struct {
 		name  string
 		args  args
-		comp  metrics.MetricsHistogram
+		comp  metrics.Histogram
 		match bool
 	}{
-		{"same-Name-same-histogram", args{"cmd.1.timecost", buckets}, metrics.Histogram("cmd.1.timecost", buckets), true},
-		{"diff-Name-diff-histogram", args{"cmd.1.timecost", buckets}, metrics.Histogram("cmd.2.timecost", buckets), false},
+		{"same-Name-same-histogram", args{"cmd.1.timecost", buckets}, metrics.GetHistogram("cmd.1.timecost", buckets), true},
+		{"diff-Name-diff-histogram", args{"cmd.1.timecost", buckets}, metrics.GetHistogram("cmd.2.timecost", buckets), false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := metrics.Histogram(tt.args.name, tt.args.buckets); reflect.DeepEqual(got, tt.comp) != tt.match {
-				t.Errorf("Histogram() = %v, comp %v, match should be %v", got, tt.comp, tt.match)
+			if got := metrics.GetHistogram(tt.args.name, tt.args.buckets); reflect.DeepEqual(got, tt.comp) != tt.match {
+				t.Errorf("GetHistogram() = %v, comp %v, match should be %v", got, tt.comp, tt.match)
 			}
 		})
 	}
@@ -104,7 +104,7 @@ func TestNewHistogram(t *testing.T) {
 
 func TestRegisterMetricsSink(t *testing.T) {
 	type args struct {
-		sink metrics.MetricsSink
+		sink metrics.Sink
 	}
 	tests := []struct {
 		name string
@@ -115,7 +115,7 @@ func TestRegisterMetricsSink(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			metrics.RegisterMetricsSink(tt.args.sink)
+			metrics.RegisterSink(tt.args.sink)
 		})
 	}
 }
@@ -179,8 +179,8 @@ func TestRecordTimer(t *testing.T) {
 }
 
 func TestAddSample(t *testing.T) {
-	metrics.Histogram("timecost.dist", metrics.NewDurationBounds(time.Second, time.Second*2, time.Second*3, time.Second*4))
-	metrics.RegisterMetricsSink(metrics.NewConsoleSink())
+	metrics.GetHistogram("timecost.dist", metrics.NewDurationBounds(time.Second, time.Second*2, time.Second*3, time.Second*4))
+	metrics.RegisterSink(metrics.NewConsoleSink())
 	type args struct {
 		key   string
 		value float64

@@ -7,7 +7,7 @@ type gauge struct {
 
 // Update 更新时刻量
 func (g *gauge) Set(v float64) {
-	for _, sink := range metricsSinks {
+	for _, sink := range sinks {
 		sink.SetGauge(g.name, v)
 	}
 }

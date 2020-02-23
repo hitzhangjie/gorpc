@@ -13,7 +13,7 @@ type timer struct {
 // Record 记录定时器耗时
 func (t *timer) Record() {
 	duration := time.Since(t.start)
-	for _, sink := range metricsSinks {
+	for _, sink := range sinks {
 		sink.RecordTimer(t.name, duration)
 	}
 }

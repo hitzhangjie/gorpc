@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func NewConsoleSink() MetricsSink {
+func NewConsoleSink() Sink {
 	return &ConsoleSink{
 		counters:   make(map[string]float64),
 		gauges:     make(map[string]float64),
@@ -77,9 +77,9 @@ func (c *ConsoleSink) AddSample(key string, value float64) {
 	//	return
 	//}
 
-	lock.RLock()
+	histogramsLck.RLock()
 	h := histograms[key]
-	lock.RUnlock()
+	histogramsLck.RUnlock()
 
 	v, ok := h.(*histogram)
 	if !ok {
@@ -88,11 +88,11 @@ func (c *ConsoleSink) AddSample(key string, value float64) {
 	//c.hm.Lock()
 	hist := *v
 
-	lock.Lock()
+	histogramsLck.Lock()
 	idx := sort.SearchFloat64s(hist.LookupByValue, value)
 	upperBound := hist.Buckets[idx].ValueUpperBound
 	hist.Buckets[idx].samples += value
-	lock.Unlock()
+	histogramsLck.Unlock()
 
 	//c.histograms[key] = hist
 	//c.hm.Unlock()

@@ -9,7 +9,7 @@ import (
 )
 
 func Test_counter_Incr(t *testing.T) {
-	metrics.RegisterMetricsSink(&metrics.ConsoleSink{})
+	metrics.RegisterSink(&metrics.ConsoleSink{})
 	type fields struct {
 		name string
 	}
@@ -21,7 +21,7 @@ func Test_counter_Incr(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := metrics.Counter(tt.fields.name)
+			c := metrics.GetCounter(tt.fields.name)
 			c.Incr()
 			c.IncrBy(10)
 		})
@@ -29,7 +29,7 @@ func Test_counter_Incr(t *testing.T) {
 }
 
 func Test_gauge_Set(t *testing.T) {
-	metrics.RegisterMetricsSink(&metrics.ConsoleSink{})
+	metrics.RegisterSink(&metrics.ConsoleSink{})
 	type fields struct {
 		name string
 	}
@@ -46,7 +46,7 @@ func Test_gauge_Set(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			g := metrics.Gauge(tt.fields.name)
+			g := metrics.GetGauge(tt.fields.name)
 			g.Set(tt.args.v)
 		})
 	}
@@ -55,9 +55,9 @@ func Test_gauge_Set(t *testing.T) {
 func Test_histogram_AddSample(t *testing.T) {
 
 	buckets := metrics.NewDurationBounds(time.Second, time.Second*2, time.Second*5)
-	h := metrics.Histogram("req.timecost", buckets)
+	h := metrics.GetHistogram("req.timecost", buckets)
 
-	metrics.RegisterMetricsSink(&metrics.ConsoleSink{})
+	metrics.RegisterSink(&metrics.ConsoleSink{})
 
 	type args struct {
 		value float64

@@ -11,5 +11,5 @@ func TestWithConfig(t *testing.T) {
 	o := WithConfig("../testcase/service.ini")
 	o(&opts)
 
-	assert.Equal(t, "../testcase/service.ini", opts.configfile)
+	assert.Equal(t, "../testcase/service.ini", opts.conf)
 }

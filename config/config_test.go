@@ -22,14 +22,14 @@ func TestMain(m *testing.M) {
 	}
 
 	// load service.ini
-	ini, err := config.LoadIniConfig(filepath.Join(cwd, "testdata/service.ini"))
+	ini, err := config.NewIniConfig(filepath.Join(cwd, "testdata/service.ini"))
 	if err != nil {
 		panic(err)
 	}
 	iniCfg = ini
 
 	// load service.yml
-	yml, err := config.LoadYamlConfig(filepath.Join(cwd, "testdata/service.yml"))
+	yml, err := config.NewYamlConfig(filepath.Join(cwd, "testdata/service.yml"))
 	if err != nil {
 		panic(err)
 	}

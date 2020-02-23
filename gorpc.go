@@ -17,14 +17,14 @@ import (
 func ListenAndServe(opts ...Option) {
 
 	options := options{
-		configfile: "conf/service.ini",
+		conf: "conf/service.ini",
 	}
 	for _, o := range opts {
 		o(&options)
 	}
 
 	// load config
-	cfg, err := loadConfig(options.configfile)
+	cfg, err := loadConfig(options.conf)
 	if err != nil {
 		panic(err)
 	}
@@ -70,7 +70,7 @@ func loadConfig(fp string) (*config.IniConfig, error) {
 	}
 
 	// load config
-	cfg, err := config.LoadIniConfig(fp)
+	cfg, err := config.NewIniConfig(fp)
 	if err != nil {
 		return nil, err
 	}

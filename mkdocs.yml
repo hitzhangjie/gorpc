@@ -1,0 +1,6 @@
+site_name: Go-RPC Framework Docs
+theme: readthedocs
+plugins:
+  - mkdocs-nav-enhancements
+
+

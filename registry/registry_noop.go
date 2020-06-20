@@ -1,7 +1,7 @@
 package registry
 
 import (
-	"github.com/hitzhangjie/gorpc/server"
+	"github.com/hitzhangjie/gorpc-framework/server"
 )
 
 func init() {

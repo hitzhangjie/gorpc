@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hitzhangjie/gorpc/config"
+	"github.com/hitzhangjie/gorpc-framework/config"
 )
 
 var (

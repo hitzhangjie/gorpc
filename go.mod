@@ -1,4 +1,4 @@
-module github.com/hitzhangjie/gorpc
+module github.com/hitzhangjie/gorpc-framework
 
 go 1.12
 

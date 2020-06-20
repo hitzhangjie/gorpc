@@ -3,11 +3,11 @@ package client
 import (
 	"context"
 	"fmt"
-	"github.com/hitzhangjie/gorpc/client/pool"
-	"github.com/hitzhangjie/gorpc/client/selector"
-	"github.com/hitzhangjie/gorpc/client/transport"
-	"github.com/hitzhangjie/gorpc/codec"
-	"github.com/hitzhangjie/gorpc/codec/whisper"
+	"github.com/hitzhangjie/gorpc-framework/client/pool"
+	"github.com/hitzhangjie/gorpc-framework/client/selector"
+	"github.com/hitzhangjie/gorpc-framework/client/transport"
+	"github.com/hitzhangjie/gorpc-framework/codec"
+	"github.com/hitzhangjie/gorpc-framework/codec/whisper"
 	"strings"
 	"time"
 )

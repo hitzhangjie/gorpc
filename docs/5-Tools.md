@@ -60,7 +60,7 @@ pb自身具备的一些特性，使他非常适合用作 IDL (Interface Descript
 现阶段的安装方式：
 
 ```bash
-git clone https://github.com/hitzhangjie/gorpc
+git clone https://github.com/hitzhangjie/gorpc-framework
 cd gorpc/tools/gorpc
 make && make install
 ```

@@ -1,7 +1,7 @@
 package selector
 
 import (
-	"github.com/hitzhangjie/gorpc/client/selector/balancer"
+	"github.com/hitzhangjie/gorpc-framework/client/selector/balancer"
 )
 
 type Options struct {

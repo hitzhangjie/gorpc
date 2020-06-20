@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/hitzhangjie/gorpc/config"
-	"github.com/hitzhangjie/gorpc/registry"
-	"github.com/hitzhangjie/gorpc/server"
+	"github.com/hitzhangjie/gorpc-framework/config"
+	"github.com/hitzhangjie/gorpc-framework/registry"
+	"github.com/hitzhangjie/gorpc-framework/server"
 )
 
 // ListenAndServe quickly initialize Service and ServerModules and serve

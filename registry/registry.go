@@ -3,7 +3,7 @@ package registry
 import (
 	"sync"
 
-	"github.com/hitzhangjie/gorpc/server"
+	"github.com/hitzhangjie/gorpc-framework/server"
 )
 
 var (

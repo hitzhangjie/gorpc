@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/hitzhangjie/gorpc/errs"
+	"github.com/hitzhangjie/gorpc-framework/errs"
 )
 
 type HandleWrapper func(ctx context.Context, req interface{}) (rsp interface{}, err error)

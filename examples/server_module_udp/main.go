@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 
-	"github.com/hitzhangjie/gorpc/codec/whisper"
-	"github.com/hitzhangjie/gorpc/server"
+	"github.com/hitzhangjie/gorpc-framework/codec/whisper"
+	"github.com/hitzhangjie/gorpc-framework/server"
 )
 
 func main() {

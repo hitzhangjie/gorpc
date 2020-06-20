@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hitzhangjie/gorpc/client/pool"
-	"github.com/hitzhangjie/gorpc/codec"
-	"github.com/hitzhangjie/gorpc/errs"
+	"github.com/hitzhangjie/gorpc-framework/client/pool"
+	"github.com/hitzhangjie/gorpc-framework/codec"
+	"github.com/hitzhangjie/gorpc-framework/errs"
 )
 
 // TcpTransport tcp transport

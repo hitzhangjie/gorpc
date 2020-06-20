@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/edwingeng/deque"
-	"github.com/hitzhangjie/gorpc/errs"
+	"github.com/hitzhangjie/gorpc-framework/errs"
 
 	"github.com/stretchr/testify/assert"
 )

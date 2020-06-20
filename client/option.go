@@ -1,9 +1,9 @@
 package client
 
 import (
-	"github.com/hitzhangjie/gorpc/client/selector"
-	"github.com/hitzhangjie/gorpc/client/transport"
-	"github.com/hitzhangjie/gorpc/codec"
+	"github.com/hitzhangjie/gorpc-framework/client/selector"
+	"github.com/hitzhangjie/gorpc-framework/client/transport"
+	"github.com/hitzhangjie/gorpc-framework/codec"
 )
 
 type Option func(*client)

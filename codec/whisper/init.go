@@ -1,7 +1,7 @@
 package whisper
 
 import (
-	"github.com/hitzhangjie/go-rpc/codec"
+	"github.com/hitzhangjie/gorpc/codec"
 )
 
 const Whisper = "whisper"

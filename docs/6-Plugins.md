@@ -1,3 +1,3 @@
 # Plugins
 
-note: add plugins list, go-rpc is extensible via pluggin mechanism
+note: add plugins list, gorpc is extensible via pluggin mechanism

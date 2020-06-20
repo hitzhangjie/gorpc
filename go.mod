@@ -1,8 +1,6 @@
-module github.com/hitzhangjie/go-rpc
+module github.com/hitzhangjie/gorpc
 
 go 1.12
-
-replace github.com/hitzhangjie/go-rpc => /Users/zhangjie/go/src/github.com/hitzhangjie/go-rpc
 
 require (
 	github.com/edwingeng/deque v0.0.0-20190917121042-56c0672d3354

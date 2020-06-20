@@ -7,8 +7,8 @@ import (
 	"fmt"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/hitzhangjie/go-rpc/codec"
-	"github.com/hitzhangjie/go-rpc/errs"
+	"github.com/hitzhangjie/gorpc/codec"
+	"github.com/hitzhangjie/gorpc/errs"
 )
 
 const maxWhisperPkgSize = 64 * (2 << 10) // 64KB

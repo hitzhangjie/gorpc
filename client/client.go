@@ -3,11 +3,11 @@ package client
 import (
 	"context"
 	"fmt"
-	"github.com/hitzhangjie/go-rpc/client/pool"
-	"github.com/hitzhangjie/go-rpc/client/selector"
-	"github.com/hitzhangjie/go-rpc/client/transport"
-	"github.com/hitzhangjie/go-rpc/codec"
-	"github.com/hitzhangjie/go-rpc/codec/whisper"
+	"github.com/hitzhangjie/gorpc/client/pool"
+	"github.com/hitzhangjie/gorpc/client/selector"
+	"github.com/hitzhangjie/gorpc/client/transport"
+	"github.com/hitzhangjie/gorpc/codec"
+	"github.com/hitzhangjie/gorpc/codec/whisper"
 	"strings"
 	"time"
 )

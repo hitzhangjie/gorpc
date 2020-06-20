@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hitzhangjie/go-rpc/client/pool"
-	"github.com/hitzhangjie/go-rpc/codec"
-	"github.com/hitzhangjie/go-rpc/errs"
+	"github.com/hitzhangjie/gorpc/client/pool"
+	"github.com/hitzhangjie/gorpc/codec"
+	"github.com/hitzhangjie/gorpc/errs"
 )
 
 // TcpTransport tcp transport

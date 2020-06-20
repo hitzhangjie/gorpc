@@ -9,7 +9,7 @@ import (
 	"time"
 
 	deque "github.com/edwingeng/deque"
-	"github.com/hitzhangjie/go-rpc/errs"
+	"github.com/hitzhangjie/gorpc/errs"
 )
 
 // Pool connection poolFactory

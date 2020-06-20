@@ -1,10 +1,10 @@
 # Introduction
 
-# What's go-rpc ?
+# What's gorpc ?
 
-`go-rpc` is a rpc framework, it aims to reduce develop and maintenance complexity. 
+`gorpc` is a rpc framework, it aims to reduce develop and maintenance complexity. 
 
-# Why do we develop go-rpc ?
+# Why do we develop gorpc ?
 
 Compared with standalone application, MicroService Architecture has become more and more popular. Though MicroService Architecture has many advantages over standalone application, it also has many challenges and difficulties to solve, for example:
 
@@ -14,15 +14,15 @@ Compared with standalone application, MicroService Architecture has become more 
 - monitor system, cornerstone to accumulate, visualize, report system or business events, etc.
 - ...
 
-there're many more challenges to solve, it's not that easy as term `micro` means. `go-rpc` is developed to solve this challenges, then reduce develop and maintenance complexity.
+there're many more challenges to solve, it's not that easy as term `micro` means. `gorpc` is developed to solve this challenges, then reduce develop and maintenance complexity.
 
-`go-rpc` will make you happy with programming again.
+`gorpc` will make you happy with programming again.
 
 ## Why not grpc ?
 
 grpc is built upon http/2, we have many services run on tcp, udp and http. Though grpc is good, it doesn't meet our needs. I think many corporations has same occassions as us. So we develop another rpc framework instead of grpc.
 
-go-rpc will support tcp, udp, http/1.x, http/2 and grpc, so you can use go-rpc to handle these different occasions.
+gorpc will support tcp, udp, http/1.x, http/2 and grpc, so you can use gorpc to handle these different occasions.
 
 ## Another Purpose
 

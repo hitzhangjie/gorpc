@@ -2,7 +2,7 @@ package transport
 
 import (
 	"context"
-	"github.com/hitzhangjie/go-rpc/client/pool"
+	"github.com/hitzhangjie/gorpc/client/pool"
 )
 
 type UnixTransport struct {

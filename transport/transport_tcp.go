@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hitzhangjie/go-rpc/codec"
-	"github.com/hitzhangjie/go-rpc/errs"
-	"github.com/hitzhangjie/go-rpc/router"
+	"github.com/hitzhangjie/gorpc/codec"
+	"github.com/hitzhangjie/gorpc/errs"
+	"github.com/hitzhangjie/gorpc/router"
 )
 
 // TcpServerTransport

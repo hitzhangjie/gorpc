@@ -3,7 +3,7 @@ package registry
 import (
 	"sync"
 
-	"github.com/hitzhangjie/go-rpc/server"
+	"github.com/hitzhangjie/gorpc/server"
 )
 
 var (

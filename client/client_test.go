@@ -3,8 +3,8 @@ package client
 import (
 	"context"
 	"github.com/golang/protobuf/proto"
-	"github.com/hitzhangjie/go-rpc/client/selector"
-	"github.com/hitzhangjie/go-rpc/codec/whisper"
+	"github.com/hitzhangjie/gorpc/client/selector"
+	"github.com/hitzhangjie/gorpc/codec/whisper"
 	"sync/atomic"
 	"testing"
 )

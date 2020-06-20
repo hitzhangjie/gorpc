@@ -2,8 +2,8 @@ package transport
 
 import (
 	"context"
-	"github.com/hitzhangjie/go-rpc/client/pool"
-	"github.com/hitzhangjie/go-rpc/codec"
+	"github.com/hitzhangjie/gorpc/client/pool"
+	"github.com/hitzhangjie/gorpc/codec"
 )
 
 type UdpTransport struct {

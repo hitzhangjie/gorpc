@@ -5,8 +5,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hitzhangjie/go-rpc/codec"
-	"github.com/hitzhangjie/go-rpc/errs"
+	"github.com/hitzhangjie/gorpc/codec"
+	"github.com/hitzhangjie/gorpc/errs"
 )
 
 var tcpBufferPool = &sync.Pool{

@@ -1,7 +1,7 @@
 package registry
 
 import (
-	"github.com/hitzhangjie/go-rpc/server"
+	"github.com/hitzhangjie/gorpc/server"
 )
 
 func init() {

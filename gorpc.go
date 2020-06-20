@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/hitzhangjie/go-rpc/config"
-	"github.com/hitzhangjie/go-rpc/registry"
-	"github.com/hitzhangjie/go-rpc/server"
+	"github.com/hitzhangjie/gorpc/config"
+	"github.com/hitzhangjie/gorpc/registry"
+	"github.com/hitzhangjie/gorpc/server"
 )
 
 // ListenAndServe quickly initialize Service and ServerModules and serve

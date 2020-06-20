@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/hitzhangjie/go-rpc/client"
-	"github.com/hitzhangjie/go-rpc/client/selector"
-	"github.com/hitzhangjie/go-rpc/codec/whisper"
-	"github.com/hitzhangjie/go-rpc/router"
-	"github.com/hitzhangjie/go-rpc/server"
-	"github.com/hitzhangjie/go-rpc/transport"
+	"github.com/hitzhangjie/gorpc/client"
+	"github.com/hitzhangjie/gorpc/client/selector"
+	"github.com/hitzhangjie/gorpc/codec/whisper"
+	"github.com/hitzhangjie/gorpc/router"
+	"github.com/hitzhangjie/gorpc/server"
+	"github.com/hitzhangjie/gorpc/transport"
 )
 
 func main() {

@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/hitzhangjie/go-rpc/config"
+	"github.com/hitzhangjie/gorpc/config"
 )
 
 var (

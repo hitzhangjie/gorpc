@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hitzhangjie/go-rpc/codec"
+	"github.com/hitzhangjie/gorpc/codec"
 )
 
 // UdpServerTransport

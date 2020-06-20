@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/hitzhangjie/go-rpc/router"
+	"github.com/hitzhangjie/gorpc/router"
 )
 
 type options struct {

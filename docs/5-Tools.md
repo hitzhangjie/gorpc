@@ -1,6 +1,6 @@
 # Tools
 
-**gorpc**是与go-rpc框架配套的一个命令行工具，辅助开发人员开发，主要包含如下功能：
+**gorpc**是与gorpc框架配套的一个命令行工具，辅助开发人员开发，主要包含如下功能：
 
 1. 使用 Google Protobuf 作为 IDL (Interface Descriptor Language);
 2. gorpc <create>, 指定pb文件，快速生成对应的服务模板、rpc相关client stub、*.pb.go等等;
@@ -60,8 +60,8 @@ pb自身具备的一些特性，使他非常适合用作 IDL (Interface Descript
 现阶段的安装方式：
 
 ```bash
-git clone https://github.com/hitzhangjie/go-rpc
-cd go-rpc/tools/gorpc
+git clone https://github.com/hitzhangjie/gorpc
+cd gorpc/tools/gorpc
 make && make install
 ```
 

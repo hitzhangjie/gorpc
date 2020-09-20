@@ -2,8 +2,8 @@ package transport
 
 import (
 	"context"
-	"github.com/hitzhangjie/gorpc-framework/client/pool"
-	"github.com/hitzhangjie/gorpc-framework/codec"
+	"github.com/hitzhangjie/gorpc/client/pool"
+	"github.com/hitzhangjie/gorpc/codec"
 )
 
 type UdpTransport struct {

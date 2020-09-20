@@ -1,7 +1,7 @@
 package whisper
 
 import (
-	"github.com/hitzhangjie/gorpc-framework/codec"
+	"github.com/hitzhangjie/gorpc/codec"
 )
 
 const Whisper = "whisper"

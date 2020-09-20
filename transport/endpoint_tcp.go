@@ -8,7 +8,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/hitzhangjie/gorpc-framework/codec"
+	"github.com/hitzhangjie/gorpc/codec"
 )
 
 // TcpEndPoint endpoint of tcp connection

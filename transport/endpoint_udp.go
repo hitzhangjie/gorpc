@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/hitzhangjie/gorpc-framework/codec"
+	"github.com/hitzhangjie/gorpc/codec"
 )
 
 // UdpEndPoint udp endpoint

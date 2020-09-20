@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	gorpc "github.com/hitzhangjie/gorpc-framework"
-	_ "github.com/hitzhangjie/gorpc-framework/codec/whisper"
+	gorpc "github.com/hitzhangjie/gorpc"
+	_ "github.com/hitzhangjie/gorpc/codec/whisper"
 )
 
 // Test `gorpc.ListenAndServe`

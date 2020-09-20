@@ -3,7 +3,7 @@ package whisper
 import (
 	"fmt"
 	"github.com/golang/protobuf/proto"
-	"github.com/hitzhangjie/gorpc-framework/codec"
+	"github.com/hitzhangjie/gorpc/codec"
 )
 
 type WhisperSession struct {

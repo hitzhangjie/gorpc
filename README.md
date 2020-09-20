@@ -118,4 +118,4 @@ Actually, gorpc is pluggable like `go <subcmd>` mechanism.
 
 # Go-RPC Arch Design
 
-![arch](https://github.com/hitzhangjie/gorpc-framework/blob/master/docs/arch.png)
+![arch](https://github.com/hitzhangjie/gorpc/blob/master/docs/arch.png)

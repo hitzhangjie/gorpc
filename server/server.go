@@ -4,8 +4,8 @@ import (
 	"context"
 	"sync"
 
-	"github.com/hitzhangjie/gorpc-framework/router"
-	"github.com/hitzhangjie/gorpc-framework/transport"
+	"github.com/hitzhangjie/gorpc/router"
+	"github.com/hitzhangjie/gorpc/transport"
 )
 
 // Service represents a server instance (a server process),

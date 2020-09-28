@@ -1,6 +1,6 @@
 @startuml
 
-package "helloworld" {
+package helloworld {
 
     interface GreeterService {
         +Hello(ctx, *Request) (*Response, error)
@@ -16,70 +16,78 @@ package "helloworld" {
         Methods map[strin]HandleFunc
     }
 }
-note right of helloworld
+note top of helloworld
     通常我们由google protobuf作为IDL:
     - 指导服务api的定义
     - 指导client和server stub生成
 end note
 
 
-package "server" {
+package server {
 
     class Server {
-        +modules []*ServerModule
+        +services []*Service
         +Start()
         +Stop()
         +Handle(h Handler)
     }
+    Server -up-> GreeterServiceImpl
+    'note top of Handler : type GreeterService struct{} \nfunc (s *GreeterService) Hello(ctx, req) (rsp, error)
 
-    interface ServerModule {
+    Server -up-> GreeterServiceDesc
+
+    interface Service {
         +Start()
         +Stop()
     }
 
-    Server "1" *-down- "N" ServerModule
-    note right of Server
-        包含多个ServerModule
-        各ServerModule各司其职
-    end note
+    Server "1" -down-> "N" Service
+    'note bottom of Server
+    '    包含多个Service，Service有自己的ServerTransport，
+    '    各Service各司其职，互不干扰
+    'end note
 
-    class PacketServer {
-        svr *Server
+    class service {
+    	svr *Server
+    	registry *registry.Register
+    	router *router.Router
+    	transport transport.ServerTransport
     }
-    PacketServer -up-|> ServerModule
-
-    class StreamServer {
-        svr *Server
-    }
-    StreamServer -up-|> ServerModule
-
-    class HttpServer {
-        svr *Server
-    }
-    HttpServer -up-|> ServerModule
-
-    Server -up-> GreeterServiceImpl
-    'note left of Handler : type GreeterService struct{} \nfunc (s *GreeterService) Hello(ctx, req) (rsp, error)
-
-    Server -up-> GreeterServiceDesc
-
-    interface Router {
-        Route(rpc string) (Method, error)
-    }
-    Server -left-> Router
-
-    interface Interceptor {
-    }
-    interface Auth {
-    }
-    interface Breaker {
-    }
-    interface Limiter {
-    }
+    service -up-|> Service
+    service -down-> transport.ServerTransport
+    service -down-> registry.Registry
+    service -> router.Router
 
 }
 
-package "codec" {
+package others {
+package interceptor {
+    interface Interceptor {
+    }
+}
+
+package filter {
+	interface Filter {
+	}
+}
+
+package Auth {
+	interface Auth {
+	}
+}
+
+package limiter {
+	interface Limiter {
+	}
+}
+
+package breaker {
+    interface Breaker {
+    }
+}
+}
+
+package codec {
 
     interface Session {
         TraceContext() (interface{}, error)
@@ -94,25 +102,35 @@ package "codec" {
         Decode([]byte) (interface{}, error)
     }
 
+    interface ClientCodec {
+    	Codec
+    }
+    ClientCodec -up-|> Codec
+
+    interface ServerCodec {
+		Codec
+    }
+    ServerCodec -up-|> Codec
+
     interface MessageReader {
-        Codec
         Read(net.Conn) (interface{}, error)
     }
+	class messageReader {
+    	+Codec
+    	+Read(net.Conn) (interface{}, error)
+    }
+    messageReader -left-|> MessageReader
+    messageReader -down-> Codec
+    messageReader -down-> SessionBuilder
 
     interface SessionBuilder {
     	Build(req interface{}) (Session, error)
     }
 
-    MessageReader -right-> Codec
-    MessageReader -left-> SessionBuilder
-    SessionBuilder -left-> Session
-
-    StreamServer -down-> MessageReader
-    PacketServer -down-> MessageReader
-    HttpServer -down-> MessageReader
+    SessionBuilder -down-> Session
 }
 
-package "registry" {
+package registry {
     interface Registry {
         +Register(*Service, opts ... RegisterOption) error
         +DeRegister(*Service) error
@@ -143,29 +161,38 @@ note top of registry
 naming service
 end note
 
-package "client" {
+package transport {
 
-    interface Client {
-        Invoke(ctx, req) (rsp, error)
+	interface ServerTransport {
+		ListenAndServeStream(opts...Option) error
+		ListenAndServePacket(opts...Option) error
+		ListenAndServeHTTP(opts...Option) error
+	}
+
+    class serverTransport {
+    	opts *options
+    	codec *codec.Codec
+    	reader *codec.MessageReader
     }
+    serverTransport -up-|> ServerTransport
+    serverTransport -> codec.MessageReader
 
-    interface Transport {
+    interface ClientTransport {
         Send(ctx, req) (rsp, error)
     }
-    class TcpTransport {
-        pool *TcpConnectionPool
-        rd *MessageReader
-    }
-    TcpTransport "1" --> "TcpConnectionPool"
-    TcpTransport -up-|> Transport
 
-    class UdpTransport {
-        pool *UdpSocketPool
-        rd *MessageReader
-    }
-    UdpTransport "1" --> "UdpSocketPool"
-    UdpTransport -up-|> Transport
+    class clientTransport {
+    	opts *options
+    	reader *codec.MessageReader
+    	codec codec.Codec
 
+     	tcpPool *TcpConnectionPool
+        udpPool *UdpSocketPool
+        rd *codec.MessageReader
+    }
+    clientTransport -up-|> ClientTransport
+    clientTransport -> codec.MessageReader
+    clientTransport -> TcpConnectionPool
 
     interface ConnectionPool {
         +GetConn() (net.Conn, error)
@@ -183,7 +210,20 @@ package "client" {
         +Write([]byte) (n, error)
     }
 
-    class ClientAdapter {
+}
+
+package client {
+
+    interface Client {
+        Invoke(ctx, req) (rsp, error)
+    }
+
+    class client {
+
+        tcpPool *TcpConnectionPool
+        udpPool *UdpSocketPool
+        rd *codec.MessageReader
+
         name string
         codec Codec
         selector Selector
@@ -192,12 +232,11 @@ package "client" {
     }
     note left: general client
 
-    ClientAdapter -right-|> Client
-    ClientAdapter -up-> MessageReader
-    ClientAdapter --> Transport
-    ClientAdapter --> Selector
+    client -|> Client
+    client -> transport.ClientTransport
+    client -> Selector
 
-    package "selector" {
+    package selector {
         interface Selector {
 	        Select(service string, opts ...SelectOption) (Next, error)
 	        Mark(service string, node *registry.Node, err error)
@@ -216,7 +255,7 @@ package "client" {
     }
 }
 
-package "gorpc" {
+package gorpc {
     class Wrapper {
         +NewService(name, addr, version string)
         +Run()
@@ -229,9 +268,6 @@ package "gorpc" {
         +Version string
         +Run(svr *Server)
     }
-
-    Service -left-> helloworld
-    Service -left-> Server
 }
 note left of Wrapper
     gorpc.NewService注册新服务
@@ -239,13 +275,13 @@ note left of Wrapper
     NewClient创建rpcclient
 end note
 
-package "broker" {
+package broker {
     interface Broker {
         ServerModule
         Subsribe(ctx, topic, gp) (<-chan interface{}, error)
         Publish(ctx, topic, req) error
     }
-    Broker -right-|> ServerModule
+    Broker -right-|> Service
 
     class NATS {
         NewBroker(masterAddr) (Broker, error)
@@ -261,14 +297,20 @@ note top of Broker
 message bus
 end note
 
-package "tracing" {
+package router {
+    interface Router {
+        Route(rpc string) (Method, error)
+    }
+}
+
+package tracing {
     interface Tracer {
         Begin(session)
         Finish(session)
     }
 
-    Server -right-> Tracer
-    ClientAdapter -up-> Tracer
+    service -right-> Tracer
+    client -up-> Tracer
 }
 note right: tracing definition
 

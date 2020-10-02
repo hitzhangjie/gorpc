@@ -119,3 +119,11 @@ Actually, gorpc is pluggable like `go <subcmd>` mechanism.
 # Go-RPC Arch Design
 
 ![arch](https://github.com/hitzhangjie/gorpc/blob/master/docs/arch.png)
+
+
+# Thanks
+
+![jetbrains.svg](https://github.com/hitzhangjie/gorpc/blob/master/docs/jetbrains.svg)
+
+Special thanks to the [Jetbrains Team](https://www.jetbrains.com/?from=gorpc) for their support.
+

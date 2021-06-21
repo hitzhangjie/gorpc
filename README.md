@@ -20,7 +20,10 @@ Taking following protofile as an example:
 ***file: greeter.proto***
 
 ```
+syntax = "proto3";
 package app;
+
+option go_package = "github.com/examples/helloworld"
     
 message Request {};
   

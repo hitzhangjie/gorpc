@@ -33,8 +33,9 @@ interface Provider {
 
 Provider -up-> Watcher
 
-ConsulProvider -left-|> Provider
+ConsulProvider -up-|> Provider
 ZooKeeperProvider -up-|> Provider
+FilesystemProvider -up-|> Provider
 
 interface Watcher {
 	Watch(ctx context.Context, fp string) (<-chan EventType, error)

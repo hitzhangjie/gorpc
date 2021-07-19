@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -9,7 +10,7 @@ import (
 )
 
 func init() {
-	Register(ConfTypeYaml, &YamlConfigLoader{})
+	loaders[LoaderYAML] = &YamlConfigLoader{}
 }
 
 // YamlConfig yaml config
@@ -94,6 +95,6 @@ func (c *YamlConfig) path(key string) []interface{} {
 type YamlConfigLoader struct {
 }
 
-func (c *YamlConfigLoader) Load(fp string) (Config, error) {
+func (c *YamlConfigLoader) Load(ctx context.Context, fp string, opts ...Option) (Config, error) {
 	return NewYamlConfig(fp)
 }

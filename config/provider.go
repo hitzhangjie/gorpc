@@ -1,6 +1,13 @@
 package config
 
-import "context"
+import (
+	"context"
+	"errors"
+	"fmt"
+	"os"
+
+	"github.com/fsnotify/fsnotify"
+)
 
 // Provider defines provider of config, it internally uses Watcher to watch the config changes
 type Provider interface {
@@ -19,11 +26,58 @@ func (p *FilesystemProvider) Name() string {
 }
 
 func (p *FilesystemProvider) Watch(ctx context.Context, fp string) (<-chan Event, error) {
-	panic("implement me")
+
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		return nil, err
+	}
+
+	ch := make(chan Event)
+	go func() {
+		defer watcher.Close()
+		for {
+			select {
+			case ev, ok := <-watcher.Events:
+				if !ok {
+					return
+				}
+				if ev.Op&fsnotify.Write == 0 {
+					continue
+				}
+				//fmt.Println("watch file modified:", ev.Name)
+				ch <- Event{
+					typ:  Update,
+					meta: ev.String(),
+				}
+			case err, ok := <-watcher.Errors:
+				if !ok {
+					return
+				}
+				fmt.Println("watch error:", err)
+				close(ch)
+			}
+		}
+	}()
+
+	err = watcher.Add(fp)
+	if err != nil {
+		return nil, err
+	}
+
+	return ch, nil
 }
 
 func (p *FilesystemProvider) Load(ctx context.Context, fp string) ([]byte, error) {
-	panic("implement me")
+	fin, err := os.Lstat(fp)
+	if err != nil {
+		return nil, err
+	}
+
+	if fin.IsDir() {
+		return nil, errors.New("not normal file")
+	}
+
+	return os.ReadFile(fp)
 }
 
 // ConsulProvider returns config stored in remote Consul server

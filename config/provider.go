@@ -14,15 +14,15 @@ type Provider interface {
 type FilesystemProvider struct {
 }
 
-func (f FilesystemProvider) Name() string {
+func (p *FilesystemProvider) Name() string {
 	panic("fs")
 }
 
-func (f FilesystemProvider) Watch(ctx context.Context, fp string) (<-chan Event, error) {
+func (p *FilesystemProvider) Watch(ctx context.Context, fp string) (<-chan Event, error) {
 	panic("implement me")
 }
 
-func (f FilesystemProvider) Load(ctx context.Context, fp string) ([]byte, error) {
+func (p *FilesystemProvider) Load(ctx context.Context, fp string) ([]byte, error) {
 	panic("implement me")
 }
 
@@ -30,15 +30,15 @@ func (f FilesystemProvider) Load(ctx context.Context, fp string) ([]byte, error)
 type ConsulProvider struct {
 }
 
-func (c ConsulProvider) Name() string {
+func (p *ConsulProvider) Name() string {
 	return "consul"
 }
 
-func (c *ConsulProvider) Watch(ctx context.Context, fp string) (<-chan Event, error) {
+func (p *ConsulProvider) Watch(ctx context.Context, fp string) (<-chan Event, error) {
 	panic("implement me")
 }
 
-func (c ConsulProvider) Load(ctx context.Context, fp string) ([]byte, error) {
+func (p *ConsulProvider) Load(ctx context.Context, fp string) ([]byte, error) {
 	panic("implement me")
 }
 
@@ -46,14 +46,14 @@ func (c ConsulProvider) Load(ctx context.Context, fp string) ([]byte, error) {
 type EtcdProvider struct {
 }
 
-func (Z EtcdProvider) Name() string {
+func (p *EtcdProvider) Name() string {
 	return "zk"
 }
 
-func (Z *EtcdProvider) Watch(ctx context.Context, fp string) (<-chan Event, error) {
+func (p *EtcdProvider) Watch(ctx context.Context, fp string) (<-chan Event, error) {
 	panic("implement me")
 }
 
-func (Z EtcdProvider) Load(ctx context.Context, fp string) ([]byte, error) {
+func (p *EtcdProvider) Load(ctx context.Context, fp string) ([]byte, error) {
 	panic("implement me")
 }

@@ -5,21 +5,11 @@ import (
 	"time"
 )
 
-// LoaderType loader types
-type LoaderType string
-
 // Loader load the config, it may internally uses Provider to read config
 type Loader interface {
 	// Load returns config abount fp
 	Load(ctx context.Context, fp string, opts ...Option) (Config, error)
 }
-
-const (
-	LoaderYAML LoaderType = "yaml"
-	LoaderINI             = "ini"
-)
-
-var loaders = map[LoaderType]Loader{}
 
 type loader struct {
 	opts   *options

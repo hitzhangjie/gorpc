@@ -52,9 +52,10 @@ type INIDecoder struct {
 
 func (d *INIDecoder) Decode(dat []byte, val interface{}) error {
 	rt := reflect.TypeOf(val)
-	if rt.Kind() != reflect.Map {
-		panic("val must be pointer or map")
+	if rt.Kind() != reflect.Ptr {
+		panic("val must be pointer")
 	}
 
-	return ini.MapTo(dat, val)
+	// note: map dat to value
+	return ini.MapTo(val, dat)
 }

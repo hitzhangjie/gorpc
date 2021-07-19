@@ -1,15 +1,10 @@
 package config
 
 import (
-	"context"
 	"strings"
 
 	"gopkg.in/ini.v1"
 )
-
-func init() {
-	loaders[LoaderINI] = &IniConfigLoader{}
-}
 
 // IniConfig ini config
 type IniConfig struct {
@@ -87,12 +82,4 @@ func (c *IniConfig) split(key string) (string, string) {
 	default:
 		return "", ""
 	}
-}
-
-// IniConfigLoader ini config loader
-type IniConfigLoader struct {
-}
-
-func (c *IniConfigLoader) Load(ctx context.Context, fp string, opts ...Option) (Config, error) {
-	return NewIniConfig(fp)
 }

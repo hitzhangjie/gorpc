@@ -14,8 +14,7 @@ var (
 	yamlCfg *config.YamlConfig
 )
 
-func TestMain(m *testing.M) {
-
+func init() {
 	cwd, err := os.Getwd()
 	if err != nil {
 		panic(err)
@@ -35,7 +34,6 @@ func TestMain(m *testing.M) {
 	}
 	yamlCfg = yml
 
-	m.Run()
 }
 
 func TestConfig_IniConfig(t *testing.T) {

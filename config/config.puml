@@ -1,0 +1,75 @@
+@startuml
+'https://plantuml.com/class-diagram
+
+class Loader {
+	provider Provider
+	decoder Decoder
+	opts options
+
+	value atomic.Value
+
+	Load(ctx context.Context, fp string, opts...Option) (Config, error)
+}
+
+Loader -up-> options
+Loader -right-> Provider
+Loader -down-> Decoder
+Loader -left-> Config
+
+class options {
+	fp string
+	reload bool
+	interval time.Duration
+	typ DecoderType
+}
+
+options -right-> DecodeType
+
+interface Provider {
+	Watcher
+	Name() string
+	Load(ctx context.Context, fp string, event) ([]byte, error)
+}
+
+Provider -up-> Watcher
+
+ConsulProvider -left-|> Provider
+ZooKeeperProvider -up-|> Provider
+
+interface Watcher {
+	Watch(ctx context.Context, fp string) (<-chan EventType, error)
+}
+
+Watcher -> EventType
+
+enum EventType {
+	Update
+	Delete
+}
+
+interface Decoder {
+	Decode(dat []byte, val interface{}) error
+}
+
+enum DecodeType {
+	YAML
+	JSON
+	INI
+}
+
+YAMLDecoder -up-|> Decoder
+JSONDecoder -up-|> Decoder
+INIDecoder -up-|> Decoder
+
+interface Config {
+	Read(name string) (interface{}, error)
+}
+
+class config {
+	value atomic.Value
+	Read(name string) (interface{}, error)
+}
+
+config -up-|> Config
+
+@enduml

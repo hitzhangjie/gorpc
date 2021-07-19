@@ -1,17 +1,12 @@
 package config
 
 import (
-	"context"
 	"io/ioutil"
 	"os"
 	"strings"
 
 	"github.com/smallfish/simpleyaml"
 )
-
-func init() {
-	loaders[LoaderYAML] = &YamlConfigLoader{}
-}
 
 // YamlConfig yaml config
 type YamlConfig struct {
@@ -93,8 +88,4 @@ func (c *YamlConfig) path(key string) []interface{} {
 
 // YamlConfigLoader yaml config loader
 type YamlConfigLoader struct {
-}
-
-func (c *YamlConfigLoader) Load(ctx context.Context, fp string, opts ...Option) (Config, error) {
-	return NewYamlConfig(fp)
 }

@@ -3,6 +3,8 @@ package config
 import (
 	"context"
 	"time"
+
+	"gopkg.in/ini.v1"
 )
 
 // Loader load the config, it may internally uses Provider to read config
@@ -12,8 +14,8 @@ type Loader interface {
 }
 
 type loader struct {
-	opts   *options
-	config *config
+	opts   options
+	config config
 }
 
 func NewLoader(ctx context.Context, opts ...Option) (Loader, error) {
@@ -22,12 +24,12 @@ func NewLoader(ctx context.Context, opts ...Option) (Loader, error) {
 		o(&oo)
 	}
 
-	return &loader{opts: &oo}, nil
+	return &loader{opts: oo}, nil
 }
 
 func (l *loader) Load(ctx context.Context, fp string, opts ...Option) (Config, error) {
 	oo := options{
-		fp:       l.opts.fp,
+		fp:       fp,
 		reload:   l.opts.reload,
 		interval: l.opts.interval,
 		decoder:  l.opts.decoder,
@@ -43,26 +45,28 @@ func (l *loader) Load(ctx context.Context, fp string, opts ...Option) (Config, e
 		return nil, err
 	}
 
-	var ldcfg interface{}
+	var cfg interface{}
 
 	switch v := oo.decoder.(type) {
 	case *YAMLDecoder:
-		cfg := YamlConfig{}
-		err = v.Decode(dat, cfg.yml)
-		ldcfg = cfg
+		c := YamlConfig{}
+		err = v.Decode(dat, c.yml)
+		cfg = &c
 	case *INIDecoder:
-		cfg := IniConfig{}
-		err = v.Decode(dat, cfg.cfg)
-		ldcfg = cfg
+		c := IniConfig{
+			cfg: &ini.File{},
+		}
+		err = v.Decode(dat, &c)
+		cfg = &c
 	default:
-		panic("not supported")
+		panic("not supported decoder type")
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	l.config.value.Store(ldcfg)
-	return l.config, nil
+	l.config.value.Store(cfg)
+	return &l.config, nil
 }
 
 // Option loader options

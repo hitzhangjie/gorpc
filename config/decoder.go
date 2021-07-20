@@ -51,11 +51,16 @@ type INIDecoder struct {
 }
 
 func (d *INIDecoder) Decode(dat []byte, val interface{}) error {
-	rt := reflect.TypeOf(val)
-	if rt.Kind() != reflect.Ptr {
-		panic("val must be pointer")
+	iniCfg, ok := val.(*IniConfig)
+	if !ok {
+		return ini.MapTo(val, dat)
 	}
 
-	// note: map dat to value
-	return ini.MapTo(val, dat)
+	cfg, err := ini.Load(dat)
+	if err != nil {
+		return err
+	}
+
+	*iniCfg.cfg = *cfg
+	return nil
 }

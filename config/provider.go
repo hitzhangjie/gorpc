@@ -9,6 +9,20 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
+// ProviderType define provider type
+type ProviderType string
+
+const (
+	ProviderFilesystem ProviderType = "fs"     // filesystem
+	ProviderZookeeper               = "zk"     // zookeeper
+	ProviderConsul                  = "consul" // consul
+	ProviderEtcd                    = "etcd"   // etcd
+)
+
+var providers = map[ProviderType]Provider{
+	ProviderFilesystem: &FilesystemProvider{},
+}
+
 // Provider defines provider of config, it internally uses Watcher to watch the config changes
 type Provider interface {
 	Watcher

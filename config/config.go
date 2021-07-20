@@ -23,7 +23,7 @@ type Config interface {
 type config struct {
 	// reload config if needed
 	value atomic.Value
-	opts  *options
+	opts  options
 }
 
 func (c *config) Read(key string, dftValue string) string {
@@ -35,7 +35,7 @@ func (c *config) Read(key string, dftValue string) string {
 	case *IniConfig:
 		return v.Read(key, dftValue)
 	default:
-		fmt.Fprintln(os.Stderr, "not supported config: ", v)
+		fmt.Fprintf(os.Stderr, "not supported config: %T\n", v)
 		return dftValue
 	}
 }

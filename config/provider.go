@@ -34,11 +34,16 @@ func (p *FilesystemProvider) Watch(ctx context.Context, fp string) (<-chan Event
 
 	ch := make(chan Event)
 	go func() {
-		defer watcher.Close()
+		defer func() {
+			watcher.Close()
+			close(ch)
+		}()
+
 		for {
 			select {
 			case ev, ok := <-watcher.Events:
 				if !ok {
+					fmt.Println("watch error: wather.Events closed")
 					return
 				}
 				if ev.Op&fsnotify.Write == 0 {
@@ -54,7 +59,10 @@ func (p *FilesystemProvider) Watch(ctx context.Context, fp string) (<-chan Event
 					return
 				}
 				fmt.Println("watch error:", err)
-				close(ch)
+				return
+			case <-ctx.Done():
+				fmt.Println("watch cancelled")
+				return
 			}
 		}
 	}()

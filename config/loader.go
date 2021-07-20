@@ -2,7 +2,6 @@ package config
 
 import (
 	"context"
-	"time"
 
 	"gopkg.in/ini.v1"
 )
@@ -31,7 +30,6 @@ func (l *loader) Load(ctx context.Context, fp string, opts ...Option) (Config, e
 	oo := options{
 		fp:       fp,
 		reload:   l.opts.reload,
-		interval: l.opts.interval,
 		decoder:  l.opts.decoder,
 		provider: l.opts.provider,
 	}
@@ -40,14 +38,56 @@ func (l *loader) Load(ctx context.Context, fp string, opts ...Option) (Config, e
 		o(&oo)
 	}
 
-	dat, err := oo.provider.Load(ctx, fp)
+	if oo.reload {
+		l.reload(ctx, fp, oo)
+	}
+
+	return l.load(ctx, fp, oo)
+}
+
+func (l *loader) load(ctx context.Context, fp string, opts options) (Config, error) {
+	dat, err := opts.provider.Load(ctx, fp)
 	if err != nil {
 		return nil, err
 	}
 
-	var cfg interface{}
+	cfg, err := l.decode(ctx, dat, opts)
+	if err != nil {
+		return nil, err
+	}
 
-	switch v := oo.decoder.(type) {
+	l.config.value.Store(cfg)
+	return &l.config, nil
+}
+
+func (l *loader) reload(ctx context.Context, fp string, opts options) error {
+	ch, err := opts.provider.Watch(ctx, fp)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		for {
+			select {
+			case v := <-ch:
+				if v.typ != Update {
+					continue
+				}
+				l.load(ctx, fp, opts)
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+
+	return nil
+}
+
+func (l *loader) decode(ctx context.Context, dat []byte, opts options) (interface{}, error) {
+	var cfg interface{}
+	var err error
+
+	switch v := opts.decoder.(type) {
 	case *YAMLDecoder:
 		c := YamlConfig{}
 		err = v.Decode(dat, c.yml)
@@ -61,12 +101,11 @@ func (l *loader) Load(ctx context.Context, fp string, opts ...Option) (Config, e
 	default:
 		panic("not supported decoder type")
 	}
+
 	if err != nil {
 		return nil, err
 	}
-
-	l.config.value.Store(cfg)
-	return &l.config, nil
+	return cfg, nil
 }
 
 // Option loader options
@@ -75,7 +114,6 @@ type Option func(*options)
 type options struct {
 	fp       string
 	reload   bool
-	interval time.Duration
 	decoder  Decoder
 	provider Provider
 }
@@ -83,12 +121,6 @@ type options struct {
 func WithReload(v bool) Option {
 	return func(o *options) {
 		o.reload = v
-	}
-}
-
-func WithInterval(v time.Duration) Option {
-	return func(o *options) {
-		o.interval = v
 	}
 }
 

@@ -1,0 +1,71 @@
+@startuml
+
+package "log" {
+
+enum Level {
+	Trace
+	Debug
+	Info
+	Error
+	Fatal
+}
+
+interface Logger {
+	Trace(fmt string, v...interface{})
+	Debug(fmt string, v...interface{})
+	Info(fmt string, v...interface{})
+	Error(fmt string, v...interface{})
+	Fatal(fmt string, v...interface{})
+	WithPrefix(fmt string, v...interface{})
+}
+
+enum RollType {
+	RollNone
+	RollByFileSZ
+	RollByDay
+}
+
+interface Writer {
+	io.Writer
+	io.Closer
+
+	Roller
+}
+
+Writer --> io.Writer
+Writer --> io.Closer
+
+class logger {
+	name string
+	opts options
+	writer Writer
+}
+
+logger -> options
+logger --|> Writer
+logger -down-|> Logger
+
+class options {
+	fpath string
+	level Level
+	rollType RollType
+}
+
+options --> Level
+options -|> RollType
+
+}
+
+package "io" {
+
+interface Writer {
+	Write([]byte) (n int, err error)
+}
+
+interface Closer {
+	Close() error
+}
+
+}
+
+@enduml

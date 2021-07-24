@@ -2,46 +2,37 @@
 
 package "helloworld" {
 
-    interface GreeterService {
+    interface Greeter {
         +Hello(ctx, *Request) (*Response, error)
     }
 
-    class GreeterServiceImpl {
+    class greeter {
         +Hello(ctx, *Request) (*Response, error)
     }
-    GreeterServiceImpl -up-|> GreeterService
+    greeter -up-|> Greeter
 
-    class GreeterServiceDesc {
-        Name
-        Methods map[strin]HandleFunc
+    class Greeter_ServiceDesc {
+        Name string
+        Methods map[string]HandleFunc
     }
 }
-note right of helloworld
-    通常我们由google protobuf作为IDL:
-    - 指导服务api的定义
-    - 指导client和server stub生成
-end note
-
 
 package "server" {
 
     class Server {
         +modules []*ServerModule
+        +interceptors []Interceptor
         +Start()
         +Stop()
-        +Handle(h Handler)
+        +Register(s *ServerModule) error
+        +AtExit(fn func())
     }
 
     interface ServerModule {
         +Start()
         +Stop()
     }
-
     Server "1" *-down- "N" ServerModule
-    note right of Server
-        包含多个ServerModule
-        各ServerModule各司其职
-    end note
 
     class PacketServer {
         svr *Server
@@ -58,25 +49,18 @@ package "server" {
     }
     HttpServer -up-|> ServerModule
 
-    Server -up-> GreeterServiceImpl
-    'note left of Handler : type GreeterService struct{} \nfunc (s *GreeterService) Hello(ctx, req) (rsp, error)
-
-    Server -up-> GreeterServiceDesc
+    Server -up-> greeter
+    Server -up-> Greeter_ServiceDesc
 
     interface Router {
         Route(rpc string) (Method, error)
     }
-    Server -left-> Router
+    Server -down-> Router
 
     interface Interceptor {
+    	Intercept(ctx context.Context) error
     }
-    interface Auth {
-    }
-    interface Breaker {
-    }
-    interface Limiter {
-    }
-
+	Server "1" -left-> "N" Interceptor
 }
 
 package "codec" {
@@ -94,8 +78,10 @@ package "codec" {
         Decode([]byte) (interface{}, error)
     }
 
-    interface MessageReader {
-        Codec
+
+    class MessageReader {
+        codec Codec
+        builder SessionBuilder
         Read(net.Conn) (interface{}, error)
     }
 
@@ -103,14 +89,28 @@ package "codec" {
     	Build(req interface{}) (Session, error)
     }
 
-    MessageReader -right-> Codec
-    MessageReader -left-> SessionBuilder
-    SessionBuilder -left-> Session
+
+    MessageReader -down-> Codec
+    MessageReader -down-> SessionBuilder
+    SessionBuilder -up-> Session
 
     StreamServer -down-> MessageReader
     PacketServer -down-> MessageReader
     HttpServer -down-> MessageReader
 }
+
+package "internal.codec" {
+    GoRPC -up-|> Codec
+    GRPC -up-|> Codec
+    HTTP -up-|> Codec
+}
+
+package "internal.builder" {
+    GoRPCBuilder -up-|> SessionBuilder
+    GRPCBuilder -up-|> SessionBuilder
+    HTTPBuilder -up-|> SessionBuilder
+}
+
 
 package "registry" {
     interface Registry {
@@ -120,28 +120,55 @@ package "registry" {
         +ListServices() ([]*Service, error)
         +Watcher() (Watcher, error)
     }
-    Registry "1" *-down- "1" Watcher
+    Registry "1" *-right- "1" Watcher
+    Registry "1" -up-> "N" Service
+    Server -left-> Registry
 
     interface Watcher {
         +Next() (*Result, error)
         +Stop()
     }
-    Watcher -right-> Result
+    Watcher -up-> Result
 
     class Result {
         +Action ActionType
         +Service *Service
     }
-    enum ActionType {
+    enum Action {
         CREATE
         UPDATE
         DELETE
     }
-    Result -up-> ActionType
+    Result -right-> Action
+
+    class Service {
+    	Name string
+    	Version string
+    	Nodes []Node
+    }
+    Service "1" -right-> "N" Node
+
+    class Node {
+    	IP string
+    	Port int
+    	Weight int
+    }
 }
-note top of registry
-naming service
-end note
+
+package "selector" {
+	interface Selector {
+		Select(service string, opts ...SelectOption) (Next, error)
+	    Mark(service string, node *registry.Node, err error)
+     	Reset(service string)
+    	Close() error
+    }
+    Selector -up-> Registry
+}
+
+package "internal.selector" {
+    IPSelector --|> Selector
+    EtcdSelector -left-|> Selector
+}
 
 package "client" {
 
@@ -154,28 +181,25 @@ package "client" {
     }
     class TcpTransport {
         pool *TcpConnectionPool
+        eps []*Endpoint
         rd *MessageReader
     }
-    TcpTransport "1" --> "TcpConnectionPool"
-    TcpTransport -up-|> Transport
+    TcpTransport -left-|> Transport
+    TcpTransport "1" -right-> "TcpConnectionPool"
 
     class UdpTransport {
-        pool *UdpSocketPool
+        ep *Endpoint
         rd *MessageReader
     }
-    UdpTransport "1" --> "UdpSocketPool"
     UdpTransport -up-|> Transport
-
+    UdpTransport -right-|> Endpoint
 
     interface ConnectionPool {
         +GetConn() (net.Conn, error)
         +FreeConn(net.Conn)
     }
     TcpConnectionPool --|> ConnectionPool
-    UdpSocketPool --|> ConnectionPool
-
     TcpConnectionPool "1" --> "N" Endpoint
-    UdpSocketPool "1" --> "N" Endpoint
 
     class Endpoint {
         -conn net.Conn
@@ -183,61 +207,19 @@ package "client" {
         +Write([]byte) (n, error)
     }
 
-    class ClientAdapter {
+    class client {
         name string
         codec Codec
         selector Selector
         trans Transport
         +Invoke(ctx, req) (rsp, error)
     }
-    note left: general client
 
-    ClientAdapter -right-|> Client
-    ClientAdapter -up-> MessageReader
-    ClientAdapter --> Transport
-    ClientAdapter --> Selector
-
-    package "selector" {
-        interface Selector {
-	        Select(service string, opts ...SelectOption) (Next, error)
-	        Mark(service string, node *registry.Node, err error)
-	        Reset(service string)
-	        Close() error
-        }
-
-        SimpleSelector -up-|> Selector
-        ConsulSelector -up-|> Selector
-        EtcdSelector -up-|> Selector
-        Selector -up-> Registry
-        note bottom of EtcdSelector
-            loadbanlancer based on NamingService
-        end note
-
-    }
+    client -right-|> Client
+    client -right-> MessageReader
+    client -down-> Transport
+    client -up-> Selector
 }
-
-package "gorpc" {
-    class Wrapper {
-        +NewService(name, addr, version string)
-        +Run()
-        +NewServiceClient(name, version string)
-    }
-    Wrapper --> Service
-
-    class Service {
-        +Name string
-        +Version string
-        +Run(svr *Server)
-    }
-
-    Service -left-> helloworld
-    Service -left-> Server
-}
-note left of Wrapper
-    gorpc.NewService注册新服务
-    Run运行服务实例
-    NewClient创建rpcclient
-end note
 
 package "broker" {
     interface Broker {
@@ -245,31 +227,12 @@ package "broker" {
         Subsribe(ctx, topic, gp) (<-chan interface{}, error)
         Publish(ctx, topic, req) error
     }
-    Broker -right-|> ServerModule
-
-    class NATS {
-        NewBroker(masterAddr) (Broker, error)
-    }
-    NATS -up-|> Broker
-
-    class Kafka {
-        NewBroker(masterAddr) (Broker, error)
-    }
-    Kafka -up-|> Broker
+    Broker --|> ServerModule
 }
-note top of Broker
-message bus
-end note
 
-package "tracing" {
-    interface Tracer {
-        Begin(session)
-        Finish(session)
-    }
-
-    Server -right-> Tracer
-    ClientAdapter -up-> Tracer
+package "internal.broker" {
+    NATS --|> Broker
+    Kafka --|> Broker
 }
-note right: tracing definition
 
 @enduml

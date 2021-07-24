@@ -3,6 +3,7 @@ package log
 import (
 	"fmt"
 	"os"
+	"sync/atomic"
 	"time"
 )
 
@@ -12,13 +13,13 @@ func init() {
 
 type fileWriter struct {
 	opts *options
-	fout *os.File
+	fout atomic.Value
 	ch   chan []byte
 	done chan struct{}
 }
 
 func (w *fileWriter) Write(b []byte) (n int, err error) {
-	return w.fout.Write(b)
+	return w.fout.Load().(*os.File).Write(b)
 }
 
 func (w *fileWriter) AsyncWrite(b []byte) {
@@ -29,9 +30,9 @@ func (w *fileWriter) asyncWrite() {
 	for {
 		select {
 		case m := <-w.ch:
-			w.fout.Write(m)
+			w.fout.Load().(*os.File).Write(m)
 		case <-w.done:
-			w.fout.Close()
+			w.fout.Load().(*os.File).Close()
 			return
 		}
 	}
@@ -41,7 +42,7 @@ func (w *fileWriter) roll() {
 	tick := time.NewTicker(time.Second)
 
 	for range tick.C {
-		fp := w.fout.Name()
+		fp := w.fout.Load().(*os.File).Name()
 		inf, err := os.Lstat(fp)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "lstat err: %v", err)
@@ -53,7 +54,18 @@ func (w *fileWriter) roll() {
 			continue
 		}
 
-		// TODO rename the files
+		// rename the files
+		os.Rename(fp, fmt.Sprintf("%s.%d", fp, sz))
+		f, err := os.OpenFile(fp, os.O_APPEND|os.O_CREATE, 0755)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "open file err: %v\n", err)
+			continue
+		}
+		w.fout.Store(f)
+
+		time.AfterFunc(time.Second, func() {
+			w.fout.Load().(*os.File).Close()
+		})
 	}
 }
 
@@ -68,7 +80,7 @@ func NewFileWriter(opts *options) (Writer, error) {
 	if err != nil {
 		return nil, err
 	}
-	fw.fout = fout
+	fw.fout.Store(fout)
 
 	if fw.opts.async {
 		go fw.asyncWrite()

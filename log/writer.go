@@ -5,14 +5,13 @@ import (
 	"io"
 )
 
+var writers = map[WriterType]WriterBuilder{}
+
+// WriterType writer type
 type WriterType int
 
 const (
-	FileWriter WriterType = iota
-)
-
-var (
-	writers = map[WriterType]WriterBuilder{}
+	FileWriter WriterType = iota // log to files
 )
 
 // RegisterWriterBuilder register new writer 'w' for type 'typ'

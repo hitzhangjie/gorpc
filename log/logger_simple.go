@@ -31,7 +31,7 @@ func NewLogger(fname string, level Level, opts ...Option) (Logger, error) {
 	_ = os.MkdirAll(filepath.Dir(fp), os.ModePerm)
 
 	oo := options{
-		level:      Info,
+		level:      level,
 		fpath:      fp,
 		writerType: FileWriter,
 		rollType:   RollNONE,
@@ -54,7 +54,7 @@ func NewLogger(fname string, level Level, opts ...Option) (Logger, error) {
 		name:   fp,
 		mux:    new(sync.Mutex),
 		writer: writer,
-		opts:   options{},
+		opts:   oo,
 	}, nil
 }
 
@@ -82,7 +82,7 @@ func (l *logger) Info(s string, v ...interface{}) {
 }
 
 func (l *logger) Warn(s string, v ...interface{}) {
-	l.tryWrite(Info, s, v...)
+	l.tryWrite(Warn, s, v...)
 }
 
 func (l *logger) Error(s string, v ...interface{}) {
@@ -91,6 +91,10 @@ func (l *logger) Error(s string, v ...interface{}) {
 
 func (l *logger) Fatal(s string, v ...interface{}) {
 	l.tryWrite(Fatal, s, v...)
+}
+
+func (l *logger) Flush() error {
+	return l.writer.Flush()
 }
 
 func (l *logger) WithPrefix(s string, v ...interface{}) Logger {
@@ -114,8 +118,14 @@ func (l *logger) tryWrite(level Level, s string, args ...interface{}) {
 	if l.opts.level > level {
 		return
 	}
-	s0 := fmt.Sprintf("[%s] %s %s", level, l.prefix, s)
-	s1 := fmt.Sprintf(s0, args...)
+	var s0, s1 string
+	if len(l.prefix) != 0 {
+		s0 = fmt.Sprintf("[%s] %s %s\n", level, l.prefix, s)
+		s1 = fmt.Sprintf(s0, args...)
+	} else {
+		s0 = fmt.Sprintf("[%s] %s\n", level, s)
+		s1 = fmt.Sprintf(s0, args...)
+	}
 
 	var n int
 	var err error

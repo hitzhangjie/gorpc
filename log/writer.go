@@ -34,6 +34,7 @@ type Writer interface {
 	io.Writer
 	io.Closer
 	AsyncWrite([]byte)
+	Flush() error
 }
 
 // WriterBuilder builder of writer

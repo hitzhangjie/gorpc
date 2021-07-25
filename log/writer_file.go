@@ -56,7 +56,7 @@ func (w *fileWriter) roll() {
 
 		// rename the files
 		os.Rename(fp, fmt.Sprintf("%s.%d", fp, sz))
-		f, err := os.OpenFile(fp, os.O_APPEND|os.O_CREATE, 0755)
+		f, err := os.OpenFile(fp, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "open file err: %v\n", err)
 			continue
@@ -69,14 +69,18 @@ func (w *fileWriter) roll() {
 	}
 }
 
+func (w *fileWriter) Flush() error {
+	return w.fout.Load().(*os.File).Sync()
+}
+
 func (w *fileWriter) Close() error {
-	panic("implement me")
+	return w.fout.Load().(*os.File).Close()
 }
 
 func NewFileWriter(opts *options) (Writer, error) {
 	fw := &fileWriter{opts: opts}
 
-	fout, err := os.OpenFile(opts.fpath, os.O_APPEND|os.O_CREATE, 0755)
+	fout, err := os.OpenFile(opts.fpath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		return nil, err
 	}

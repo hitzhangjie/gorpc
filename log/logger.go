@@ -8,6 +8,7 @@ type Logger interface {
 	Warn(s string, v ...interface{})
 	Error(s string, v ...interface{})
 	Fatal(s string, v ...interface{})
+	Flush() error
 	WithPrefix(s string, v ...interface{}) Logger
 }
 

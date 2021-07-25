@@ -14,14 +14,38 @@ import (
 )
 
 func TestNewFileWriter_SyncWriter(t *testing.T) {
-	fp := filepath.Join(os.TempDir(), "gorpc_test.log")
-	fmt.Println(fp)
-	_ = os.RemoveAll(fp)
+	t.Run("test sync writer", func(t *testing.T) {
+		fp := filepath.Join(os.TempDir(), "gorpc_sync_test.log")
+		testWriter(t, fp, false)
+		_ = os.RemoveAll(fp)
+	})
 
+	t.Run("test async writer", func(t *testing.T) {
+		fp := filepath.Join(os.TempDir(), "gorpc_async_test.log")
+		testWriter(t, fp, true)
+		_ = os.RemoveAll(fp)
+	})
+}
+
+func TestNewFileWriter_AsyncWrite(t *testing.T) {
+
+}
+
+func TestFileWriter_RollBy_FixSize(t *testing.T) {
+
+}
+
+func TestFileWriter_RollBy_Day(t *testing.T) {
+
+}
+
+func testWriter(t *testing.T, fp string, async bool) {
 	opts := []log.Option{
 		log.WithWriteType(log.FileWriter),
 		log.WithRollType(log.RollNONE),
-		log.WithAsyncWrite(false),
+	}
+	if !async {
+		opts = append(opts, log.WithAsyncWrite(false))
 	}
 
 	l, err := log.NewLogger(fp, log.Debug, opts...)
@@ -70,18 +94,4 @@ func TestNewFileWriter_SyncWriter(t *testing.T) {
 	b, err := ioutil.ReadFile(fp)
 	assert.Nil(t, err)
 	assert.Equal(t, sb.String(), string(b))
-
-	_ = os.RemoveAll(fp)
-}
-
-func TestNewFileWriter_AsyncWrite(t *testing.T) {
-
-}
-
-func TestFileWriter_RollBy_FixSize(t *testing.T) {
-
-}
-
-func TestFileWriter_RollBy_Day(t *testing.T) {
-
 }

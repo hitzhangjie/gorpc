@@ -49,11 +49,3 @@ func filesize(size string) (bytes int, err error) {
 
 	return sz, nil
 }
-
-type rollerByFileSZ struct {
-	logger *logger
-}
-
-func (r *rollerByFileSZ) Roll(oldf Writer) (newf Writer, err error) {
-	return
-}

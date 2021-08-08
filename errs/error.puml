@@ -1,0 +1,30 @@
+@startuml
+
+package errors {
+	interface error {
+		Error() string
+	}
+}
+
+enum errorType {
+	ErrorTypeNil
+	ErrorTypeFramework
+	ErrorTypeBusiness
+}
+
+package errs {
+	class Error {
+		-code int
+		-msg string
+		-typ errorType
+		+Error() string
+		+Code() int
+		+Msg() string
+		+Type() errorType
+	}
+
+	Error -up-|> error
+	Error "1" -right-> "1" errorType
+}
+
+@enduml

@@ -10,11 +10,15 @@ import (
 // - when we decode a request/response binary data, data includes pkg length, magic number, req/rsp payload, etc.
 // - when we encode a req/rsp payload, we also add pkg length, magic number, req/rsp payload, etc.
 // Needless to say, marshal/unmarshal is not appropriate!
+//
+// TODO add interface Serializer
 type Codec interface {
 	// Name codec name
 	Name() string
+
 	// Encode encode pkg into []byte
 	Encode(pkg interface{}) (dat []byte, err error)
+
 	// Decode decode []byte, return decoded interface{} and number of bytes
 	Decode(dat []byte) (req interface{}, n int, err error)
 }
@@ -30,22 +34,25 @@ type codec struct {
 	client Codec
 }
 
-func RegisterCodec(name string, server, client Codec) {
+// RegisterCodec registers codec of protocol
+func RegisterCodec(protocol string, server, client Codec) {
 	mux.Lock()
 	defer mux.Unlock()
-	codecs[name] = codec{
-		name:   name,
+	codecs[protocol] = codec{
+		name:   protocol,
 		server: server,
 		client: client,
 	}
 }
 
-func ServerCodec(name string) Codec {
+// ServerCodec returns server side codec of protocol
+func ServerCodec(protocol string) Codec {
 	mux.RLock()
 	defer mux.RUnlock()
-	return codecs[name].server
+	return codecs[protocol].server
 }
 
+// ClientCodec returns client side codec of protocol
 func ClientCodec(name string) Codec {
 	mux.RLock()
 	defer mux.RUnlock()

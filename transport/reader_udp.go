@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/hitzhangjie/gorpc/codec"
-	"github.com/hitzhangjie/gorpc/errs"
+	"github.com/hitzhangjie/gorpc/errors"
 )
 
 var udpBufferPool = &sync.Pool{
@@ -48,7 +48,7 @@ func (r *UdpMessageReader) Read(ep *UdpEndPoint) error {
 		// check if server to be Closed
 		select {
 		case <-ep.ctx.Done():
-			return errs.ErrServerCtxDone
+			return errors.ErrServerCtxDone
 		default:
 		}
 

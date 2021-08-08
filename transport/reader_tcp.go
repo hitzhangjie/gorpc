@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/hitzhangjie/gorpc/codec"
-	"github.com/hitzhangjie/gorpc/errs"
+	"github.com/hitzhangjie/gorpc/errors"
 )
 
 var tcpBufferPool = &sync.Pool{
@@ -49,7 +49,7 @@ func (r *TcpMessageReader) Read(ep *TcpEndPoint) error {
 		// check if server to be Closed
 		select {
 		case <-ep.ctx.Done():
-			return errs.ErrServerCtxDone
+			return errors.ErrServerCtxDone
 		default:
 		}
 
@@ -68,7 +68,7 @@ func (r *TcpMessageReader) Read(ep *TcpEndPoint) error {
 		// decode请求
 		req, sz, err := r.codec.Decode(ep.buf[0:buflen])
 		if err != nil {
-			if err == errs.CodecReadIncomplete {
+			if err == errors.ErrCodecReadIncomplete {
 				continue
 			}
 			//return nil, err

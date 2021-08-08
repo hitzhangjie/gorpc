@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/hitzhangjie/gorpc/errs"
+	"github.com/hitzhangjie/gorpc/errors"
 )
 
 type HandleWrapper func(ctx context.Context, req interface{}) (rsp interface{}, err error)
@@ -56,7 +56,7 @@ func (r *Router) Route(rpc string) (HandleWrapper, error) {
 
 	h, ok := r.mapping[rpc]
 	if !ok {
-		return nil, errs.ErrRouteNotFound
+		return nil, errors.ErrRouteNotFound
 	}
 
 	return h, nil

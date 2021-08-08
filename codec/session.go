@@ -5,27 +5,34 @@ import (
 	"sync"
 )
 
-// Session defines the rpc context for a request
+// Session defines the rpc context for a request.
 //
 // Usually, session can be stored in client or server side, we adopt the term `session`
 // instead of `RpcContext` for simplicity.
+//
+// TODO how about streaming call?
 type Session interface {
-	// RPCName return rpc name, i.e., the method name defined in pb service.rpc.name
+	// RPCName returns rpc name, i.e., the method name defined in pb service.rpc.name
 	RPCName() string
 
-	// ReqHead return the request header
+	// ReqHead returns the request header
 	Request() interface{}
-	// SetRequest set the request header
+
+	// SetRequest sets the request header
 	SetRequest(req interface{})
 
-	// RspHead return the response header
+	// RspHead returns the response header
 	Response() interface{}
-	// SetResponse set the response header
-	SetResponse(rsp interface{})
-	// SetErrorResponse set the error response
-	SetErrorResponse(error)
 
-	// TraceContext return the tracing context
+	// SetResponse sets the response header
+	SetResponse(rsp interface{})
+
+	// SetError sets the error status of response
+	SetError(error)
+
+	// TraceContext returns the tracing context
+	//
+	// TODO move this ability into interceptors
 	TraceContext() interface{}
 }
 
@@ -35,6 +42,7 @@ type BaseSession struct {
 	RspHead interface{}
 }
 
+// Request returns request header
 func (s *BaseSession) Request() interface{} {
 	if s != nil {
 		return s.ReqHead
@@ -42,12 +50,14 @@ func (s *BaseSession) Request() interface{} {
 	return nil
 }
 
+// SetRequest sets request header
 func (s *BaseSession) SetRequest(req interface{}) {
 	if s != nil {
 		s.ReqHead = req
 	}
 }
 
+// Response returns response header
 func (s *BaseSession) Response() interface{} {
 	if s != nil {
 		return s.RspHead
@@ -55,6 +65,7 @@ func (s *BaseSession) Response() interface{} {
 	return nil
 }
 
+// SetRequest sets response header
 func (s *BaseSession) SetResponse(rsp interface{}) {
 	if s != nil {
 		s.RspHead = rsp

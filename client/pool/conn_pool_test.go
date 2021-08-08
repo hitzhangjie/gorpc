@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/edwingeng/deque"
-	"github.com/hitzhangjie/gorpc/errs"
+	"github.com/hitzhangjie/gorpc/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -103,7 +103,7 @@ func TestConnPoolGetOnClose(t *testing.T) {
 
 	ctx := context.Background()
 	_, err := pool.Get(ctx)
-	assert.Equal(t, err, errs.ErrPoolClosed)
+	assert.Equal(t, err, errors.ErrPoolClosed)
 }
 
 func TestConnPoolConcurrentGet(t *testing.T) {
@@ -142,7 +142,7 @@ func TestConnPoolOverMaxActive(t *testing.T) {
 	assert.Equal(t, pool.active, maxActive)
 
 	_, err := pool.Get(ctx)
-	assert.Equal(t, err, errs.ErrExceedPoolLimit)
+	assert.Equal(t, err, errors.ErrExceedPoolLimit)
 }
 
 func TestConnPoolPut(t *testing.T) {
@@ -454,7 +454,7 @@ func TestConnPoolConnRead(t *testing.T) {
 	pc.Read(nil)
 	pc.closed = true
 	_, err = pc.Read(nil)
-	assert.Equal(t, err, errs.ErrConnClosed)
+	assert.Equal(t, err, errors.ErrConnClosed)
 }
 
 func TestConnPoolConnWrite(t *testing.T) {
@@ -465,7 +465,7 @@ func TestConnPoolConnWrite(t *testing.T) {
 	pc.Write(nil)
 	pc.closed = true
 	_, err = pc.Write(nil)
-	assert.Equal(t, err, errs.ErrConnClosed)
+	assert.Equal(t, err, errors.ErrConnClosed)
 }
 
 func TestConnPoolPrepare(t *testing.T) {

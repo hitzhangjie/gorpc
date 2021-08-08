@@ -2,8 +2,11 @@ package whisper
 
 import (
 	"fmt"
+
 	"github.com/golang/protobuf/proto"
+
 	"github.com/hitzhangjie/gorpc/codec"
+	"github.com/hitzhangjie/gorpc/errors"
 )
 
 type WhisperSession struct {
@@ -14,10 +17,19 @@ func (s *WhisperSession) RPCName() string {
 	return s.Request().(*Request).GetRpcname()
 }
 
-func (s *WhisperSession) SetErrorResponse(err error) {
+func (s *WhisperSession) SetError(err error) {
+	var code int
+	var msg string
 	rsp := s.Response().(*Response)
-	rsp.ErrCode = proto.Uint32(10000)
-	rsp.ErrMsg = proto.String(err.Error())
+	if errors.IsFrameworkError(err) {
+		code = errors.ErrorCode(err)
+		msg = errors.ErrorMsg(err)
+	} else {
+		code = 10000
+		msg = err.Error()
+	}
+	rsp.ErrCode = proto.Uint32(uint32(code))
+	rsp.ErrMsg = proto.String(msg)
 }
 
 func (s *WhisperSession) TraceContext() interface{} {

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/hitzhangjie/gorpc/codec"
-	"github.com/hitzhangjie/gorpc/errs"
+	"github.com/hitzhangjie/gorpc/errors"
 	"github.com/hitzhangjie/gorpc/router"
 )
 
@@ -106,7 +106,7 @@ func (s *TcpServerTransport) serve(l net.Listener) error {
 		// check whether server Closed
 		select {
 		case <-s.ctx.Done():
-			return errs.ErrServerCtxDone
+			return errors.ErrServerCtxDone
 		default:
 		}
 		// accept tcpconn

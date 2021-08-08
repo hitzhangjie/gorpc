@@ -1,27 +1,32 @@
 syntax = "proto2";
 package whisper;
 
-// PkgHeader request/response统一包头
+// FrameHeader is the frame header of Request and Response.
 //
-// 二进制编码协议：
-// | STX | PKG LENGTH | Request/Response BODY | ETX |
-// 0     1            5                       ~    ~+1
+// The encoding of FrameHeader is as follows:
 //
-// STX: 0x38
-// ETX: 0x49
+// |-----|------------|-----------------------|-----|
+// |-----|------------|-----------------------|-----|
+// \ STX \ PKG Length \ Request/Response Body \ ETX \
+//  0     1            5                       ~    ~+1
+//
+// STX: 1B (0x38)
+// PKG Length: 4B (length of body)
+// Req/Rsp Body: ...
+// ETX: 1B (0x49)
 
 // Request definition
 //
 // In Request, tracing `traceContext` is stored in map `meta`.
 message Request {
-    optional uint64 seqno = 1; // 包序号
-    optional string appid = 2; // 业务分配ID
-    optional string rpcname = 3; // rpc名称
-    optional string userid = 4; // 用户ID
-    optional string userkey = 5; // 用户key，鉴权用
-    optional uint32 version = 6; // 协议版本
-    optional bytes body = 7; // 业务包体
-    map<string, string> meta = 8; // 元信息
+  optional uint64 seqno = 1; // 包序号
+  optional string appid = 2; // 业务分配ID
+  optional string rpcname = 3; // rpc名称
+  optional string userid = 4; // 用户ID
+  optional string userkey = 5; // 用户key，鉴权用
+  optional uint32 version = 6; // 协议版本
+  optional bytes body = 7; // 业务包体
+  map<string, string> meta = 8; // 元信息
 }
 
 // Response definition
@@ -29,8 +34,8 @@ message Request {
 // `err_code` and `err_msg` should indicate errors in framework,
 // rather than business logic error or error description.
 message Response {
-    optional uint64 seqno = 1; // 包序号
-    optional uint32 err_code = 2; // 错误码
-    optional string err_msg = 3; // 错误描述信息
-    optional bytes body = 4; // 业务包体
+  optional uint64 seqno = 1; // 包序号
+  optional uint32 err_code = 2; // 错误码
+  optional string err_msg = 3; // 错误描述信息
+  optional bytes body = 4; // 业务包体
 }

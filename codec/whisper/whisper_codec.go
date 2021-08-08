@@ -3,12 +3,13 @@ package whisper
 import (
 	"bytes"
 	"encoding/binary"
-	"errors"
+	errs "errors"
 	"fmt"
 
 	"github.com/golang/protobuf/proto"
+
 	"github.com/hitzhangjie/gorpc/codec"
-	"github.com/hitzhangjie/gorpc/errs"
+	"github.com/hitzhangjie/gorpc/errors"
 )
 
 const maxWhisperPkgSize = 64 * (2 << 10) // 64KB
@@ -24,7 +25,7 @@ func (s *ServerCodec) Encode(pkg interface{}) ([]byte, error) {
 
 	pb, ok := pkg.(*Response)
 	if !ok {
-		return nil, errors.New("pkg not valid *whisper.RspHead")
+		return nil, errs.New("pkg not valid *whisper.Response")
 	}
 
 	data, err := proto.Marshal(pb)
@@ -44,55 +45,51 @@ func (s *ServerCodec) Encode(pkg interface{}) ([]byte, error) {
 func (s *ServerCodec) Decode(in []byte) (interface{}, int, error) {
 
 	if len(in) < 5 {
-		fmt.Println("<5")
-		return nil, 0, errs.CodecReadIncomplete
+		return nil, 0, errors.ErrCodecReadIncomplete
 	}
 
 	b := bytes.NewBuffer(in)
+
 	// pkg: | 1B:0x38 | 4B:len | payload | 1B: 0x49 |
 	var (
 		pkgStx int8
 		pkgLen int32
 		pkgEtx int8
 	)
+
 	// stx
 	if err := binary.Read(b, binary.BigEndian, &pkgStx); err != nil {
-		fmt.Println("read stx:", err)
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("read stx: %v", err)
 	}
 	if pkgStx != 0x38 {
-		fmt.Println("stx != 0x38, read:", pkgStx)
-		return nil, 0, errs.CodecReadInvalid
+		return nil, 0, fmt.Errorf("%w: stx mismatch", errors.ErrCodecReadInvalid)
 	}
 
 	// len
 	if err := binary.Read(b, binary.BigEndian, &pkgLen); err != nil {
-		fmt.Println("len =", pkgLen)
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("read len: %v", err)
 	}
 	if pkgLen > maxWhisperPkgSize {
-		return nil, 0, errs.CodecReadTooBig
+		return nil, 0, errors.ErrCodecReadTooBig
 	}
 
 	totalLen := int(1 + 4 + pkgLen + 1)
 	if len(in) < totalLen {
-		fmt.Println("<", totalLen)
-		return nil, 0, errs.CodecReadIncomplete
+		return nil, 0, errors.ErrCodecReadIncomplete
 	}
 
 	// payload
 	payload := make([]byte, pkgLen, pkgLen)
 	if err := binary.Read(b, binary.BigEndian, payload); err != nil {
-		return nil, 0, errs.CodecReadError
+		return nil, 0, errors.ErrCodecRead
 	}
+
 	// etx
 	if err := binary.Read(b, binary.BigEndian, &pkgEtx); err != nil {
-		fmt.Println("read etx, err:", err)
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("read ext: %v", err)
 	}
 	if pkgEtx != 0x49 {
-		fmt.Println("etx != 0x49, read:", pkgEtx)
-		return nil, 0, errs.CodecReadInvalid
+		return nil, 0, fmt.Errorf("%w: etx mismatch", errors.ErrCodecReadInvalid)
 	}
 
 	request := &Request{}
@@ -114,7 +111,7 @@ func (c *ClientCodec) Encode(pkg interface{}) ([]byte, error) {
 
 	pb, ok := pkg.(*Request)
 	if !ok {
-		return nil, errors.New("pkg not valid *whisper.RspHead")
+		return nil, errs.New("pkg not valid *whisper.RspHead")
 	}
 
 	data, err := proto.Marshal(pb)
@@ -134,7 +131,7 @@ func (c *ClientCodec) Encode(pkg interface{}) ([]byte, error) {
 func (c *ClientCodec) Decode(in []byte) (interface{}, int, error) {
 
 	if len(in) < 5 {
-		return nil, 0, errs.CodecReadIncomplete
+		return nil, 0, errors.ErrCodecReadIncomplete
 	}
 
 	b := bytes.NewBuffer(in)
@@ -150,32 +147,32 @@ func (c *ClientCodec) Decode(in []byte) (interface{}, int, error) {
 		return nil, 0, err
 	}
 	if pkgStx != 0x38 {
-		return nil, 0, errs.CodecReadInvalid
+		return nil, 0, errors.ErrCodecReadInvalid
 	}
 	// len
 	if err := binary.Read(b, binary.BigEndian, &pkgLen); err != nil {
 		return nil, 0, err
 	}
 	if pkgLen > maxWhisperPkgSize {
-		return nil, 0, errs.CodecReadTooBig
+		return nil, 0, errors.ErrCodecReadTooBig
 	}
 
 	totalLen := int(1 + 4 + pkgLen + 1)
 	if len(in) < totalLen {
-		return nil, 0, errs.CodecReadIncomplete
+		return nil, 0, errors.ErrCodecReadIncomplete
 	}
 
 	// payload
 	payload := make([]byte, pkgLen, pkgLen)
 	if err := binary.Read(b, binary.BigEndian, payload); err != nil {
-		return nil, 0, errs.CodecReadError
+		return nil, 0, errors.ErrCodecRead
 	}
 	// etx
 	if err := binary.Read(b, binary.BigEndian, &pkgEtx); err != nil {
 		return nil, 0, err
 	}
 	if pkgEtx != 0x49 {
-		return nil, 0, errs.CodecReadInvalid
+		return nil, 0, errors.ErrCodecReadInvalid
 	}
 	response := &Response{}
 	if err := proto.Unmarshal(payload, response); err != nil {

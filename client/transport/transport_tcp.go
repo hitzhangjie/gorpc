@@ -7,7 +7,7 @@ import (
 
 	"github.com/hitzhangjie/gorpc/client/pool"
 	"github.com/hitzhangjie/gorpc/codec"
-	"github.com/hitzhangjie/gorpc/errs"
+	"github.com/hitzhangjie/gorpc/errors"
 )
 
 // TcpTransport tcp transport
@@ -60,7 +60,7 @@ func (t *TcpTransport) Send(ctx context.Context, network, address string, reqHea
 		// decode
 		rsp, _, err := t.Codec.Decode(buf[:sz])
 		if err != nil {
-			if err == errs.CodecReadIncomplete {
+			if err == errors.ErrCodecReadIncomplete {
 				continue
 			}
 			return nil, err

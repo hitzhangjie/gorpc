@@ -27,13 +27,6 @@ func (t errorType) String() string {
 	}
 }
 
-// Error defines an error which helps determining where an error is generated.
-type Error struct {
-	Code int       // error code
-	Msg  string    // error message
-	Typ  errorType // error type
-}
-
 // New returns a new error
 //
 // framework error should be defined in framework, there's no need to export
@@ -45,6 +38,13 @@ func New(errCode int, errMsg string, typ errorType) *Error {
 		Msg:  errMsg,
 		Typ:  typ,
 	}
+}
+
+// Error defines an error which helps determining where an error is generated.
+type Error struct {
+	Code int       // error code
+	Msg  string    // error message
+	Typ  errorType // error type
 }
 
 // Error returns description of this error

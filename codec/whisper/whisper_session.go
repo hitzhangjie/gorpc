@@ -32,14 +32,6 @@ func (s *WhisperSession) SetError(err error) {
 	rsp.ErrMsg = proto.String(msg)
 }
 
-func (s *WhisperSession) TraceContext() interface{} {
-	req := s.Request().(*Request)
-	if req.Meta != nil {
-		return []byte(req.Meta["traceContext"])
-	}
-	return nil
-}
-
 // WhisperSessionBuilder builder for WhisperSession
 type WhisperSessionBuilder struct{}
 

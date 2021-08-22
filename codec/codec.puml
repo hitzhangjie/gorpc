@@ -1,0 +1,62 @@
+@startuml
+
+package Codec {
+interface Session {
+	+ Request() proto.Message
+	+ Reply(proto.Message)
+	+ SetStatus(error)
+}
+
+class UnaryRPCSession {
+	- req: proto.Message
+	- rsp: proto.Message
+}
+UnaryRPCSession -down-> Session
+
+class StreamRPCSession {
+	- reqChan: <-chan proto.Message
+	- rspChan: chan<- proto.Message
+}
+StreamRPCSession -up-> Session
+
+interface Serializer {
+	Marshal(req interface{}) (out []byte, err error)
+	Unmarshal(in []byte, val interface{}) (err error)
+}
+PBSerializer -up-> Serializer
+JSONSerializer -up-> Serializer
+
+interface Compressor {
+	Compress(in []byte) (out []byte, err error)
+	Decompress(in []byte) (out []byte, err error)
+}
+GZIPCompressor -up-> Compressor
+SnappyCompressor -up-> Compressor
+
+class MessageReader {
+	codec Codec
+	serializer Serializer
+	compressor Compressor
+	builder SessionBuilder
+}
+MessageReader "1" -down-> "1" Codec
+MessageReader "1" -down-> "1" Compressor
+MessageReader "1" -down-> "1" Serializer
+MessageReader "1" -up-> "1" SessionBuilder
+
+interface SessionBuilder {
+	Build(interface{}) (Session, error)
+}
+UnaryRPCSessionBuilder -down-> SessionBuilder
+StreamRPCSessionBuilder -down-> SessionBuilder
+
+SessionBuilder -right-> Session
+
+interface Codec {
+	Encode(proto.Message) ([]byte, error)
+	Decode([]byte, error) ([]byte, error)
+}
+GoRPCCodec -down-> Codec
+}
+
+@enduml

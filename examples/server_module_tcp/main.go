@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/proto"
+
 	"github.com/hitzhangjie/gorpc/client"
 	"github.com/hitzhangjie/gorpc/client/selector"
 	"github.com/hitzhangjie/gorpc/codec/whisper"
 	"github.com/hitzhangjie/gorpc/router"
-	"github.com/hitzhangjie/gorpc/server"
 	"github.com/hitzhangjie/gorpc/transport"
 )
 
@@ -30,7 +30,8 @@ func main() {
 			return pbrsp, nil
 		})
 
-		tcpSvr, err := transport.NewTcpServerTransport("tcp4", "127.0.0.1:8888", whisper.Whisper, server.WithRouter(r))
+		tcpSvr, err := transport.NewTcpServerTransport(context.TODO(),
+			"tcp4", "127.0.0.1:8888", whisper.Whisper, transport.WithRouter(r))
 		if err != nil {
 			panic(err)
 		}

@@ -167,7 +167,7 @@ func (s *TcpServerTransport) proc(reqCh <-chan interface{}, rspCh chan<- interfa
 				// find route
 				handle, err := r.Route(session.RPCName())
 				if err != nil {
-					session.SetErrorResponse(err)
+					session.SetError(err)
 					log.Fatalf("tcp router route error:%v", err)
 					return
 				}
@@ -175,7 +175,7 @@ func (s *TcpServerTransport) proc(reqCh <-chan interface{}, rspCh chan<- interfa
 				ctx := codec.ContextWithSession(s.ctx, session)
 				rsp, err := handle(ctx, req)
 				if err != nil {
-					session.SetErrorResponse(err)
+					session.SetError(err)
 					log.Fatalf("tcp handle func error:%v, rsp:%v", err, rsp)
 				} else {
 					session.SetResponse(rsp)

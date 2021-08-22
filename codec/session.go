@@ -7,19 +7,23 @@ import (
 
 // Session defines the rpc context for a request.
 //
-// Usually, session can be stored in client or server side, we adopt the term `session`
-// instead of `RpcContext` for simplicity.
+// Usually, session can be stored in client and server side:
+// - unary rpc:
+// 	- when client starts an rpc, new session is initialized locally
+// 	- when server receives the request, new session is initialized remotely
+// - streaming rpc:
+// 	- when client starts an stream, new session is initialized locally
+// 	- when server receives the openning stream request, new session is initialized remotely
 //
-// TODO how about streaming call?
+// we uses term `session` instead of `RpcContext` so as to avoid being
+// misunderstood btw 'context.Context' and 'codec.RpcContext', though 'RpcContext'
+// is a good name.
 type Session interface {
 	// RPCName returns rpc name, i.e., the method name defined in pb service.rpc.name
 	RPCName() string
 
-	// ReqHead returns the request header
+	// ReqHead returns the request header of unary rpc, or next request header of streaming rpc
 	Request() interface{}
-
-	// SetRequest sets the request header
-	SetRequest(req interface{})
 
 	// RspHead returns the response header
 	Response() interface{}
@@ -29,11 +33,6 @@ type Session interface {
 
 	// SetError sets the error status of response
 	SetError(error)
-
-	// TraceContext returns the tracing context
-	//
-	// TODO move this ability into interceptors
-	TraceContext() interface{}
 }
 
 // BaseSession implements some basic methods defined in `Session`
@@ -48,13 +47,6 @@ func (s *BaseSession) Request() interface{} {
 		return s.ReqHead
 	}
 	return nil
-}
-
-// SetRequest sets request header
-func (s *BaseSession) SetRequest(req interface{}) {
-	if s != nil {
-		s.ReqHead = req
-	}
 }
 
 // Response returns response header

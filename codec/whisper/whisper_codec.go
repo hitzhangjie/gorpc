@@ -12,7 +12,7 @@ import (
 	"github.com/hitzhangjie/gorpc/errors"
 )
 
-const maxWhisperPkgSize = 64 * (2 << 10) // 64KB
+const maxWhisperPkgSize = 10 * (1 << 20) // 10MB
 
 // ServerCodec serverside codec
 type ServerCodec struct{}

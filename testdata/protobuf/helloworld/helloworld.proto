@@ -1,0 +1,20 @@
+syntax = "proto3";
+package helloworld;
+
+option go_package="git.code.oa.com/helloworld";
+
+service HelloService {
+    rpc Hello(HelloRequest) returns(HelloResponse);
+    
+}
+
+message HelloRequest {
+   string msg = 1; 
+}
+
+message HelloResponse {
+   int32 err_code = 1; 
+   string err_msg = 2;
+}
+
+

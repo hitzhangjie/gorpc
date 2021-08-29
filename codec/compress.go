@@ -15,42 +15,41 @@ type Compressor interface {
 	Decompress([]byte) ([]byte, error)
 }
 
-// CompressType compress type
-type CompressType int
+// gzipCompressor compressor using GZip cmopression algorithm
+type gzipCompressor struct {
+	reader *gzip.Reader
+	writer *gzip.Writer
+	buffer *bytes.Buffer
+}
 
-const (
-	CompressGZip   = CompressType(iota) // gzip compress
-	CompressSnappy                      // snappy compress
-	CompressLZ4                         // lz4 compress
-)
-
-// GZipCompressor compressor using GZip cmopression algorithm
-type GZipCompressor struct{}
+// NewGZipCompressor returns a new initialized gzipCompressor
+func NewGZipCompressor() *gzipCompressor {
+	return &gzipCompressor{
+		reader: new(gzip.Reader),
+		writer: new(gzip.Writer),
+		buffer: bytes.NewBuffer(nil),
+	}
+}
 
 // Compress returns the compressed format of data
-func (c *GZipCompressor) Compress(data []byte) ([]byte, error) {
+func (c *gzipCompressor) Compress(data []byte) ([]byte, error) {
 	buf := &bytes.Buffer{}
-	w, err := gzip.NewWriterLevel(buf, gzip.BestSpeed)
-	if err != nil {
-		return nil, err
-	}
 
-	_, err = w.Write(data)
-	if err != nil {
+	c.writer.Reset(buf)
+	if _, err := c.writer.Write(data); err != nil {
 		return nil, err
 	}
-	w.Close()
+	c.writer.Close()
 
 	return buf.Bytes(), nil
 }
 
 // Decompress decompress returns the compressed form of data
-func (c *GZipCompressor) Decompress(data []byte) ([]byte, error) {
-	r, err := gzip.NewReader(bytes.NewBuffer(data))
-	if err != nil {
+func (c *gzipCompressor) Decompress(data []byte) ([]byte, error) {
+	if err := c.reader.Reset(bytes.NewReader(data)); err != nil {
 		return nil, err
 	}
-	defer r.Close()
+	defer c.reader.Close()
 
-	return io.ReadAll(r)
+	return io.ReadAll(c.reader)
 }

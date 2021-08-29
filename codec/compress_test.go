@@ -12,7 +12,7 @@ import (
 var (
 	msg = "helloworld"
 
-	compressor = &codec.GZipCompressor{}
+	compressor = codec.NewGZipCompressor()
 )
 
 func TestGZipCompressor_Compress(t *testing.T) {
@@ -29,4 +29,17 @@ func TestGZipCompressor_Decompress(t *testing.T) {
 	dat, err := compressor.Decompress(b)
 	assert.Nil(t, err)
 	assert.Equal(t, msg, string(dat))
+}
+
+func BenchmarkGzipCompressor_Decompress(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		b.Run("", func(b *testing.B) {
+			buf, err := compressor.Compress([]byte(msg))
+			assert.Nil(b, err)
+
+			dat, err := compressor.Decompress(buf)
+			assert.Nil(b, err)
+			assert.Equal(b, msg, string(dat))
+		})
+	}
 }

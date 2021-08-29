@@ -27,19 +27,20 @@ var (
 )
 
 type codec struct {
-	name   string
-	server Codec
-	client Codec
+	name        string
+	serverCodec Codec
+	clientCodec Codec
 }
 
 // RegisterCodec registers codec of protocol
 func RegisterCodec(protocol string, server, client Codec) {
 	codecsMux.Lock()
 	defer codecsMux.Unlock()
+
 	codecs[protocol] = codec{
-		name:   protocol,
-		server: server,
-		client: client,
+		name:        protocol,
+		serverCodec: server,
+		clientCodec: client,
 	}
 }
 
@@ -47,12 +48,13 @@ func RegisterCodec(protocol string, server, client Codec) {
 func ServerCodec(protocol string) Codec {
 	codecsMux.RLock()
 	defer codecsMux.RUnlock()
-	return codecs[protocol].server
+
+	return codecs[protocol].serverCodec
 }
 
 // ClientCodec returns client side codec of protocol
 func ClientCodec(name string) Codec {
 	codecsMux.RLock()
 	defer codecsMux.RUnlock()
-	return codecs[name].client
+	return codecs[name].clientCodec
 }

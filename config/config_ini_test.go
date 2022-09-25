@@ -1,10 +1,13 @@
 package config_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/hitzhangjie/gorpc/config"
 )
@@ -64,4 +67,42 @@ func TestConfig_IniConfig(t *testing.T) {
 			}
 		})
 	}
+}
+
+/*
+# possible values : production, development
+app_mode = development
+
+[paths]
+# Path to where grafana can store temp files, sessions, and the sqlite3 db (if that is used)
+data = /home/git/grafana
+
+[server]
+# Protocol (http or https)
+protocol = http
+
+# The http port  to use
+http_port = 9999
+
+# Redirect to correct domain if host header does not match domain
+# Prevents DNS rebinding attacks
+enforce_domain = true
+*/
+type iniServiceConfig struct {
+	app_mode string
+	paths    struct {
+		data string
+	}
+	server struct {
+		protocol       string
+		http_port      int
+		enforce_domain bool
+	}
+}
+
+func TestConfig_IniConfig_ToStruct(t *testing.T) {
+	vv := iniServiceConfig{}
+	err := iniCfg.ToStruct(&vv)
+	assert.Nil(t, err)
+	fmt.Println(vv)
 }

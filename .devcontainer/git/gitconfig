@@ -1,0 +1,53 @@
+[user]
+    name = hitzhangjie
+    email = hit.zhangjie@gmail.com
+
+[core]
+    editor = /usr/bin/vim
+    quotepath = false
+    pager = less
+    autocrlf = input
+[color]
+    branch = auto
+    diff = auto
+    status = auto
+[color "branch"]
+    current = yellow reverse
+    local = yellow
+    remote = green
+[color "diff"]
+    meta = yellow bold
+    frag = magenta bold
+    old = red bold
+    new = green bold
+[color "status"]
+    added = yellow
+    changed = green
+    untracked = cyan
+[push]
+    default = simple
+[alias]
+    co = clone
+    ck = checkout
+    cc = commit
+    ss = status
+    bb = branch
+    ff = "fetch --prune"
+    rr = "remote -v"
+    rs = "restore --staged"
+    unstage = reset HEAD --
+    last = log -1 HEAD
+    visual = !gitk
+    logx = "log --abbrev-commit --graph --pretty=format:'%Cgreen%h %C(bold blue)%cr %Creset>>> %C(bold yellow)%<(78,trunc)%s %Creset<<< %Cred<%an>%Creset'"
+    logxx = "log --abbrev-commit --graph --pretty=format:'%Cgreen%h %C(bold blue)%ci %Creset>>> %C(bold yellow)%<(78,trunc)%s %Creset<<< %Cred<%an>%Creset'"
+    cp = "cherry-pick"
+
+[credential]
+    helper = store
+[filter "lfs"]
+    clean = git-lfs clean -- %f
+    smudge = git-lfs smudge -- %f
+    process = git-lfs filter-process
+    required = true
+[pull]
+    rebase = true

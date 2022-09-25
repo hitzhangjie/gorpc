@@ -1,6 +1,5 @@
 .idea
 *.iml
 .DS_Store
-.devcontainer
 tools/gorpc/gorpc
 

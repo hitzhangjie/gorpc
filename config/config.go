@@ -3,6 +3,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"sync/atomic"
@@ -68,5 +69,18 @@ func (c *config) ReadBool(key string, dftValue bool) bool {
 	default:
 		fmt.Fprintln(os.Stderr, "not supported config: ", v)
 		return dftValue
+	}
+}
+
+func (c *config) ToStruct(v interface{}) error {
+	cfg := c.value.Load()
+
+	switch v := cfg.(type) {
+	case *YamlConfig:
+		return v.ToStruct(v)
+	case *IniConfig:
+		return v.ToStruct(v)
+	default:
+		return errors.New("invalid Config type")
 	}
 }

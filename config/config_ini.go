@@ -70,7 +70,7 @@ func (c *IniConfig) ReadBool(key string, dftValue bool) bool {
 }
 
 func (c *IniConfig) ToStruct(cfg interface{}) error {
-	return c.cfg.MapTo(cfg)
+	return c.cfg.StrictMapTo(cfg)
 }
 
 func (c *IniConfig) split(key string) (string, string) {

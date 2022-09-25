@@ -89,20 +89,20 @@ http_port = 9999
 enforce_domain = true
 */
 type iniServiceConfig struct {
-	app_mode string
-	paths    struct {
-		data string
-	}
-	server struct {
-		protocol       string
-		http_port      int
-		enforce_domain bool
-	}
+	AppMode string `ini:"app_mode"`
+	Paths   struct {
+		Data string `ini:"data"`
+	} `ini:"paths"`
+	Server struct {
+		Protocol      string `ini:"protocol"`
+		HttpPort      int    `ini:"http_port"`
+		EnforceDomain bool   `ini:"enforce_domain"`
+	} `ini:"server"`
 }
 
 func TestConfig_IniConfig_ToStruct(t *testing.T) {
 	vv := iniServiceConfig{}
 	err := iniCfg.ToStruct(&vv)
 	assert.Nil(t, err)
-	fmt.Println(vv)
+	fmt.Printf("%+v\n", vv)
 }

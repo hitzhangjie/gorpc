@@ -33,7 +33,6 @@ func NewYamlConfig(fp string) (*YamlConfig, error) {
 }
 
 func (c *YamlConfig) Read(key string, dftValue string) string {
-
 	if c.yml == nil {
 		return dftValue
 	}
@@ -48,7 +47,6 @@ func (c *YamlConfig) Read(key string, dftValue string) string {
 }
 
 func (c *YamlConfig) ReadInt(key string, dftValue int) int {
-
 	if c.yml == nil {
 		return dftValue
 	}
@@ -63,7 +61,6 @@ func (c *YamlConfig) ReadInt(key string, dftValue int) int {
 }
 
 func (c *YamlConfig) ReadBool(key string, dftValue bool) bool {
-
 	if c.yml == nil {
 		return dftValue
 	}

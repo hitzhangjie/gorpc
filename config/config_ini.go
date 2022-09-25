@@ -13,7 +13,6 @@ type IniConfig struct {
 
 // NewIniConfig create a new config from ini configfile `fp`
 func NewIniConfig(fp string) (*IniConfig, error) {
-
 	cfg, err := ini.Load(fp)
 	if err != nil {
 		return nil, err

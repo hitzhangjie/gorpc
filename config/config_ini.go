@@ -69,6 +69,10 @@ func (c *IniConfig) ReadBool(key string, dftValue bool) bool {
 	return c.Bool(s, p, dftValue)
 }
 
+func (c *IniConfig) ToStruct(cfg interface{}) error {
+	return c.cfg.MapTo(cfg)
+}
+
 func (c *IniConfig) split(key string) (string, string) {
 	v := strings.SplitN(key, ".", 2)
 	switch len(v) {

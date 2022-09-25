@@ -18,6 +18,9 @@ type Config interface {
 
 	// ReadBool, read bool value by `key`, if not found, return dftValue
 	ReadBool(key string, dftValue bool) bool
+
+	// ToStruct convert config data to specified struct
+	ToStruct(cfg interface{}) error
 }
 
 type config struct {

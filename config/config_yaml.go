@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/mitchellh/mapstructure"
 	"github.com/smallfish/simpleyaml"
 )
 
@@ -72,6 +73,15 @@ func (c *YamlConfig) ReadBool(key string, dftValue bool) bool {
 		return dftValue
 	}
 	return v
+}
+
+func (c *YamlConfig) ToStruct(cfg interface{}) error {
+	vv := c.yml
+	m, err := vv.Map()
+	if err != nil {
+		return err
+	}
+	return mapstructure.Decode(m, cfg)
 }
 
 func (c *YamlConfig) path(key string) []interface{} {

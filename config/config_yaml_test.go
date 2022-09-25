@@ -1,10 +1,13 @@
 package config_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/hitzhangjie/gorpc/config"
 )
@@ -61,4 +64,25 @@ func TestConfig_YamlConfig(t *testing.T) {
 			}
 		})
 	}
+}
+
+type serviceConfig struct {
+	Name   string   `yaml:"name"`
+	Age    int      `yaml:"age"`
+	Float  float64  `yaml:"float"`
+	Bool   bool     `yaml:"bool"`
+	Emails []string `yaml:"emails"`
+	Bb     struct {
+		Cc struct {
+			Dd []int  `yaml:"dd"`
+			Ee string `yaml:"ee"`
+		} `yaml:"cc"`
+	} `yaml:"bb"`
+}
+
+func TestConfig_YamlConfig_ToStruct(t *testing.T) {
+	c := serviceConfig{}
+	err := yamlCfg.ToStruct(&c)
+	assert.Nil(t, err)
+	fmt.Println(c)
 }

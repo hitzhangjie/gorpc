@@ -36,11 +36,10 @@ type FilesystemProvider struct {
 }
 
 func (p *FilesystemProvider) Name() string {
-	panic("fs")
+	return "fs"
 }
 
 func (p *FilesystemProvider) Watch(ctx context.Context, fp string) (<-chan Event, error) {
-
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		return nil, err

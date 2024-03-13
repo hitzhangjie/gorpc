@@ -11,7 +11,7 @@ require (
 	github.com/smallfish/simpleyaml v0.0.0-20170911015856-a32031077861
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/stretchr/testify v1.4.0
-	google.golang.org/protobuf v1.27.1
+	google.golang.org/protobuf v1.33.0
 	gopkg.in/ini.v1 v1.48.0
 	gopkg.in/yaml.v2 v2.2.4
 )
